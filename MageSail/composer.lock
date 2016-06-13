@@ -1,0 +1,49 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
+        "This file is @generated automatically"
+    ],
+    "hash": "8a6dbc72efc4cd3889108556ed9465d7",
+    "content-hash": "86a1300b29bb0eabd46266cd2c2f1818",
+    "packages": [
+        {
+            "name": "sailthru/sailthru-php5-client",
+            "version": "1.2.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/sailthru/sailthru-php5-client.git",
+                "reference": "003cade287b9f498dc2d9bb398a2e7b1214f1b33"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/sailthru/sailthru-php5-client/zipball/003cade287b9f498dc2d9bb398a2e7b1214f1b33",
+                "reference": "003cade287b9f498dc2d9bb398a2e7b1214f1b33",
+                "shasum": ""
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "sailthru/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "Sailthru PHP5 Client",
+            "homepage": "http://github.com/sailthru/sailthru-php5-client",
+            "time": "2016-05-11 19:44:23"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": [],
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": {
+        "php": "~5.5.0|~5.6.0|~7.0.0"
+    },
+    "platform-dev": []
+}

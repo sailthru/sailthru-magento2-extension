@@ -1,0 +1,15 @@
+<!-- <div class="pp-buttons-container">
+    <button id="<?php echo $block->getHtmlId() ?>" onclick="return false;">
+        <span><?php echo $block->escapeHtml($block->getButtonLabel()) ?></span>
+    </button>
+</div> -->
+<div><?php echo var_dump($block->getSailthru()) ?></div>
+
+<script>
+ var params = {internUrl:"<?php echo $block->getInternUrl() ?>",  apiKeyId: "#<?php echo $block->getApiKeyId() ?>", htmlId: "#<?php echo $block->getHtmlId() ?>", loadConfigUrl: "<?php echo $block->getLoadConfigUrl() ?>"};  
+         // document.querySelector("#<?php echo $block->getHtmlId() ?>").onclick = function(e){
+         	console.log(params);
+           // e.target.preventDefault();
+           // e.target.html = params;
+         // };       
+</script>
