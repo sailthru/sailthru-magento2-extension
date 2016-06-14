@@ -67,17 +67,19 @@ class Check extends \Magento\Config\Block\System\Config\Form\Field
     {
         $originalData = $element->getOriginalData();
         $buttonLabel = !empty($originalData['button_label']) ? $originalData['button_label'] : 'Validate Credentials';
-        $settings = $this->_sailthru->apiValidate();
-        $this->addData(
-            [
-                'button_label' => __($buttonLabel),
-                'api_key_id' => $originalData['api_key_id'],
-                'intern_url' => $this->getUrl($originalData['button_url']),
-                'load_config_url' => $this->getUrl($originalData['load_config_url']),
-                'html_id' => $element->getHtmlId(),
-                'sailthru' => $settings
-            ]
-        );
+        $api_validate = $this->_sailthru->apiValidate();
+        if ($api_validate[0] == 1){
+            $data = [
+                'class' => 'sail_success',
+                'status' => 'API Validation Complete',
+            ];
+        } else {
+            $data = [
+                'class' => 'sail_fail',
+                'status'  => 'API Validation Failed'];
+        }
+        $data['message'] = $api_validate[1];
+        $this->addData($data);
         return $this->_toHtml();
     }
 }

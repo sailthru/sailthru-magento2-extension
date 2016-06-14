@@ -3,7 +3,10 @@
         <span><?php echo $block->escapeHtml($block->getButtonLabel()) ?></span>
     </button>
 </div> -->
-<div><?php echo var_dump($block->getSailthru()) ?></div>
+<div class="<?php echo $block->getClass() ?>">
+	<h1><?php echo $block->getStatus() ?></h1>
+	<h2><?php echo $block->getMessage() ?></h2>
+</div>
 
 <script>
  var params = {internUrl:"<?php echo $block->getInternUrl() ?>",  apiKeyId: "#<?php echo $block->getApiKeyId() ?>", htmlId: "#<?php echo $block->getHtmlId() ?>", loadConfigUrl: "<?php echo $block->getLoadConfigUrl() ?>"};  
