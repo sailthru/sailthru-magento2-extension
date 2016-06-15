@@ -79,6 +79,9 @@ class Check extends \Magento\Config\Block\System\Config\Form\Field
                 'status'  => 'API Validation Failed'];
         }
         $data['message'] = $api_validate[1];
+        $data['html_id'] = $element->getHtmlId();
+        $data['success'] = $api_validate[0];
+        $data['original_data'] = $originalData;
         $this->addData($data);
         return $this->_toHtml();
     }

@@ -18,8 +18,8 @@ class Api extends AbstractHelper
 		$this->_scopeConfig = $scopeConfig;
 		$api_key = $this->_scopeConfig->getValue('magesail_config/service/api_key');
 		$api_secret = $this->_scopeConfig->getValue('magesail_config/service/secret_key');
-		$valid_keys = $this->_scopeConfig->getValue('sailthru_api/magesail_api/valid_keys');
-		// error_log("valid keys = " . $valid_keys);
+		$valid_keys = $this->_scopeConfig->getValue('magesail_config/service/magesail_api/valid_keys');
+		error_log("valid keys = " . $valid_keys);
 		// error_log("api key is: $api_key");
 		// error_log("secret key is: $api_key");
 		$this->getClient($api_key, $api_secret);
@@ -49,6 +49,11 @@ class Api extends AbstractHelper
 			$this->_scopeConfig->setValue('sailthru_api/magesail_api/valid_keys', 0);
 			return [0, $result["errormsg"]];
 		}
+	}
+
+	public function isValid(){
+		$check = $this->apiValidate();
+		return $check[0];
 	}
 
 
