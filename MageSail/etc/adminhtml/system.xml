@@ -16,8 +16,9 @@
 
             <group id="service" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Sailthru API Setup</label>
-                <field id="magesail_on" translate="label" type="select" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Enable</label>
+                <field id="js_enabled" translate="label" type="select" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Personalization Engine JS</label>
+                    <comment>Enable to automatically insert Personalization Engine javascript.</comment> 
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
                 <field id="api_key" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -34,20 +35,20 @@
             </group>
         </section>
 
-        <section id="lists_config" translate="label" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+        <section id="magesail_lists" translate="label" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
             <tab>sailthru</tab>
             <label>Lists</label>
             <resource>Sailthru_Magesail::config</resource>
-            
+
             <group id="lists" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Lists</label>
                 <field id="enable_signup_list" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Add new registering customers to Sailthru list</label>
-                    <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
+                    <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnabledisable</source_model>
                     <comment>Upon registration, set users to be added to a Sailthru list of your choice.</comment>
                 </field>
-                 <field id="signup_list" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Customer Sign-Up List</label>
+                 <field id="signup_list" translate="label" type="multiselect" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Customer Sign-Up Lists</label>
                     <source_model>Sailthru\MageSail\Model\Config\Source\Sailthrulists</source_model>
                     <tooltip><![CDATA[New a new list? Check my.sailthru.com to create it!]]></tooltip>
                     <comment>Select the Sailthru list where newly registered customers will be added.</comment>
@@ -57,11 +58,11 @@
                 </field>
                 <field id="enable_newsletter" translate="label comment" type="select" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Override Default Magento Newsletter Subscribe</label>
-                    <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
+                    <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnabledisable</source_model>
                     <comment>Override Magento's default Newsletter system and add users instead to a Sailthru List</comment>
                 </field>
-               <field id="newsletter_list" translate="label" type="select" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Newsletter List</label>
+               <field id="newsletter_list" translate="label" type="multiselect" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Newsletter Lists</label>
                     <source_model>Sailthru\MageSail\Model\Config\Source\Sailthrulists</source_model>
                     <tooltip><![CDATA[New a new list? Check my.sailthru.com to create it!]]></tooltip>
                     <depends>
@@ -71,70 +72,83 @@
             </group>
         </section>
 
-        <section id="sailthru_transactionals" translate="label" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+        <section id="magesail_transactionals" translate="label" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Transactionals</label>
             <tab>sailthru</tab>
             <resource>Sailthru_Magesail::config</resource>
 
-            <group id="magesail_transactional" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Sailthru Transactionals</label>
-                <field id="magesail_transactional_shipping" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Shipping</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <depends>
-                        <field id="sailthru_api/magesail_api/valid_keys">1</field>
-                    </depends>
+            <group id="common" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>General Transactionals</label>
+                <field id="shipping_enabled" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="1">
+                    <label>Override Magento Shipping</label>
+                    <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnabledisable</source_model>
                 </field>
-                <field id="magesail_transactional_purchase" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Purchases</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                <field id="shipping_template" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="2">
+                    <label>Shipping Template</label>
                     <depends>
-                        <field id="sailthru_api/magesail_api/valid_keys">1</field>
+                        <field id="*/*/shipping_enabled">1</field>
                     </depends>
+                    <source_model>Sailthru\MageSail\Model\Config\Source\Sailthrutemplates</source_model>
                 </field>
-                <field id="magesail_transactional_signup" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Signups</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <depends>
-                        <field id="sailthru_api/magesail_api/valid_keys">1</field>
-                    </depends>
+                <field id="purchase_enabled" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="3">
+                    <label>Override Magento Purchase Confirmation</label>
+                    <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnabledisable</source_model>
                 </field>
-                <field id="helptext">
-                    <comment>Please enter valid Sailthru credentials to access settings.</comment>
+                <field id="purchase_template" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="4">
+                    <label>Purchase Confirmation Template</label>
                     <depends>
-                        <field id="sailthru_api/magesail_api/valid_keys">0</field>
+                        <field id="*/*/purchase_enabled">1</field>
                     </depends>
+                    <source_model>Sailthru\MageSail\Model\Config\Source\Sailthrutemplates</source_model>
+                </field>
+                <field id="signup_enabled" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="5">
+                    <label>Override Magento Signup Email</label>
+                    <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnabledisable</source_model>
+                </field>
+               <field id="signup_template" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="6">
+                    <label>Sign-Up Template</label>
+                    <depends>
+                        <field id="*/*/signup_enabled">1</field>
+                    </depends>
+                    <source_model>Sailthru\MageSail\Model\Config\Source\Sailthrutemplates</source_model>
                 </field>
             </group>
 
-            <group id="magesail_abandoned_cart" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="abandoned_cart" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Sailthru Abandoned Cart</label>
-                <field id="magesail_abandoned_on" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="enabled" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Enable Abandoned Cart</label>
-                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnabledisable</source_model>
                 </field>                
-                <field id="magesail_abandoned_template" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="template" translate="label" type="select" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Abandoned Cart Template</label>
+                    <depends>
+                        <field id="*/*/enabled">1</field>
+                    </depends>
+                    <source_model>Sailthru\MageSail\Model\Config\Source\Sailthrutemplates</source_model>
                 </field>
-                <field id="magesail_abandoned_time" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="delay_time" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Abandoned Cart Send Time</label>
                     <tooltip>e.g. 5 minutes, 1 hour, 1 day</tooltip>
                     <comment>Amount of time after updating a non-empty cart that Sailthru should send the customer an email</comment>
+                    <depends>
+                        <field id="*/*/enabled">1</field>
+                    </depends>
                 </field>
             </group>
         </section>
-        <section id="sailthru_pm" translate="label" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Personalization Manager</label>
+        <section id="magesail_personalize" translate="label" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Personalization Engine</label>
             <tab>sailthru</tab>
             <resource>Sailthru_Magesail::config</resource>
             <group id="magesail_pm" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Personalization Manager Setup</label>
                 <field id="magesail_on" translate="label" type="select" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Enable PersonalizeJS</label>
+                    <label>Enable Personalization Engine</label>
                     <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
                 </field>
-                <field id="sailthru_key" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Horizon Domain</label>
+                <field id="customer_id" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Customer ID</label>
                 </field>                
             </group>
         </section>

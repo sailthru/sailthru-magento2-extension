@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column" xsi:noNamespaceSchemaLocation="../../../../../../../lib/internal/Magento/Framework/View/Layout/etc/page_configuration.xsd">
+    <head>
+        <link src="http://ak.sail-horizon.com/onsite/personalize.v0.0.3.min.js" src_type="url"/>
+        <link src="Sailthru_MageSail::test.js" />
+    </head>
+    <bpdy/>
+</page>

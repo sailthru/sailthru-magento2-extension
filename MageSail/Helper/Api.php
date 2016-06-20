@@ -12,6 +12,8 @@ class Api extends AbstractHelper
 
 	const API_SUCCESS_MESSAGE = "Success! Sail away!";
 
+	const VALIDATION_NEEDED_MSG = "Please Enter Valid Sailthru Credentials";
+
 	public function __construct(
 		\Magento\Framework\App\MutableScopeConfig $scopeConfig
 	){
@@ -54,6 +56,10 @@ class Api extends AbstractHelper
 	public function isValid(){
 		$check = $this->apiValidate();
 		return $check[0];
+	}
+
+	public function getInvalidMessage(){
+		return self::VALIDATION_NEEDED_MSG;
 	}
 
 

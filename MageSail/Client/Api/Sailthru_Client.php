@@ -1546,6 +1546,7 @@ class Sailthru_Client {
      * @return array
      */
     public function apiGet($action, $data = array(), $method = 'GET', $options = array()) {
+        $data['integration'] = 'Magento 2';
         return $this->httpRequest($action, $this->prepareJsonPayload($data), $method, $options);
     }
 
