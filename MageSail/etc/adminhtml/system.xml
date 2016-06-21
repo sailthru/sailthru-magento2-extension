@@ -141,7 +141,7 @@
             <label>Personalization Engine</label>
             <tab>sailthru</tab>
             <resource>Sailthru_Magesail::config</resource>
-            <group id="magesail_pm" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="settings" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Personalization Manager Setup</label>
                 <field id="magesail_on" translate="label" type="select" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Enable Personalization Engine</label>

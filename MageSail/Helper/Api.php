@@ -44,11 +44,8 @@ class Api extends AbstractHelper
 	public function apiValidate(){
 		$result = $this->client->getSettings();
 		if (!array_key_exists("error", $result)) {
-			$this->_scopeConfig->setValue('sailthru_api/magesail_api/valid_keys', 1);
 			return [1, "Set Sail!"];
-		} else 
-		{
-			$this->_scopeConfig->setValue('sailthru_api/magesail_api/valid_keys', 0);
+		} else {
 			return [0, $result["errormsg"]];
 		}
 	}
@@ -62,6 +59,9 @@ class Api extends AbstractHelper
 		return self::VALIDATION_NEEDED_MSG;
 	}
 
+	public function getClientID(){
+		return $this->scopeConfig->getValue('magesail_personalize/settings/client/customer_id');
+	}
 
 
 }
