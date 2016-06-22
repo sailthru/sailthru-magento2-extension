@@ -3,7 +3,6 @@
     <head>
         <!-- <script src="http://ak.sail-horizon.com/onsite/personalize.v0.0.2.min.js" src_type="url"/> -->
         <link src="Sailthru_MageSail::test.js" />
-    	<!-- <link src="Sailthru_MageSail::sailthru.js" /> -->
     </head>
     <body/>
 </page>

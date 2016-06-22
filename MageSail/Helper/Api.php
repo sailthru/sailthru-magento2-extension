@@ -63,5 +63,11 @@ class Api extends AbstractHelper
 		return $this->scopeConfig->getValue('magesail_personalize/settings/client/customer_id');
 	}
 
+	public function logger($message){
+		$writer = new \Zend\Log\Writer\Stream(BP . '/var/log/sailthru.log');
+		$logger = new \Zend\Log\Logger();
+		$logger->addWriter($writer);
+		$logger->info($message);
+	}
 
 }
