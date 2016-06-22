@@ -28,11 +28,11 @@ class Api extends AbstractHelper
 	}
 
 	public function getClient($api_key, $api_secret){
-		require(__DIR__ . '/../Client/Api/Sailthru_Client.php');
+		require(__DIR__ . '/../Client/MageClient.php');
 		require(__DIR__ . '/../Client/Api/Sailthru_Client_Exception.php');
 		require(__DIR__ . '/../Client/Api/Sailthru_Util.php');
 		try {
-			$this->client = new \Sailthru\MageSail\Client\Api\Sailthru_Client($api_key, $api_secret);
+			$this->client = new \MageClient($api_key, $api_secret, '/var/log/sailthru.log');
 		}
 		catch (\Sailthru_Client_Exception $e) {
 			$this->client = $e->getMessage();
@@ -63,11 +63,6 @@ class Api extends AbstractHelper
 		return $this->scopeConfig->getValue('magesail_personalize/settings/client/customer_id');
 	}
 
-	public function logger($message){
-		$writer = new \Zend\Log\Writer\Stream(BP . '/var/log/sailthru.log');
-		$logger = new \Zend\Log\Logger();
-		$logger->addWriter($writer);
-		$logger->info($message);
-	}
+
 
 }

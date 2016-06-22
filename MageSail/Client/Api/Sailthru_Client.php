@@ -7,7 +7,6 @@
  * XML format is also available but not has not been tested thoroughly
  *
  */
-namespace Sailthru\MageSail\Client\Api;
 
 class Sailthru_Client {
     /**
@@ -169,10 +168,6 @@ class Sailthru_Client {
      */
     public function getSend($send_id) {
         return $this->apiGet('send', array('send_id' => $send_id));
-    }
-
-    public function getSettings(){
-        return $this->apiGet('settings');
     }
 
 
@@ -1546,7 +1541,6 @@ class Sailthru_Client {
      * @return array
      */
     public function apiGet($action, $data = array(), $method = 'GET', $options = array()) {
-        $data['integration'] = 'Magento 2';
         return $this->httpRequest($action, $this->prepareJsonPayload($data), $method, $options);
     }
 

@@ -1,7 +1,5 @@
 <?php
 
-namespace Sailthru\MageSail\Client\Api;
-
 class Sailthru_Util {
     /**
      * Returns an MD5 hash of the signature string for an API call.
