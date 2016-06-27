@@ -63,12 +63,15 @@ class Api extends AbstractHelper
 	}
 
 	public function getClientID(){
-		return $this->scopeConfig->getValue('magesail_personalize/settings/client/customer_id');
+		return $this->_scopeConfig->getValue('magesail_personalize/settings/client/customer_id');
 	}
 
 	public function logger($message){
 		$this->client->logger($message);
 	}
 
+	public function getSettingsVal($val){
+		return $this->_scopeConfig->getValue($val);
+	}
 
 }
