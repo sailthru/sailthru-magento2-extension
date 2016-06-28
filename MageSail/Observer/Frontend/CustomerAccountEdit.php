@@ -9,6 +9,7 @@ use Magento\CUstomer\Model\Customer;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Module\Manager;
+use Magento\Store\Model\StoreManagerInterface;
 
 
 class CustomerAccountEdit implements ObserverInterface
@@ -37,10 +38,11 @@ class CustomerAccountEdit implements ObserverInterface
     private $moduleManager;
 
 
-    public function __construct(Api $sailthru, Manager $moduleManager, Customer $customerModel) {
+    public function __construct(Api $sailthru, Manager $moduleManager, Customer $customerModel, StoreManagerInterface $storeManager) {
         $this->moduleManager = $moduleManager;
         $this->sailthru = $sailthru;
         $this->customerModel = $customerModel;
+        $this->storeManager = $storeManager;
     }
 
 
@@ -48,6 +50,8 @@ class CustomerAccountEdit implements ObserverInterface
     {
         if ($this->moduleManager->isEnabled('Sailthru_MageSail')) {
 
+            $websiteId  = $this->storeManager->getWebsite()->getWebsiteId();
+            $this->customerModel->setWebsiteId($websiteId);
             $email = $observer->getData('email');
             $customer = $this->customerModel->loadByEmail($email);
 

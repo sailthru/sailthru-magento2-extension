@@ -17,7 +17,7 @@ class InstallSchema implements InstallSchemaInterface
 
         $installer->startSetup();
         $table  = $installer->getConnection()
-            ->newTable($installer->getTable('sailthru_magesail_items'))
+            ->newTable($installer->getTable('sailthru_sid'))
             ->addColumn(
                 'id',
                 \Magento\Framework\DB\Ddl\Table::TYPE_INTEGER,
@@ -26,11 +26,11 @@ class InstallSchema implements InstallSchemaInterface
                 'Id'
             )
             ->addColumn(
-                'name',
+                'sid',
                 \Magento\Framework\DB\Ddl\Table::TYPE_TEXT,
                 null,
                 ['default' => null],
-                'Name'
+                'Sailthru ID'
             );
         $installer->getConnection()->createTable($table);
         $installer->endSetup();
