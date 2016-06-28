@@ -13,4 +13,7 @@
     <event name="customer_register_success">
     	<observer name="sailthru_registered" instance="Sailthru\MageSail\Observer\Frontend\CustomerRegistered" />
     </event>
+    <event name="customer_account_edited">
+    	<observer name="sailthru_updated" instance="Sailthru\MageSail\Observer\Frontend\CustomerAccountEdit" />
+    </event>
 </config>
