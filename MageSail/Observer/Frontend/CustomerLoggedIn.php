@@ -44,6 +44,7 @@ class CustomerLoggedIn implements ObserverInterface
         if ($this->moduleManager->isEnabled('Sailthru_MageSail')) {
 
             $customer = $observer->getData('customer');
+            // $sid = $customer->getSailthruSID
 
             try {
                 $this->_eventType = 'login';
@@ -62,9 +63,9 @@ class CustomerLoggedIn implements ObserverInterface
                 $this->sailthru->hid->set($response["keys"]["cookie"]);
                 $this->sailthru->logger('SET COOKIE ORDER 66-------------------');
 
-            } catch(Sailthru_Email_Model_Client_Exception $e) {
+            } catch(\Sailthru_Email_Model_Client_Exception $e) {
                 $this->sailthru->logger($e);
-            } catch(Exception $e) {
+            } catch(\Exception $e) {
                 $this->sailthru->logger($e);
             }
         }

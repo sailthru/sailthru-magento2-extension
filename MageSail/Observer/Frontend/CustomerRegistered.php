@@ -64,9 +64,9 @@ class CustomerRegistered implements ObserverInterface
                 $this->sailthru->hid->set($response["keys"]["cookie"]);
                 $this->sailthru->logger('SET COOKIE ORDER 67-------------------');
 
-            } catch(Sailthru_Email_Model_Client_Exception $e) {
+            } catch(\Sailthru_Email_Model_Client_Exception $e) {
                 $this->sailthru->logger($e);
-            } catch(Exception $e) {
+            } catch(\Exception $e) {
                 $this->sailthru->logger($e);
             }
         }

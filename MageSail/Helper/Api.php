@@ -31,11 +31,8 @@ class Api extends AbstractHelper
 	}
 
 	public function getClient($api_key, $api_secret){
-		require(__DIR__ . '/../Client/MageClient.php');
-		require(__DIR__ . '/../Client/Api/Sailthru_Client_Exception.php');
-		require(__DIR__ . '/../Client/Api/Sailthru_Util.php');
 		try {
-			$this->client = new \MageClient($api_key, $api_secret, '/var/log/sailthru.log');
+			$this->client = new \Sailthru\MageSail\MageClient($api_key, $api_secret, '/var/log/sailthru.log');
 		}
 		catch (\Sailthru_Client_Exception $e) {
 			$this->client = $e->getMessage();

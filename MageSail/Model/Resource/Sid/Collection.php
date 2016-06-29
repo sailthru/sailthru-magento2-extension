@@ -14,6 +14,6 @@ class Collection extends \Magento\Framework\Model\ResourceModel\Db\Collection\Ab
      */
     protected function _construct()
     {
-        $this->_init('Sailthru\MageSail\Model\Items', 'Sailthru\MageSail\Model\Resource\Items');
+        $this->_init('Sailthru\MageSail\Model\Sid', 'Sailthru\MageSail\Model\Resource\Sid');
     }
 }
