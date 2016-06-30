@@ -3,7 +3,8 @@
   "description": "Sailthru Module for Magento",
   "type":"magento2-module",
   "require": {
-    "php": "~5.5.0|~5.6.0|~7.0.0"
+    "php": "~5.5.0|~5.6.0|~7.0.0",
+    "sailthru/sailthru-php5-client": "^1.2"
   },
   "version": "0.0.1",
   "autoload": {

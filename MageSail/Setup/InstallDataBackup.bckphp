@@ -1,0 +1,88 @@
+<?php
+namespace Sailthru\MageSail\Setup;
+use Magento\Framework\Module\Setup\Migration;
+use Magento\Framework\Setup\InstallDataInterface;
+use Magento\Framework\Setup\ModuleContextInterface;
+use Magento\Framework\Setup\ModuleDataSetupInterface;
+
+class InstallData implements InstallDataInterface
+{
+    /**
+     * Customer setup factory
+     *
+     * @var \Magento\Customer\Setup\CustomerSetupFactory
+     */
+    private $customerSetupFactory;
+    /**
+     * Init
+     *
+     * @param \Magento\Customer\Setup\CustomerSetupFactory $customerSetupFactory
+     */
+    public function __construct(\Magento\Customer\Setup\CustomerSetupFactory $customerSetupFactory, \Magento\Eav\Model\AttributeRepository $attributeCtrl)
+    {
+        $this->customerSetupFactory = $customerSetupFactory;
+        $this->attributeCtrl = $attributeCtrl;
+    }
+    /**
+     * Installs DB schema for a module
+     *
+     * @param ModuleDataSetupInterface $setup
+     * @param ModuleContextInterface $context
+     * @return void
+     */
+    public function install(ModuleDataSetupInterface $setup, ModuleContextInterface $context)
+    {
+ 
+        $installer = $setup;
+        $installer->startSetup();
+        $customerSetup = $this->customerSetupFactory->create(['setup' => $setup]);
+        $entityTypeId = $customerSetup->getEntityTypeId(\Magento\Customer\Model\Customer::ENTITY);
+        
+        // $old_attrs = ['sailthru_id', 'sailthru_sid', 'demo_id_sailthru_ex'];
+        // foreach ($old_attrs as $name) {
+        //     try {
+        //         $attr = $customerSetup->getAttribute(\Magento\Customer\Model\Customer::ENTITY, $name);
+        //         $this->attributeCtrl->delete($attr);
+        //     } catch (\Exception $e) {
+
+        //     }
+        // }
+        // $customerSetup->removeAttribute(\Magento\Customer\Model\Customer::ENTITY, "sailthru_id");
+        // $customerSetup->removeAttribute(\Magento\Customer\Model\Customer::ENTITY, "sailthru_sid");
+        // $customerSetup->removeAttribute(\Magento\Customer\Model\Customer::ENTITY, "sailthru_hid");
+        // echo "Removed Old Values";
+
+        $customerSetup->addAttribute(\Magento\Customer\Model\Customer::ENTITY, "sailthru_id",  array(
+            "type"     => "varchar",
+            "backend"  => "",
+            "label"    => "Sailthru ID",
+            "input"    => "text",
+            "source"   => "",
+            "visible"  => true,
+            "required" => false,
+            "default" => "",
+            "frontend" => "",
+            "unique"     => false,
+            "note"       => ""
+ 
+        ));
+        $sailthru_id   = $customerSetup->getAttribute(\Magento\Customer\Model\Customer::ENTITY, "sailthru_id");
+ 
+        $sailthru_id = $customerSetup->getEavConfig()->getAttribute(\Magento\Customer\Model\Customer::ENTITY, ' sailthru_id');
+        $used_in_forms[]="adminhtml_customer";
+        // $used_in_forms[]="checkout_register";
+        // $used_in_forms[]="customer_account_create";
+        // $used_in_forms[]="customer_account_edit";
+        // $used_in_forms[]="adminhtml_checkout";
+        $sailthru_id->setData("used_in_forms", $used_in_forms)
+            ->setData("is_used_for_customer_segment", true)
+            ->setData("is_system", 0)
+            ->setData("is_user_defined", 1)
+            ->setData("is_visible", 1)
+            ->setData("sort_order", 100);
+        $sailthru_id->save();
+        $installer->endSetup();
+    }
+}
+ 
+ 

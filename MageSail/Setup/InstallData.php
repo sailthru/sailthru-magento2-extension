@@ -56,8 +56,8 @@ class InstallData implements InstallDataInterface
         $attributeSet = $this->attributeSetFactory->create();
         $attributeGroupId = $attributeSet->getDefaultGroupId($attributeSetId);
         
-        $customerSetup->addAttribute(Customer::ENTITY, 'sailthru_sid', [
-            'type' => 'varchar',
+        $customerSetup->addAttribute(Customer::ENTITY, 'sailthru_id', [
+            'type' => 'static',
             'label' => 'Sailthru SID',
             'input' => 'text',
             'required' => false,
@@ -68,10 +68,10 @@ class InstallData implements InstallDataInterface
             'system' => 0,
         ]);
         
-        $attribute = $customerSetup->getEavConfig()->getAttribute(Customer::ENTITY, 'magento_username')
+        $attribute = $customerSetup->getEavConfig()->getAttribute(Customer::ENTITY, 'sailthru_id')
         ->addData([
-            'attribute_set_id' => $attributeSetId,
-            'attribute_group_id' => $attributeGroupId,
+            // 'attribute_set_id' => $attributeSetId,
+            // 'attribute_group_id' => $attributeGroupId,
             'used_in_forms' => ['adminhtml_customer'],
         ]);
         
