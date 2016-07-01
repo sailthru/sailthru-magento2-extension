@@ -57,7 +57,7 @@ class InstallData implements InstallDataInterface
         $attributeGroupId = $attributeSet->getDefaultGroupId($attributeSetId);
         
         $customerSetup->addAttribute(Customer::ENTITY, 'sailthru_id', [
-            'type' => 'static',
+            'type' => 'varchar',
             'label' => 'Sailthru SID',
             'input' => 'text',
             'required' => false,
@@ -70,8 +70,8 @@ class InstallData implements InstallDataInterface
         
         $attribute = $customerSetup->getEavConfig()->getAttribute(Customer::ENTITY, 'sailthru_id')
         ->addData([
-            // 'attribute_set_id' => $attributeSetId,
-            // 'attribute_group_id' => $attributeGroupId,
+            'attribute_set_id' => $attributeSetId,
+            'attribute_group_id' => $attributeGroupId,
             'used_in_forms' => ['adminhtml_customer'],
         ]);
         

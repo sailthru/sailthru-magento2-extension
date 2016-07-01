@@ -44,12 +44,12 @@ class CustomerLoggedIn implements ObserverInterface
         if ($this->moduleManager->isEnabled('Sailthru_MageSail')) {
 
             $customer = $observer->getData('customer');
-            // $sid = $customer->getSailthruSID
+            $sid = $customer->getCustomAttribute('sailthru_id');
 
             try {
                 $this->_eventType = 'login';
                 $data = [
-                        'id' => $customer->getEmail(),
+                        'id' => $sid ? $sid : $customer->getEmail(),
                         'key' => 'email',
                         'fields' => [
                             'keys' => 1,
@@ -60,6 +60,13 @@ class CustomerLoggedIn implements ObserverInterface
                         ]
                 ];
                 $response = $this->sailthru->client->apiPost('user', $data);
+                if (!$sid){
+                    $customerData = $customer->getDataModel();
+                    $customerData->setCustomAttribute('sailthru_id', $response['keys']['sid']);
+                    $customer->updateData($customerData);
+                    $customer->save();
+                    $this->sailthru->logger('ADDED SID TO PROFILE BITCH');
+                }
                 $this->sailthru->hid->set($response["keys"]["cookie"]);
                 $this->sailthru->logger('SET COOKIE ORDER 66-------------------');
 
