@@ -49,11 +49,18 @@ class CustomerRegistered implements ObserverInterface
             $customer = $observer->getData('customer');
 
             try {
-                $this->_eventType = 'register';
+                $this->_eventType = 'CustomerRegister';
                 $data = [
-                        'id' => $customer->getEmail(),
-                        'key' => 'email',
-                        'fields' => ['keys' => 1]
+                        'id'     => $customer->getEmail(),
+                        'key'    => 'email',
+                        'fields' => [
+                            'keys' => 1
+                        ],
+                        'vars'   => [
+                            'firstName' => $customer->getFirstname(),
+                            'lastName'  => $customer->getLastname(),
+                            'name'  => "{$customer->getFirstname()} {$customer->getLastname()}"
+                        ]
                 ];
 
                 if ($this->sailthru->getSettingsVal(self::SETTING_ENABLED)){

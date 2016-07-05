@@ -44,11 +44,10 @@ class CustomerLoggedIn implements ObserverInterface
         if ($this->moduleManager->isEnabled('Sailthru_MageSail')) {
 
             $customer = $observer->getData('customer');
-            // $customerData = $customer->getDataModel();
-            // $sid = $customerData->getCustomAttribute('sailthru_id');
             $sid = $customer->getData('sailthru_id');
+
             try {
-                $this->_eventType = 'login';
+                $this->_eventType = 'CustomerLogin';
                 $data = [
                         'id' => $sid ? $sid : $customer->getEmail(),
                         'fields' => [

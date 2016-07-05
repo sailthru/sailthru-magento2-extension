@@ -57,7 +57,7 @@ class CustomerAccountEdit implements ObserverInterface
             $sid = $customer->getData('sailthru_id');
 
             try {
-                $this->sailthru->client->_eventType = 'customer update';
+                $this->sailthru->client->_eventType = 'CustomerUpdate';
 
                 $data = [
                         'id' => $sid ? $sid : $email,
