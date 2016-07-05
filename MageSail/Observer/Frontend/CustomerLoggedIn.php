@@ -51,7 +51,6 @@ class CustomerLoggedIn implements ObserverInterface
                 $this->_eventType = 'login';
                 $data = [
                         'id' => $sid ? $sid : $customer->getEmail(),
-                        // 'key' => 'email',
                         'fields' => [
                             'keys' => 1,
                             'engagement' => 1,

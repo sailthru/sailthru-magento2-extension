@@ -54,15 +54,23 @@ class CustomerAccountEdit implements ObserverInterface
             $this->customerModel->setWebsiteId($websiteId);
             $email = $observer->getData('email');
             $customer = $this->customerModel->loadByEmail($email);
+            $sid = $customer->getData('sailthru_id');
 
             try {
-                $this->sailthru->client->_eventType = 'update';
+                $this->sailthru->client->_eventType = 'customer update';
 
                 $data = [
-                        'id' => $email,
-                        'key' => 'email',
+                        'id' => $sid ? $sid : $email,
                         'fields' => ['keys' => 1], 
-                        'vars' => []
+                        'keysconflict' => 'merge',
+                        'keys'=> [
+                            'email' => $email
+                        ],
+                        'vars' => [
+                            'firstName' => $customer->getFirstname(),
+                            'lastName'  => $customer->getLastname(),
+                            'name'  => "{$customer->getFirstname()} {$customer->getLastname()}"
+                        ]
                 ];
 
                 $response = $this->sailthru->client->apiPost('user', $data);

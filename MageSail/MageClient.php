@@ -37,11 +37,12 @@ class MageClient extends \Sailthru_Client
      */
     protected function httpRequest($action, $data, $method = 'POST', $options = array()) {
         $this->logger([
-            'action'=>$action,
-            'request'=>json_encode($data['json']),
-            'http_request_type'=>$this->http_request_type,
+            'action'            => $action,
+            'request'           => $data['json'],
+            'http_request_type' => $this->http_request_type,
+            'event_type'        => $this->_eventType,
             ],
-            $method.' REQUEST'
+            "{$method} REQUEST"
         );        
         $json = parent::httpRequest($action, $data, $method, $options);
         $this->logger($json);
