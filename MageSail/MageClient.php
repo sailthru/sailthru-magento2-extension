@@ -7,6 +7,8 @@ namespace Sailthru\MageSail;
 class MageClient extends \Sailthru_Client
 {
 
+    public $_eventType = null;
+
     private $httpHeaders = array("User-Agent: Sailthru API PHP5 Client");
 
     private $logFileURI = null;

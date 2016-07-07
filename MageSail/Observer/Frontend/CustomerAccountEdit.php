@@ -73,6 +73,10 @@ class CustomerAccountEdit implements ObserverInterface
                         ]
                 ];
 
+                if($customer->getCustomAttribute('is_subscribed')){
+                    $data["lists"] = ["Newsletter"=>1];
+                }
+
                 $response = $this->sailthru->client->apiPost('user', $data);
                 $this->sailthru->hid->set($response["keys"]["cookie"]);
                 $this->sailthru->logger('PROFILE UPDATE-------------------');

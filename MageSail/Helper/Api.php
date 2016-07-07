@@ -12,9 +12,13 @@ class Api extends AbstractHelper
 	public $hid;
 
 	const API_SUCCESS_MESSAGE = "Success! Sail away!";
-
 	const VALIDATION_NEEDED_MSG = "Please Enter Valid Sailthru Credentials";
+    const XML_ONREGISTER_LIST_ENABLED = "magesail_lists/lists/enable_signup_list";
+    const XML_ONREGISTER_LIST_VALUE = "magesail_lists/lists/signup_list";
+    const XML_NEWSLETTER_LIST_ENABLED = "magesail_lists/lists/enable_newsletter";
+    const XML_NEWSLETTER_LIST_VALUE = "magesail_lists/lists/newsletter_list";
 
+	
 	public function __construct(
 		\Magento\Framework\App\MutableScopeConfig $scopeConfig,
 		\Sailthru\MageSail\Cookie\Hid $hid
