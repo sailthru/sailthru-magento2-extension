@@ -3,13 +3,16 @@
 namespace Sailthru\MageSail\Plugin;
 
 use Magento\Catalog\Model\Product;
+use Magento\Framework\Filesystem;
+use Magento\Store\Model\StoreManagerInterface;
 use Sailthru\MageSail\Helper\Api;
 
 class ProductIntercept
 {
 
-	public function __construct(Api $sailthru){
+	public function __construct(Api $sailthru, StoreManagerInterface $storeManager){
 		$this->sailthru = $sailthru;
+		$this->_storeManager = $storeManager;
 	}
 
 	public function afterAfterSave(Product $productModel, $productResult){
@@ -44,6 +47,7 @@ class ProductIntercept
                 'images' => array(),
                 'vars' => array('sku' => $product->getSku(),
                     'storeId' => '',
+                    'inventory' => $product->getStockData()["qty"],
                     'typeId' => $product->getTypeId(),
                     'status' => $product->getStatus(),
                     'categoryId' => $product->getCategoryId(),
@@ -74,8 +78,8 @@ class ProductIntercept
                 )
             );
             // Add product images
-            if($product->getImage()) {
-                $data['images']['full'] = array ("url" => $product->getImageUrl());
+            if($image = $product->getImage()) {
+                $data['images']['full'] = array ("url" => $this->getAbsoluteURI($image));
             }
 
             return $data;
@@ -83,4 +87,18 @@ class ProductIntercept
             Mage::logException($e);
         }
     }
+
+	/**
+	 * Get Absolute Media Path. Based on https://mage2.pro/t/topic/276
+	 * @param string $relativeMediaPath
+	 * @return string
+	 */
+	public function getAbsoluteURI($relativeURI) {		
+	    $base = $this->_storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA);
+	    $uri = str_replace("\\", "", $relativeURI);
+	    return "{$base}product{$uri}";
+
+	}
+
+
 }
