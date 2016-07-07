@@ -53,7 +53,7 @@ class CustomerRegistered implements ObserverInterface
             $email = $customer->getEmail();
 
             try {
-                $this->_eventType = 'CustomerRegister';
+                $this->sailthru->client->_eventType = 'CustomerRegister';
                 $data = [
                         'id'     => $email,
                         'key'    => 'email',

@@ -47,7 +47,7 @@ class CustomerLoggedIn implements ObserverInterface
             $sid = $customer->getData('sailthru_id');
 
             try {
-                $this->_eventType = 'CustomerLogin';
+                $this->sailthru->client->_eventType = 'CustomerLogin';
                 $data = [
                         'id' => $sid ? $sid : $customer->getEmail(),
                         'fields' => [
