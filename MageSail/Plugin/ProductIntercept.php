@@ -10,9 +10,10 @@ use Sailthru\MageSail\Helper\Api;
 class ProductIntercept
 {
 
-	public function __construct(Api $sailthru, StoreManagerInterface $storeManager){
+	public function __construct(Api $sailthru, StoreManagerInterface $storeManager, \Magento\Catalog\Helper\Product $productHelper){
 		$this->sailthru = $sailthru;
 		$this->_storeManager = $storeManager;
+		$this->productHelper = $productHelper;
 	}
 
 	public function afterAfterSave(Product $productModel, $productResult){
@@ -37,17 +38,18 @@ class ProductIntercept
     public function getProductData($product)
     {
         try {
-            $data = array('url' => $product->getProductUrl(),
+            $data = array(
+            	'url' => $this->productHelper->getProductUrl($product),
                 'title' => htmlspecialchars($product->getName()),
                 //'date' => '',
                 'spider' => 1,
-                'price' => $product->getPrice(),
+                'price' => $product->getPrice() * 10,
                 'description' => urlencode($product->getDescription()),
                 'tags' => htmlspecialchars($product->getMetaKeyword()),
                 'images' => array(),
+                'inventory' => $product->getStockData()["qty"],
                 'vars' => array('sku' => $product->getSku(),
                     'storeId' => '',
-                    'inventory' => $product->getStockData()["qty"],
                     'typeId' => $product->getTypeId(),
                     'status' => $product->getStatus(),
                     'categoryId' => $product->getCategoryId(),
@@ -74,12 +76,14 @@ class ProductIntercept
                     'isVirtual'  => $product->isVirtual(),
                     // 'isRecurring' => $product->isRecurring(),
                     'isInStock'  => $product->isInStock(),
-                    'weight'  => $product->getWeight()
+                    'weight'  => $product->getWeight(),
+                    'isVisible' => $this->productHelper->canShow($product)
                 )
             );
             // Add product images
             if($image = $product->getImage()) {
-                $data['images']['full'] = array ("url" => $this->getAbsoluteURI($image));
+                $data['images']['full'] = array ("url" => $this->productHelper->getImageUrl($product));
+                $data['images']['small'] = array("url" => $this->productHelper->getSmallImageUrl($product));
             }
 
             return $data;
