@@ -43,7 +43,7 @@ class ProductIntercept
                 'title' => htmlspecialchars($product->getName()),
                 //'date' => '',
                 'spider' => 1,
-                'price' => $product->getPrice() * 10,
+                'price' => $product->getPrice() * 100,
                 'description' => urlencode($product->getDescription()),
                 'tags' => htmlspecialchars($product->getMetaKeyword()),
                 'images' => array(),
