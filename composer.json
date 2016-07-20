@@ -11,7 +11,7 @@
   "autoload": {
     "files": [ "registration.php" ],
     "psr-4": {
-      "Sailthru\\MageSail\\": "app/code/Sailthru/MageSail"
+      "Sailthru\\MageSail\\": "app/code/Sailthru/sailthru-magento2-extension"
     }
   }
 }
