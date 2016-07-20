@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\Newsletter\Model\Subscriber">
+        <plugin name="MageSail_SubscriptionInterceptor" type="Sailthru\MageSail\Plugin\SubscribeIntercept" />
+    </type>
+    <type name="Magento\Catalog\Model\Product">
+        <plugin name="MageSail_ProductInterceptor" type="Sailthru\MageSail\Plugin\ProductIntercept" />
+    </type>
+    <type name="Magento\Checkout\Model\Cart">
+    	<plugin name="MageSail_CartInterceptor" type="Sailthru\MageSail\Plugin\CartIntercept" />
+    </type>
+    <type name="Magento\Sales\Model\Order\Email\Sender\OrderSender">
+    	<plugin name="MageSail_OrderIntercept" type="Sailthru\MageSail\Plugin\OrderIntercept" />
+    </type>
+	<preference for="\Magento\Framework\Mail\Transport" type="Sailthru\MageSail\Mail\Transport"/>
+</config>

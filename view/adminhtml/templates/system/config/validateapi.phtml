@@ -1,0 +1,11 @@
+<div class="pp-buttons-container">
+    <button id="<?php echo $block->getHtmlId() ?>" onclick="return false;">
+        <span><span><span><?php echo $block->escapeHtml($block->getButtonLabel()); ?></span></span></span>
+    </button>
+</div>
+<script>
+ var params = {internUrl:"<?php echo $block->getInternUrl() ?>",  apiKeyId: "#<?php echo $block->getApiKeyId() ?>", htmlId: "#<?php echo $block->getHtmlId() ?>", loadConfigUrl: "<?php echo $block->getLoadConfigUrl() ?>"};  
+         $("#<?php echo $block->getHtmlId() ?>").on( "click", function() {
+            someFunction(params);
+         });       
+</script>
