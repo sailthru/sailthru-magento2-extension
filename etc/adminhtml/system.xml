@@ -126,6 +126,11 @@
                         <field id="*/*/enabled">1</field>
                     </depends>
                 </field>
+                <field id="anonymous_carts" translate="label" type="select" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Send Abandoned Carts to Guest Users with HID</label>
+                    <comment>Enabling will allow you to send Abandoned Carts to customers who aren't currently signed-in, but have a sailthru_hid cookie for your site.</comment>
+                    <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnabledisable</source_model>
+                </field>
             </group>
         </section>
 

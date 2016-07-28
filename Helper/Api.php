@@ -34,6 +34,7 @@ class Api extends AbstractHelper
     const XML_ABANDONED_CART_ENABLED   = "magesail_send/abandoned_cart/enabled";
     const XML_ABANDONED_CART_TEMPLATE  = "magesail_send/abandoned_cart/template";
     const XML_ABANDONED_CART_TIME      = "magesail_send/abandoned_cart/delay_time";
+    const XML_ABANDONED_CART_ANONYMOUS = "magesail_send/abandoned_cart/anonymous_carts";
     const XML_TRANSACTIONALS_ENABLED   = "magesail_send/transactionals/send_through_sailthru";
     const XML_TRANSACTIONALS_SENDER	   = "magesail_send/transactionals/from_sender";
     const XML_ORDER_ENABLED			   = "magesail_send/transactionals/purchase_enabled";
@@ -121,6 +122,10 @@ class Api extends AbstractHelper
 		return $this->getSettingsVal(self::XML_ABANDONED_CART_TIME);
 	}
 
+	public function canAbandonAnonymous(){
+		return $this->getSettingsVal(self::XML_ABANDONED_CART_ANONYMOUS);
+	}
+
 	/* Transactionals */
 
 	public function getTransactionalsEnabled(){
@@ -142,6 +147,10 @@ class Api extends AbstractHelper
 
 	public function getBlastId(){
 		return $this->hid->getBid();
+	}
+
+	public function getHid(){
+		return $this->hid->get();
 	}
 
 

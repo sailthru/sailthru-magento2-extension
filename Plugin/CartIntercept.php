@@ -34,7 +34,6 @@ class CartIntercept
     }
 
     private function _gate($cart){
-        $this->sailthru->logger('catching a cart!');
         if ($this->sailthru->isAbandonedCartEnabled()){
             return $this->sendCart($cart);
         } else {
@@ -43,18 +42,17 @@ class CartIntercept
     }
 
     protected function sendCart($cart){
-        $this->sailthru->logger("starting to send!");
         $customer = $cart->getCustomerSession()->getCustomer();
-        if ($customer){
+        $anonymousEmail = $this->isAnonymousReady();
+        if ($customer or $anonymousEmail){
+            $email = $anonymousEmail ? $anonymousEmail : $customer->getEmail(); 
             try {
                 $this->sailthru->client->_eventType = "CartUpdate";
                 $quote = $cart->getQuote();
                 $items_visible = $quote->getAllVisibleItems();
-                $this->sailthru->logger("Got visible items!");
                 $items = $this->_getItems($items_visible);
-                $this->sailthru->logger("Got all item datas!");
                 $data = [
-                    'email'             => $customer->getEmail(),
+                    'email'             => $email,
                     'items'             => $items,
                     'incomplete'        => 1,
                     'reminder_time'     => $this->sailthru->getAbandonedTime(),
@@ -90,6 +88,17 @@ class CartIntercept
 
     public function afterUpdateItems(Cart $cardModel, $cart){
         return $this->_gate($cart);
+    }
+
+    public function isAnonymousReady(){
+        if ($this->sailthru->canAbandonAnonymous() and $hid = $this->sailthru->getHid()){
+            $response = $this->sailthru->client->getUserByKey($hid, 'cookie', array('keys' => 1));
+            if (array_key_exists("keys", $response)){ 
+                $email = $response["keys"]["email"];
+                return $email;
+            }
+        }
+        return false;
     }
 
 
