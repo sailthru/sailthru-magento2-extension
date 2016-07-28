@@ -2,6 +2,8 @@
 
 namespace Sailthru\MageSail\Plugin;
 
+use Magento\Catalog\Helper\Product as ProductHelper;
+use Magento\Catalog\Helper\Image as ImageHelper;
 use Magento\Catalog\Model\Product;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable as ConfigProduct;
 use Magento\Framework\Filesystem;
@@ -11,10 +13,11 @@ use Sailthru\MageSail\Helper\Api;
 class ProductIntercept
 {
 
-	public function __construct(Api $sailthru, StoreManagerInterface $storeManager, \Magento\Catalog\Helper\Product $productHelper, ConfigProduct $cpModel){
+	public function __construct(Api $sailthru, StoreManagerInterface $storeManager, ProductHelper $productHelper, ImageHelper $imageHelper, ConfigProduct $cpModel){
 		$this->sailthru = $sailthru;
 		$this->_storeManager = $storeManager;
 		$this->productHelper = $productHelper;
+        $this->imageHelper = $imageHelper;
         $this->cpModel = $cpModel;
 	}
 
@@ -48,16 +51,17 @@ class ProductIntercept
         $parents = $this->cpModel->getParentIdsByChild($product->getId());
         try {
             $data = [
-                'url'   => $parents ? $this->productHelper->getProductUrl($parents[0]) : $product->setStoreId($storeId)->getProductUrl(true),
+                'url'   => $parents ? $this->getProductFragmentedUrl($product, $parents[0]) : $product->setStoreId($storeId)->getProductUrl(true),
                 'title' => htmlspecialchars($product->getName()),
                 //'date' => '',
                 'spider' => 1,
                 'price' => $product->getPrice() * 100,
-                'description' => $product->getDescription(),
+                'description' => strip_tags($product->getDescription()),
                 'tags' => htmlspecialchars($product->getMetaKeyword()),
                 'images' => array(),
                 'inventory' => $product->getStockData()["qty"],
                 'vars' => [
+                    'options' => $this->cpModel->getSelectedAttributesInfo($product),
                     'sku' => $product->getSku(),
                     'storeId' => $storeId,
                     'typeId' => $product->getTypeId(),
@@ -88,10 +92,9 @@ class ProductIntercept
             ];
             // Add product images
             if($image = $product->getImage()) {
-                $data['images']['full'] = array ("url" => $this->productHelper->getImageUrl($product));
-                $data['images']['small'] = array("url" => $this->productHelper->getSmallImageUrl($product));
+                $data['images']['thumb'] = ["url" => $this->imageHelper->init($product, 'product_listing_thumbnail')->getUrl()];
+                $data['images']['full'] = ['url'=> $this->getBaseImageUrl($product)];
             }
-
             return $data;
         } catch(Exception $e) {
             Mage::logException($e);
@@ -99,4 +102,15 @@ class ProductIntercept
     }
 
 
+    public function getProductFragmentedUrl($product, $parent){
+        $parentUrl = $this->productHelper->getProductUrl($parent);
+        $pSku = $product->getSku();
+        return "{$parentUrl}#{$pSku}";
+    }
+
+
+    // Magento 2 getImage seems to add a strange slash, therefore this.
+    public function getBaseImageUrl($product){
+        return $this->_storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA) . 'catalog/product' . $product->getImage();
+    }
 }

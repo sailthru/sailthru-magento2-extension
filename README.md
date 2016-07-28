@@ -11,4 +11,5 @@ Sailthru Magento2 Extension
 6. `bin/magento cache:flush`
 7. `touch var/log/sailthru.log`
 8. go to Magento Admin > Stores > Configuration > Sailthru
-9. Enjoy!
+9. Enable "Preserve Fragments" in Sailthru UI at https://my.sailthru.com/settings/spider
+10. Set sail!
