@@ -78,19 +78,17 @@
                     <label>Send all transactionals through Sailthru</label>
                     <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnabledisable</source_model>
                     <tooltip>Allows you to send all Magento emails through Sailthru, and override templates for various Magento events.</tooltip>
-                    <comment>NOTE: Will use a generic template for events if not specifically set or enabled.</comment>
+                    <comment>NOTE: Will create generic Sailthru templates that will accept Magento templates for transactionals not specifically overriden.</comment>
                 </field>
-<!--                 <field id="shipping_enabled" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="1">
-                    <label>Override Magento Shipping</label>
-                    <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnabledisable</source_model>
-                </field> -->
-<!--                 <field id="shipping_template" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="2">
-                    <label>Shipping Template</label>
+                <field id="from_sender" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>From Email</label>
+                    <source_model>Sailthru\MageSail\Model\Config\Source\Verifiedemails</source_model>
+                    <comment>All transactionals sent using Magento templates must be sent from a Sailthru-verified email.</comment>
+                    <tooltip>Don't see the right email? Add it at https://my.sailthru.com/verify</tooltip>
                     <depends>
-                        <field id="*/*/shipping_enabled">1</field>
+                        <field id="*/*/send_through_sailthru">1</field>
                     </depends>
-                    <source_model>Sailthru\MageSail\Model\Config\Source\Sailthrutemplates</source_model>
-                </field> -->
+                </field>
                 <field id="purchase_enabled" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="3">
                     <label>Override Magento Purchase Confirmation</label>
                     <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnabledisable</source_model>
@@ -105,17 +103,6 @@
                     </depends>
                     <source_model>Sailthru\MageSail\Model\Config\Source\Sailthrutemplates</source_model>
                 </field>
-<!--                 <field id="signup_enabled" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="5">
-                    <label>Override Magento Signup Email</label>
-                    <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnabledisable</source_model>
-                </field>
-               <field id="signup_template" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="6">
-                    <label>Sign-Up Template</label>
-                    <depends>
-                        <field id="*/*/signup_enabled">1</field>
-                    </depends>
-                    <source_model>Sailthru\MageSail\Model\Config\Source\Sailthrutemplates</source_model>
-                </field> -->
             </group>
 
             <group id="abandoned_cart" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -141,22 +128,6 @@
                 </field>
             </group>
         </section>
-        <!--
-        <section id="magesail_personalize" translate="label" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Personalization Engine</label>
-            <tab>sailthru</tab>
-            <resource>Sailthru_Magesail::config</resource>
-            <group id="settings" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Personalization Manager Setup</label>
-                <field id="enabled" translate="label" type="select" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Enable Personalization Engine</label>
-                    <source_model>Magento\Config\Model\Config\Source\Enabledisable</source_model>
-                </field>
-                <field id="customer_id" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Customer ID</label>
-                </field>                
-            </group>
-        </section>
-        -->
+
     </system>
 </config>

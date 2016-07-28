@@ -61,6 +61,11 @@ class MageClient extends \Sailthru_Client
         return $this->apiGet('settings');
     }
 
+    public function getVerifiedSenders(){
+        $settings = $this->getSettings();
+        return $settings["from_emails"];
+    }
+
     public function logger($message){
         $writer = new \Zend\Log\Writer\Stream(BP . $this->logFileURI);
         $logger = new \Zend\Log\Logger();

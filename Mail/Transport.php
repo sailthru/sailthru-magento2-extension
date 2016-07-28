@@ -36,7 +36,8 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
         if (isset($response["error"]) && $response['error'] == 14) {
             $options = [
                 "content_html" => "{content} {beacon}", 
-                "subject" => "{subj}"
+                "subject" => "{subj}",
+                "from_email" => $this->sailthru->getSender(),
             ];
             $response = $this->sailthru->client->saveTemplate(self::MAGENTO_GENERIC_TEMPLATE, $options);
             if (isset($response["error"])) {

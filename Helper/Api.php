@@ -35,6 +35,7 @@ class Api extends AbstractHelper
     const XML_ABANDONED_CART_TEMPLATE  = "magesail_send/abandoned_cart/template";
     const XML_ABANDONED_CART_TIME      = "magesail_send/abandoned_cart/delay_time";
     const XML_TRANSACTIONALS_ENABLED   = "magesail_send/transactionals/send_through_sailthru";
+    const XML_TRANSACTIONALS_SENDER	   = "magesail_send/transactionals/from_sender";
     const XML_ORDER_ENABLED			   = "magesail_send/transactionals/purchase_enabled";
     const XML_ORDER_TEMPLATE		   = "magesail_send/transactionals/purchase_template";
 
@@ -124,6 +125,10 @@ class Api extends AbstractHelper
 
 	public function getTransactionalsEnabled(){
 		return $this->getSettingsVal(self::XML_TRANSACTIONALS_ENABLED);
+	}
+
+	public function getSender(){
+		return $this->getSettingsVal(self::XML_TRANSACTIONALS_SENDER);
 	}
 
 	public function getOrderOverride(){
