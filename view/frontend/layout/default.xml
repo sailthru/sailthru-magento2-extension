@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column" xsi:noNamespaceSchemaLocation="../../../../../../../lib/internal/Magento/Framework/View/Layout/etc/page_configuration.xsd">
     <head>
-       <link src="Sailthru_MageSail::test.js" />
+       <link src="Sailthru_MageSail::spm.js" />
     </head>
     <body/>
 </page>
