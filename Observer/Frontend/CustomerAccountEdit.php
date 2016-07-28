@@ -79,7 +79,6 @@ class CustomerAccountEdit implements ObserverInterface
 
                 $response = $this->sailthru->client->apiPost('user', $data);
                 $this->sailthru->hid->set($response["keys"]["cookie"]);
-                $this->sailthru->logger('PROFILE UPDATE-------------------');
 
             } catch(Sailthru_Email_Model_Client_Exception $e) {
                 $this->sailthru->logger($e);

@@ -35,7 +35,6 @@ class OrderIntercept
     public function aroundSend(Interceptor $subject, callable $proceed, Order $order, $syncVar=false )
     {
         $alreadyOrdered = $order->getEmailSent();
-        $this->sailthru->logger('catching an order send');
         if(!$alreadyOrdered){
             try {
                 $this->_sendOrder($order);
@@ -45,7 +44,6 @@ class OrderIntercept
             } 
         }
         if ($alreadyOrdered or !$this->sailthru->getOrderOverride()) {
-            $this->sailthru->logger('sending order through Magento.');
             $val = $proceed($order);
             return $val;
         }

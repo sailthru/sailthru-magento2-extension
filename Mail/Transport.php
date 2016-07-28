@@ -53,7 +53,6 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
         if ($this->sailthru->getTransactionalsEnabled())
         {
             try {
-                $this->sailthru->logger("trying to send email!");
                 $this->checkAndSetGenericTemplate(); 
                 $message = [
                     "template" => self::MAGENTO_GENERIC_TEMPLATE,
@@ -63,7 +62,6 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
                         "content" => $this->_message->getBody()->getRawContent(),
                     ],
                 ];
-                $this->sailthru->logger($message);
                 $response = $this->sailthru->client->apiPost('send', $message);
                 if (isset($response["error"])) {
                     throw new \Exception($response["errormsg"]);

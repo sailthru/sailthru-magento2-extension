@@ -22,7 +22,6 @@ class ProductIntercept
 	}
 
 	public function afterAfterSave(Product $productModel, $productResult){
-		$this->sailthru->logger('Updating a product!');
 		$data = $this->getProductData($productResult);
 		try {
 	        $this->sailthru->client->_eventType = 'SaveProduct';
