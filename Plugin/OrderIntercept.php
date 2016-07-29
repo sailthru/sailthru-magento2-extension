@@ -21,16 +21,16 @@ use Sailthru\MageSail\Helper\Api;
 class OrderIntercept
 {
 
-	public function __construct(Api $sailthru, ProductRepositoryInterface $productRepo, Image $imageHelper, Config $mediaConfig, Product $productHelper, OrderResource $orderResource, ConfigProduct $cpModel)
+    public function __construct(Api $sailthru, ProductRepositoryInterface $productRepo, Image $imageHelper, Config $mediaConfig, Product $productHelper, OrderResource $orderResource, ConfigProduct $cpModel)
     {
-		$this->sailthru      = $sailthru;
+        $this->sailthru      = $sailthru;
         $this->productRepo   = $productRepo;
         $this->imageHelper   = $imageHelper;
         $this->mediaConfig   = $mediaConfig;
         $this->productHelper = $productHelper;
         $this->orderResource = $orderResource;
         $this->cpModel       = $cpModel;
-	}
+    }
 
     public function aroundSend(Interceptor $subject, callable $proceed, Order $order, $syncVar=false )
     {
@@ -130,15 +130,26 @@ class OrderIntercept
      */
     protected function _getAdjustments(Order $order)
     {
-        if ($order->getBaseDiscountAmount()) {
-            return array(
-                array(
-                    'title' => 'Sale',
-                    'price' => $order->getBaseDiscountAmount()
-                )
-            );
+        $adjustments = [];
+        if ($shipCost = $order->getShippingAmount()){
+            $adjustments[] = [
+                'title' => 'Shipping',
+                'price' => $shipCost*100,
+            ];
         }
-        return array();
+        if ($discount = $order->getDiscountAmount()) {
+            $adjustments[] = [
+                'title' => 'Discount',
+                'price' => (($discount > 0) ? $discount*-1 : $discount)*100,
+            ];
+        }
+        if ($tax = $order->getTaxAmount()) {
+            $adjustments[] = [
+                'title' => 'Tax',
+                'price' => $tax*100,
+            ];
+        }
+        return $adjustments;
     }
     /**
      * Get payment information
