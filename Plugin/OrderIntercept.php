@@ -55,11 +55,12 @@ class OrderIntercept
         try{
             $this->sailthru->client->_eventType = 'placeOrder';
             $data = [
-                    'email' => $order->getCustomerEmail(),
-                    'items' => $this->_getItems($order->getAllVisibleItems()),
-                    'adjustments' => $this->_getAdjustments($order),
-                    'message_id' => $this->sailthru->getBlastId(),
-                    'tenders' => $this->_getTenders($order)
+                    'email'       => $order->getCustomerEmail(),
+                    'items'       => $this->_getItems($order->getAllVisibleItems()),
+                    'adjustments' => $adjustments = $this->_getAdjustments($order),
+                    'vars'        => $this->getOrderVars($order, $adjustments), 
+                    'message_id'  => $this->sailthru->getBlastId(),
+                    'tenders'     => $this->_getTenders($order)
             ];
             if ($template = $this->sailthru->getOrderOverride()){
                 $data['send_template'] = $template;
@@ -200,6 +201,18 @@ class OrderIntercept
         }
         return $vars;
     }
+
+    protected function getOrderVars($order, $adjustments){
+        $vars = [];
+        foreach ($adjustments as $adj) {
+            $this->sailthru->logger($adj);
+            $vars[$adj['title']] =  $adj['price'];
+            $this->sailthru->logger('hello!');
+        }
+        $vars['orderId'] = $order->getId();
+        return $vars;
+    }
+
 
 
 }
