@@ -12,8 +12,10 @@ use Sailthru\MageSail\Helper\Api;
 
 class ProductIntercept
 {
-    // need some things from EAV attributes, directly - these, we'd rather get from Product.
+    // Need some things from EAV attributes which seems more intensive. Attributes below, 
+    // we'd rather get from Product.
     public static $unusedVarKeys = [
+        'status',
         'row_id',
         'type_id',
         'attribute_set_id',
@@ -35,6 +37,13 @@ class ProductIntercept
         'relatedProductIds',
         'upSellProductIds',
         'description',
+        'meta_keyword',
+        'name',
+        'created_at',
+        'updated_at',
+        'tax_class_id',
+        'quantity_and_stock_status',
+        'sku'
     ];
 
 	public function __construct(Api $sailthru, StoreManagerInterface $storeManager, ProductHelper $productHelper, ImageHelper $imageHelper, ConfigProduct $cpModel){
@@ -65,14 +74,14 @@ class ProductIntercept
      */
     public function getProductData($product)
     {
-        
         // scope fix for intercept launched from backoffice, which causes admin URLs for products
         $storeScopes = $product->getStoreIds();
         $storeId = $storeScopes ? $storeScopes[0] : $product->getStoreId();
         if ($storeId) $product->setStoreId($storeId);
         $this->_storeManager->setCurrentStore($storeId);
         $parents = $this->cpModel->getParentIdsByChild($product->getId());
-        $usable_attributes = $this->_getProductAttributeValues($product);
+        $attributes = $this->_getProductAttributeValues($product);
+        $categories = $this->getCategories($product);
         try {
             $data = [
                 'url'   => $parents ? $this->getProductFragmentedUrl($product, $parents[0]) : $product->setStoreId($storeId)->getProductUrl(true),
@@ -81,12 +90,10 @@ class ProductIntercept
                 'spider' => 1,
                 'price' => $product->getPrice() * 100,
                 'description' => strip_tags($product->getDescription()),
-                'tags' => $this->getTags($product, $usable_attributes),
+                'tags' => $this->getTags($product, $attributes),
                 'images' => array(),
                 'inventory' => $product->getStockData()["qty"],
                 'vars' => [
-                    'options2' => $this->cpModel->getSelectedAttributesInfo($product),
-                    'options3' => $product->getCustomOptions('attributes'),
                     'sku' => $product->getSku(),
                     'storeId' => $product->getStoreId(),
                     'typeId' => $product->getTypeId(),
@@ -112,7 +119,7 @@ class ProductIntercept
                     'isInStock'  => $product->isInStock(),
                     'weight'  => $product->getWeight(),
                     'isVisible' => $this->productHelper->canShow($product)
-                ] + $usable_attributes,
+                ] + $attributes,
             ];
             // Add product images
             if($image = $product->getImage()) {
@@ -160,7 +167,12 @@ class ProductIntercept
     }
 
     public function getTags($product, $attributes){
-        $meta = htmlspecialchars($product->getMetaKeywords());
+        $meta = htmlspecialchars($product->getData('meta_keyword')) . ",";
+        foreach ($attributes as $key => $value) {
+            if (!is_numeric($value)){
+                $meta .= (($value == "Yes" or $value == "Enabled") ? "$key" : "$value") . ",";
+            }
+        }
         return $meta;
     }
 
@@ -169,7 +181,6 @@ class ProductIntercept
         $items = $collection->addAttributeToSelect('name')->getItems();
         $categories = [];
         foreach ($items as $item) {
-            $this->sailthru->logger(get_object_vars($item));
             $categories[] = $item->getName();
         }
         return $categories;
