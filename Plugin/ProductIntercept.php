@@ -134,7 +134,7 @@ class ProductIntercept
     }
 
     private function attributeGate($attr){
-        if ($attr == "thumbnail" or strpos($attr, "media") or strpos($attr, "image")) return false;
+        if ($attr == "thumbnail" or strpos($attr, "media") !== false or strpos($attr, "image") !== false) return false;
         return true;
     }
 }
