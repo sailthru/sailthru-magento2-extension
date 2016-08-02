@@ -43,10 +43,10 @@ class ProductIntercept
     {
         
         // scope fix for intercept launched from backoffice, which causes admin URLs for products
-        $storeScopes = $product->getStoreIds();
-        $storeId = $storeScopes ? $storeScopes[0] : $product->getStoreId();
-        if ($storeId) $product->setStoreId($storeId);
-        $this->_storeManager->setCurrentStore($storeId);
+        // $storeScopes = $product->getStoreIds();
+        // $storeId = $storeScopes ? $storeScopes[0] : $product->getStoreId();
+        // if ($storeId) $product->setStoreId($storeId);
+        // $this->_storeManager->setCurrentStore($storeId);
         $parents = $this->cpModel->getParentIdsByChild($product->getId());
         try {
             $data = [
@@ -59,35 +59,39 @@ class ProductIntercept
                 'tags' => htmlspecialchars($product->getMetaKeyword()),
                 'images' => array(),
                 'inventory' => $product->getStockData()["qty"],
-                'vars' => [
-                    'options' => $this->cpModel->getSelectedAttributesInfo($product),
-                    'sku' => $product->getSku(),
-                    'storeId' => $storeId,
-                    'typeId' => $product->getTypeId(),
-                    'status' => $product->getStatus(),
-                    'categoryId' => $product->getCategoryId(),
-                    'categoryIds' => $product->getCategoryIds(),
-                    'websiteIds' => $product->getWebsiteIds(),
-                    'storeIds'  => $product->getStoreIds(),
-                    'price' => $product->getPrice() * 100,
-                    'groupPrice' => $product->getGroupPrice(),
-                    'formatedPrice' => $product->getFormatedPrice(),
-                    'calculatedFinalPrice' => $product->getCalculatedFinalPrice(),
-                    'minimalPrice' => $product->getMinimalPrice(),
-                    'specialPrice' => $product->getSpecialPrice(),
-                    'specialFromDate' => $product->getSpecialFromDate(),
-                    'specialToDate'  => $product->getSpecialToDate(),
-                    'relatedProductIds' => $product->getRelatedProductIds(),
-                    'upSellProductIds' => $product->getUpSellProductIds(),
-                    'getCrossSellProductIds' => $product->getCrossSellProductIds(),
-                    'isConfigurable'  => $product->canConfigure(),
-                    'isSalable' => $product->isSalable(),
-                    'isAvailable'  => $product->isAvailable(),
-                    'isVirtual'  => $product->isVirtual(),
-                    'isInStock'  => $product->isInStock(),
-                    'weight'  => $product->getWeight(),
-                    'isVisible' => $this->productHelper->canShow($product)
-                ],
+                // 'vars' => [
+                    // 'options2' => $product->getOptions(),
+                    // 'options3' => $product->getCustomOptions(),
+                    // 'codes' => $product->getCustomAttributesCodesf(),
+                    // 'sku' => $product->getSku(),
+                    // 'storeId' => $storeId,
+                    // 'typeId' => $product->getTypeId(),
+                    // 'status' => $product->getStatus(),
+                    // 'categoryId' => $product->getCategory(),
+                    // 'categoryIds' => $product->getCategoryIds(),
+                    // 'websiteIds' => $product->getWebsiteIds(),
+                    // 'storeIds'  => $product->getStoreIds(),
+                    // 'price' => $product->getPrice() * 100,
+                    // 'groupPrice' => $product->getGroupPrice(),
+                    // 'formatedPrice' => $product->getFormatedPrice(),
+                    // 'calculatedFinalPrice' => $product->getCalculatedFinalPrice(),
+                    // 'minimalPrice' => $product->getMinimalPrice(),
+                    // 'specialPrice' => $product->getSpecialPrice(),
+                    // 'specialFromDate' => $product->getSpecialFromDate(),
+                    // 'specialToDate'  => $product->getSpecialToDate(),
+                    // 'relatedProductIds' => $product->getRelatedProductIds(),
+                    // 'upSellProductIds' => $product->getUpSellProductIds(),
+                    // 'getCrossSellProductIds' => $product->getCrossSellProductIds(),
+                    // 'isConfigurable'  => $product->canConfigure(),
+                    // 'isSalable' => $product->isSalable(),
+                    // 'isAvailable'  => $product->isAvailable(),
+                    // 'isVirtual'  => $product->isVirtual(),
+                    // 'isInStock'  => $product->isInStock(),
+                    // 'weight'  => $product->getWeight(),
+                    // 'isVisible' => $this->productHelper->canShow($product)
+                    // 'product' => $product->toArray(),
+                // ],
+                'vars' => $this->_getProductAttributeValues($product),
             ];
             // Add product images
             if($image = $product->getImage()) {
@@ -111,5 +115,26 @@ class ProductIntercept
     // Magento 2 getImage seems to add a strange slash, therefore this.
     public function getBaseImageUrl($product){
         return $this->_storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA) . 'catalog/product' . $product->getImage();
+    }
+
+    private function _getProductAttributeValues($product){
+        $setId = $product->getAttributeSetId();
+        $attributeSet = $product->getAttributes();
+        $data = [];
+        foreach ($attributeSet as $attribute) {
+            $label = $attribute->getName();
+            if ($this->attributeGate($label)){
+                $value = $attribute->getFrontend()->getValue($product);
+                if ($value and $label and $value != "No"){
+                    $data[$label] = $value;
+                }
+            }
+        }
+        return $data;
+    }
+
+    private function attributeGate($attr){
+        if ($attr == "thumbnail" or strpos($attr, "media") or strpos($attr, "image")) return false;
+        return true;
     }
 }
