@@ -205,9 +205,7 @@ class OrderIntercept
     protected function getOrderVars($order, $adjustments){
         $vars = [];
         foreach ($adjustments as $adj) {
-            $this->sailthru->logger($adj);
             $vars[$adj['title']] =  $adj['price'];
-            $this->sailthru->logger('hello!');
         }
         $vars['orderId'] = $order->getId();
         return $vars;
