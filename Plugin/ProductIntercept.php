@@ -46,25 +46,25 @@ class ProductIntercept
         'sku'
     ];
 
-	public function __construct(Api $sailthru, StoreManagerInterface $storeManager, ProductHelper $productHelper, ImageHelper $imageHelper, ConfigProduct $cpModel){
-		$this->sailthru = $sailthru;
-		$this->_storeManager = $storeManager;
-		$this->productHelper = $productHelper;
+    public function __construct(Api $sailthru, StoreManagerInterface $storeManager, ProductHelper $productHelper, ImageHelper $imageHelper, ConfigProduct $cpModel){
+        $this->sailthru = $sailthru;
+        $this->_storeManager = $storeManager;
+        $this->productHelper = $productHelper;
         $this->imageHelper = $imageHelper;
         $this->cpModel = $cpModel;
-	}
+    }
 
-	public function afterAfterSave(Product $productModel, $productResult){
-		$data = $this->getProductData($productResult);
-		try {
-	        $this->sailthru->client->_eventType = 'SaveProduct';
+    public function afterAfterSave(Product $productModel, $productResult){
+        $data = $this->getProductData($productResult);
+        try {
+            $this->sailthru->client->_eventType = 'SaveProduct';
             $response = $this->sailthru->client->apiPost('content', $data);
         } catch(\Exception $e) {
             $this->sailthru->logger($e);
         }
 
-		return $productResult;
-	}
+        return $productResult;
+    }
 
     /**
      * Create Product array for Content API
@@ -90,7 +90,7 @@ class ProductIntercept
                 'spider' => 1,
                 'price' => $product->getPrice() * 100,
                 'description' => strip_tags($product->getDescription()),
-                'tags' => $this->getTags($product, $attributes),
+                'tags' => $this->getTags($product, $attributes, $categories),
                 'images' => array(),
                 'inventory' => $product->getStockData()["qty"],
                 'vars' => [
@@ -151,7 +151,7 @@ class ProductIntercept
         $data = [];
         foreach ($attributeSet as $attribute) {
             $label = $attribute->getName();
-            if ($this->attributeGate($label)){
+            if (!in_array($label, self::$unusedVarKeys)){
                 $value = $attribute->getFrontend()->getValue($product);
                 if ($value and $label and $value != "No"){
                     $data[$label] = $value;
@@ -161,19 +161,28 @@ class ProductIntercept
         return $data;
     }
 
-    private function attributeGate($attr){
-        if (in_array($attr, self::$unusedVarKeys)) return false;
-        return true;
-    }
 
-    public function getTags($product, $attributes){
-        $meta = htmlspecialchars($product->getData('meta_keyword')) . ",";
-        foreach ($attributes as $key => $value) {
-            if (!is_numeric($value)){
-                $meta .= (($value == "Yes" or $value == "Enabled") ? "$key" : "$value") . ",";
+    public function getTags($product, $attributes, $categories){
+        $tags = '';
+        if ($this->sailthru->tagsUseKeywords()) {
+          $keywords = htmlspecialchars($product->getData('meta_keyword'));  
+          $tags .= "$keywords,";
+        }
+        if ($this->sailthru->tagsUseAttributes()){ 
+            foreach ($attributes as $key => $value) {
+                if (!is_numeric($value)){
+                    $tags .= (($value == "Yes" or $value == "Enabled") ? $key : $value) . ",";
+                }
             }
         }
-        return $meta;
+        if ($this->sailthru->tagsUseCategories()){
+            $tags .= implode(",", $categories);
+        }
+        else {
+            $this->sailthru->logger('skipping tags');
+        }
+
+        return $tags;
     }
 
     public function getCategories($product){

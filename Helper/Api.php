@@ -40,9 +40,10 @@ class Api extends AbstractHelper
     const XML_ORDER_ENABLED			   = "magesail_send/transactionals/purchase_enabled";
     const XML_ORDER_TEMPLATE		   = "magesail_send/transactionals/purchase_template";
 
-    // Settings SPM
-    const XML_CLIENT_ID				   = 'magesail_js/settings/client/customer_id';
-    const XML_PERSONALIZE_ENABLED	   = "magesail_js/settings/personalize_enabled";
+    // Content
+    const XML_CONTENT_USE_KEYWORDS	   = "magesail_config/content/tags_seo";
+    const XML_CONTENT_USE_CATEGORIES   = "magesail_config/content/tags_categories";
+    const XML_CONTENT_USE_ATTRIBUTES   = "magesail_config/content/tags_attributes";
 
 	
 	public function __construct(MutableScopeConfig $scopeConfig, Hid $hid)
@@ -106,6 +107,21 @@ class Api extends AbstractHelper
 	public function getSettingsVal($val){
 		return $this->_scopeConfig->getValue($val);
 	}
+
+	/* Content */
+
+	public function tagsUseKeywords(){
+		return $this->getSettingsVal(self::XML_CONTENT_USE_KEYWORDS);
+	}
+
+	public function tagsUseAttributes(){
+		return $this->getSettingsVal(self::XML_CONTENT_USE_ATTRIBUTES);
+	}
+
+	public function tagsUseCategories(){
+		return $this->getSettingsVal(self::XML_CONTENT_USE_CATEGORIES);
+	}
+
 
 	/* Abandoned Cart */
 
