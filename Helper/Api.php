@@ -41,6 +41,7 @@ class Api extends AbstractHelper
     const XML_ORDER_TEMPLATE		   = "magesail_send/transactionals/purchase_template";
 
     // Content
+    const XML_CONTENT_INTERCEPT 	   = "magesail_content/content/enable_intercept";
     const XML_CONTENT_USE_KEYWORDS	   = "magesail_content/content/tags_seo";
     const XML_CONTENT_USE_CATEGORIES   = "magesail_content/content/tags_categories";
     const XML_CONTENT_USE_ATTRIBUTES   = "magesail_content/content/tags_attributes";
@@ -109,6 +110,10 @@ class Api extends AbstractHelper
 	}
 
 	/* Content */
+
+	public function isProductInterceptOn(){
+		return $this->getSettingsVal(self::XML_CONTENT_INTERCEPT);
+	}
 
 	public function tagsUseKeywords(){
 		return $this->getSettingsVal(self::XML_CONTENT_USE_KEYWORDS);

@@ -55,14 +55,15 @@ class ProductIntercept
     }
 
     public function afterAfterSave(Product $productModel, $productResult){
-        $data = $this->getProductData($productResult);
-        try {
-            $this->sailthru->client->_eventType = 'SaveProduct';
-            $response = $this->sailthru->client->apiPost('content', $data);
-        } catch(\Exception $e) {
-            $this->sailthru->logger($e);
+        if ($this->sailthru->isProductInterceptOn()){
+            $data = $this->getProductData($productResult);
+            try {
+                $this->sailthru->client->_eventType = 'SaveProduct';
+                $response = $this->sailthru->client->apiPost('content', $data);
+            } catch(\Exception $e) {
+                $this->sailthru->logger($e);
+            }
         }
-
         return $productResult;
     }
 
