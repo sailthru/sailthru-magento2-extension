@@ -28,7 +28,12 @@
                     <comment><![CDATA[After saving valid credentials, other settings will be accesible.]]></comment>
                 </field>
             </group>
+        </section>
 
+        <section id="magesail_content" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="1">
+            <label>Content</label>
+            <tab>sailthru</tab>
+            <resource>Sailthru_Magesail::config</resource>
             <group id="content" translate="label" type="text" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="2">
                 <label>Content Library</label>
                 <field id="enable_intercept" translate="label comment" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="0">
