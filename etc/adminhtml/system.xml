@@ -64,7 +64,7 @@
 
             <group id="lists" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Lists</label>
-                <field id="enable_signup_list" translate="label" type="multiselect" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="enable_signup_list" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Add new registering customers to Sailthru list</label>
                     <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnabledisable</source_model>
                     <comment>Upon registration, set users to be added to a Sailthru list of your choice.</comment>
