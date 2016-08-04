@@ -25,7 +25,8 @@ class MageClient extends \Sailthru_Client
      */
     public function  __construct($api_key, $secret, $logURI) {
         if ($logURI) $this->logFileURI = $logURI;
-        parent::__construct($api_key, $secret);
+        $options = [ "timeout" => 3000, "connection_timeout" => 3000];
+        parent::__construct($api_key, $secret, false, $options);
     }
 
 

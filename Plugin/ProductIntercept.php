@@ -12,26 +12,60 @@ use Sailthru\MageSail\Helper\Api;
 
 class ProductIntercept
 {
+    // Need some things from EAV attributes which seems more intensive. Attributes below, 
+    // we'd rather get from Product.
+    public static $unusedVarKeys = [
+        'status',
+        'row_id',
+        'type_id',
+        'attribute_set_id',
+        'media_gallery',
+        'thumbnail',
+        'shipment_type',
+        'url_key',
+        'price_view',
+        'msrp_display_actual_price_type',
+        'page_layout',
+        'options_container',
+        'custom_design',
+        'custom_layout',
+        'gift_message_available',
+        'category_ids',
+        'image',
+        'small_image',
+        'visibility',
+        'relatedProductIds',
+        'upSellProductIds',
+        'description',
+        'meta_keyword',
+        'name',
+        'created_at',
+        'updated_at',
+        'tax_class_id',
+        'quantity_and_stock_status',
+        'sku'
+    ];
 
-	public function __construct(Api $sailthru, StoreManagerInterface $storeManager, ProductHelper $productHelper, ImageHelper $imageHelper, ConfigProduct $cpModel){
-		$this->sailthru = $sailthru;
-		$this->_storeManager = $storeManager;
-		$this->productHelper = $productHelper;
+    public function __construct(Api $sailthru, StoreManagerInterface $storeManager, ProductHelper $productHelper, ImageHelper $imageHelper, ConfigProduct $cpModel){
+        $this->sailthru = $sailthru;
+        $this->_storeManager = $storeManager;
+        $this->productHelper = $productHelper;
         $this->imageHelper = $imageHelper;
         $this->cpModel = $cpModel;
-	}
+    }
 
-	public function afterAfterSave(Product $productModel, $productResult){
-		$data = $this->getProductData($productResult);
-		try {
-	        $this->sailthru->client->_eventType = 'SaveProduct';
-            $response = $this->sailthru->client->apiPost('content', $data);
-        } catch(\Exception $e) {
-            $this->sailthru->logger($e);
+    public function afterAfterSave(Product $productModel, $productResult){
+        if ($this->sailthru->isProductInterceptOn()){
+            $data = $this->getProductData($productResult);
+            try {
+                $this->sailthru->client->_eventType = 'SaveProduct';
+                $response = $this->sailthru->client->apiPost('content', $data);
+            } catch(\Exception $e) {
+                $this->sailthru->logger($e);
+            }
         }
-
-		return $productResult;
-	}
+        return $productResult;
+    }
 
     /**
      * Create Product array for Content API
@@ -41,13 +75,14 @@ class ProductIntercept
      */
     public function getProductData($product)
     {
-        
         // scope fix for intercept launched from backoffice, which causes admin URLs for products
         $storeScopes = $product->getStoreIds();
         $storeId = $storeScopes ? $storeScopes[0] : $product->getStoreId();
         if ($storeId) $product->setStoreId($storeId);
         $this->_storeManager->setCurrentStore($storeId);
         $parents = $this->cpModel->getParentIdsByChild($product->getId());
+        $attributes = $this->_getProductAttributeValues($product);
+        $categories = $this->getCategories($product);
         try {
             $data = [
                 'url'   => $parents ? $this->getProductFragmentedUrl($product, $parents[0]) : $product->setStoreId($storeId)->getProductUrl(true),
@@ -56,17 +91,15 @@ class ProductIntercept
                 'spider' => 1,
                 'price' => $product->getPrice() * 100,
                 'description' => strip_tags($product->getDescription()),
-                'tags' => htmlspecialchars($product->getMetaKeyword()),
+                'tags' => $this->getTags($product, $attributes, $categories),
                 'images' => array(),
                 'inventory' => $product->getStockData()["qty"],
                 'vars' => [
-                    'options' => $this->cpModel->getSelectedAttributesInfo($product),
                     'sku' => $product->getSku(),
-                    'storeId' => $storeId,
+                    'storeId' => $product->getStoreId(),
                     'typeId' => $product->getTypeId(),
                     'status' => $product->getStatus(),
-                    'categoryId' => $product->getCategoryId(),
-                    'categoryIds' => $product->getCategoryIds(),
+                    'categories' => $this->getCategories($product),
                     'websiteIds' => $product->getWebsiteIds(),
                     'storeIds'  => $product->getStoreIds(),
                     'price' => $product->getPrice() * 100,
@@ -87,7 +120,7 @@ class ProductIntercept
                     'isInStock'  => $product->isInStock(),
                     'weight'  => $product->getWeight(),
                     'isVisible' => $this->productHelper->canShow($product)
-                ],
+                ] + $attributes,
             ];
             // Add product images
             if($image = $product->getImage()) {
@@ -112,4 +145,55 @@ class ProductIntercept
     public function getBaseImageUrl($product){
         return $this->_storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA) . 'catalog/product' . $product->getImage();
     }
+
+    private function _getProductAttributeValues($product){
+        $setId = $product->getAttributeSetId();
+        $attributeSet = $product->getAttributes();
+        $data = [];
+        foreach ($attributeSet as $attribute) {
+            $label = $attribute->getName();
+            if (!in_array($label, self::$unusedVarKeys)){
+                $value = $attribute->getFrontend()->getValue($product);
+                if ($value and $label and $value != "No"){
+                    $data[$label] = $value;
+                }
+            }
+        }
+        return $data;
+    }
+
+
+    public function getTags($product, $attributes, $categories){
+        $tags = '';
+        if ($this->sailthru->tagsUseKeywords()) {
+          $keywords = htmlspecialchars($product->getData('meta_keyword'));  
+          $tags .= "$keywords,";
+        }
+        if ($this->sailthru->tagsUseAttributes()){ 
+            foreach ($attributes as $key => $value) {
+                if (!is_numeric($value)){
+                    $tags .= (($value == "Yes" or $value == "Enabled") ? $key : $value) . ",";
+                }
+            }
+        }
+        if ($this->sailthru->tagsUseCategories()){
+            $tags .= implode(",", $categories);
+        }
+        else {
+            $this->sailthru->logger('skipping tags');
+        }
+
+        return $tags;
+    }
+
+    public function getCategories($product){
+        $collection = $product->getCategoryCollection();
+        $items = $collection->addAttributeToSelect('name')->getItems();
+        $categories = [];
+        foreach ($items as $item) {
+            $categories[] = $item->getName();
+        }
+        return $categories;
+    }
+
 }
