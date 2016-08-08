@@ -12,6 +12,5 @@ class Tagblock extends View
 		$this->_sailthru = $sailthru;
 		parent::__construct();
 	}
-
 	
 }
