@@ -10,6 +10,7 @@ use Magento\Framework\Filesystem;
 use Magento\Store\Model\StoreManagerInterface;
 use Sailthru\MageSail\Helper\Api;
 
+
 class ProductIntercept
 {
     // Need some things from EAV attributes which seems more intensive. Attributes below, 
@@ -126,6 +127,9 @@ class ProductIntercept
             if($image = $product->getImage()) {
                 $data['images']['thumb'] = ["url" => $this->imageHelper->init($product, 'product_listing_thumbnail')->getUrl()];
                 $data['images']['full'] = ['url'=> $this->getBaseImageUrl($product)];
+            }
+            if($parents and sizeof($parents) == 1){
+                $data['vars']['parentID'] = $parents[0];
             }
             return $data;
         } catch(Exception $e) {

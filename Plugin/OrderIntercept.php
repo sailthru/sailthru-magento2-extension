@@ -3,7 +3,7 @@
 Purchase sync + Email Override
 - Sync purchase
 - Sendend normal email
-*/
+*/ 
 
 namespace Sailthru\MageSail\Plugin;
 
@@ -55,7 +55,7 @@ class OrderIntercept
         try{
             $this->sailthru->client->_eventType = 'placeOrder';
             $data = [
-                    'email'       => $order->getCustomerEmail(),
+                    'email'       => $email = $order->getCustomerEmail(),
                     'items'       => $this->_getItems($order->getAllVisibleItems()),
                     'adjustments' => $adjustments = $this->_getAdjustments($order),
                     'vars'        => $this->getOrderVars($order, $adjustments), 
@@ -73,9 +73,16 @@ class OrderIntercept
                 $order->setEmailSent(true);
                 $this->orderResource->saveAttribute($order, ['send_email', 'email_sent']);
             }
-        } catch (Exception $e) {
+            $hid = $this->sailthru->hid->get();
+            if (!$hid){
+                $response = $this->sailthru->client->apiGet('user', [ 'id' => $email, 'fields' => ['keys'=>1]]);
+                if (isset($response['keys']['cookie'])){
+                    $this->sailthru->hid->set($response['keys']['cookie']);
+                }
+            }
+        } catch (\Exception $e) {
             $this->sailthru->logger($e);
-            // throw new \Exception($e);
+            throw new \Exception($e->getMessage());
         }
     }
 
