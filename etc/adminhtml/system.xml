@@ -34,22 +34,41 @@
             <label>Content</label>
             <tab>sailthru</tab>
             <resource>Sailthru_Magesail::config</resource>
-            <group id="content" translate="label" type="text" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="2">
-                <label>Content Library</label>
+            <group id="intercept" translate="label" type="text" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="0">
+                <label>Sailthru Product Updates</label>
                 <field id="enable_intercept" translate="label comment" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="0">
                     <label>Send products to Sailthru on product update</label>
                     <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnabledisable</source_model>
                     <comment>This allows us to keep your content library in-sync with Magento.</comment>
                 </field>
-                <field id="tags_seo" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="1">
+                <field id="send_master" translate="label comment" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="1">
+                    <label>Send Configurable/Master Products to Sailthru</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Should Configurable products (masters) be sent to Sailthru</comment>
+                    <depends>
+                        <field id="*/*/enable_intercept">1</field>
+                    </depends>
+                </field>
+                <field id="send_variants" translate="label comment" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="2">
+                    <label>Send Variant Products to Sailthru</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Should variant products be sent to Sailthru. NOTE: If variants aren't visible individually, must enable URL-fragmenting in Sailthru.</comment>
+                    <depends>
+                        <field id="*/*/enable_intercept">1</field>
+                    </depends>
+                </field>
+            </group>
+            <group id="tags" translate="label" type="text" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="1">
+                <label>Product Tags</label>
+                <field id="use_seo" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="1">
                     <label>Get tags from SEO keywords</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="tags_attributes" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="3">
+                <field id="use_attributes" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="3">
                     <label>Get tags from from product attributes</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="tags_categories" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="2">
+                <field id="use_categories" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="2">
                     <label>Get tags from categories</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>

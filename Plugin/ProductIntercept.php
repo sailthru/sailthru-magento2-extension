@@ -5,7 +5,8 @@ namespace Sailthru\MageSail\Plugin;
 use Magento\Catalog\Helper\Product as ProductHelper;
 use Magento\Catalog\Helper\Image as ImageHelper;
 use Magento\Catalog\Model\Product;
-use Magento\ConfigurableProduct\Model\Product\Type\Configurable as ConfigProduct;
+use Magento\Catalog\Model\Product\Type\Simple;
+use Magento\ConfigurableProduct\Model\Product\Type\Configurable as Configurable;
 use Magento\Framework\Filesystem;
 use Magento\Store\Model\StoreManagerInterface;
 use Sailthru\MageSail\Helper\Api;
@@ -47,7 +48,7 @@ class ProductIntercept
         'sku'
     ];
 
-    public function __construct(Api $sailthru, StoreManagerInterface $storeManager, ProductHelper $productHelper, ImageHelper $imageHelper, ConfigProduct $cpModel){
+    public function __construct(Api $sailthru, StoreManagerInterface $storeManager, ProductHelper $productHelper, ImageHelper $imageHelper, Configurable $cpModel){
         $this->sailthru = $sailthru;
         $this->_storeManager = $storeManager;
         $this->productHelper = $productHelper;
@@ -58,11 +59,14 @@ class ProductIntercept
     public function afterAfterSave(Product $productModel, $productResult){
         if ($this->sailthru->isProductInterceptOn()){
             $data = $this->getProductData($productResult);
-            try {
-                $this->sailthru->client->_eventType = 'SaveProduct';
-                $response = $this->sailthru->client->apiPost('content', $data);
-            } catch(\Exception $e) {
-                $this->sailthru->logger($e);
+            if ($data){
+                try {
+                    $this->sailthru->client->_eventType = 'SaveProduct';
+                    $response = $this->sailthru->client->apiPost('content', $data);
+                } catch(\Exception $e) {
+                    $this->sailthru->logger('ProductData Error');
+                    $this->sailthru->logger($e->getMessage());
+                }
             }
         }
         return $productResult;
@@ -76,25 +80,42 @@ class ProductIntercept
      */
     public function getProductData($product)
     {
+        $productType = $product->getTypeId();
+        $isMaster = ($productType == 'configurable');
+        $updateMaster = $this->sailthru->canSyncMasterProducts();
+        if ($isMaster and !$updateMaster){
+            return false;
+        }
+
+        $isSimple = ($productType == 'simple');
+        $parents = $this->cpModel->getParentIdsByChild($product->getId());
+        $isVariant = ($isSimple and $parents);
+        $updateVariants = $this->sailthru->canSyncVariantProducts();
+        $this->sailthru->logger($updateVariants);
+        if ($isVariant and !$updateVariants){
+            return false;
+        }
+
         // scope fix for intercept launched from backoffice, which causes admin URLs for products
         $storeScopes = $product->getStoreIds();
         $storeId = $storeScopes ? $storeScopes[0] : $product->getStoreId();
         if ($storeId) $product->setStoreId($storeId);
         $this->_storeManager->setCurrentStore($storeId);
-        $parents = $this->cpModel->getParentIdsByChild($product->getId());
+
+
         $attributes = $this->_getProductAttributeValues($product);
         $categories = $this->getCategories($product);
+
         try {
             $data = [
-                'url'   => $parents ? $this->getProductFragmentedUrl($product, $parents[0]) : $product->setStoreId($storeId)->getProductUrl(true),
+                'url'   => $isVariant ? $this->getProductFragmentedUrl($product, $parents[0]) : $product->setStoreId($storeId)->getProductUrl(true),
                 'title' => htmlspecialchars($product->getName()),
                 //'date' => '',
                 'spider' => 1,
-                'price' => $product->getPrice() * 100,
+                'price' => $price = ($product->getPrice() ? $product->getPrice() : $product->getPriceInfo()->getPrice('final_price')->getValue()) * 100,
                 'description' => strip_tags($product->getDescription()),
                 'tags' => $this->getTags($product, $attributes, $categories),
                 'images' => array(),
-                'inventory' => $product->getStockData()["qty"],
                 'vars' => [
                     'sku' => $product->getSku(),
                     'storeId' => $product->getStoreId(),
@@ -123,6 +144,9 @@ class ProductIntercept
                     'isVisible' => $this->productHelper->canShow($product)
                 ] + $attributes,
             ];
+
+            if($isVariant) $data['inventory'] = $product->getStockData()["qty"];
+
             // Add product images
             if($image = $product->getImage()) {
                 $data['images']['thumb'] = ["url" => $this->imageHelper->init($product, 'product_listing_thumbnail')->getUrl()];
@@ -131,12 +155,13 @@ class ProductIntercept
             if($parents and sizeof($parents) == 1){
                 $data['vars']['parentID'] = $parents[0];
             }
+
             return $data;
+
         } catch(Exception $e) {
-            Mage::logException($e);
+            throw $e;
         }
     }
-
 
     public function getProductFragmentedUrl($product, $parent){
         $parentUrl = $this->productHelper->getProductUrl($parent);
