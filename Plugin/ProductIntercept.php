@@ -117,6 +117,8 @@ class ProductIntercept
                 'tags' => $this->getTags($product, $attributes, $categories),
                 'images' => array(),
                 'vars' => [
+                    'isMaster' => $isMaster,
+                    'isVariant' => $isVariant,
                     'sku' => $product->getSku(),
                     'storeId' => $product->getStoreId(),
                     'typeId' => $product->getTypeId(),
