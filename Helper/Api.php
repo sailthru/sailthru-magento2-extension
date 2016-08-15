@@ -41,10 +41,12 @@ class Api extends AbstractHelper
     const XML_ORDER_TEMPLATE		   = "magesail_send/transactionals/purchase_template";
 
     // Content
-    const XML_CONTENT_INTERCEPT 	   = "magesail_content/content/enable_intercept";
-    const XML_CONTENT_USE_KEYWORDS	   = "magesail_content/content/tags_seo";
-    const XML_CONTENT_USE_CATEGORIES   = "magesail_content/content/tags_categories";
-    const XML_CONTENT_USE_ATTRIBUTES   = "magesail_content/content/tags_attributes";
+    const XML_CONTENT_INTERCEPT 	   = "magesail_content/intercept/enable_intercept";
+    const XML_CONTENT_SEND_MASTER	   = "magesail_content/intercept/send_master";
+    const XML_CONTENT_SEND_VARIANTS	   = "magesail_content/intercept/send_variants";
+    const XML_CONTENT_USE_KEYWORDS	   = "magesail_content/tags/use_seo";
+    const XML_CONTENT_USE_CATEGORIES   = "magesail_content/tags/use_categories";
+    const XML_CONTENT_USE_ATTRIBUTES   = "magesail_content/tags/use_attributes";
 
 	
 	public function __construct(MutableScopeConfig $scopeConfig, Hid $hid)
@@ -113,6 +115,14 @@ class Api extends AbstractHelper
 
 	public function isProductInterceptOn(){
 		return $this->getSettingsVal(self::XML_CONTENT_INTERCEPT);
+	}
+
+	public function canSyncMasterProducts(){
+		return $this->getSettingsVal(self::XML_CONTENT_SEND_MASTER);
+	}
+
+	public function canSyncVariantProducts(){
+		return $this->getSettingsVal(self::XML_CONTENT_SEND_VARIANTS);
 	}
 
 	public function tagsUseKeywords(){

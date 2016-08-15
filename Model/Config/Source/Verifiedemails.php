@@ -4,7 +4,7 @@ namespace Sailthru\MageSail\Model\Config\Source;
 
 use \Magento\Framework\Option\ArrayInterface;
 
-class VerifiedEmails implements ArrayInterface
+class Verifiedemails implements ArrayInterface
 {
 
     private $_sailthru;
