@@ -4,6 +4,9 @@
     <type name="Magento\Newsletter\Model\Subscriber">
         <plugin name="MageSail_SubscriptionInterceptor" type="Sailthru\MageSail\Plugin\SubscribeIntercept" />
     </type>
+    <type name="Magento\Customer\Model\Address">
+        <plugin name="MageSail_AddressInterceptor" type="Sailthru\MageSail\Plugin\AddressIntercept" />
+    </type>
     <type name="Magento\Catalog\Model\Product">
         <plugin name="MageSail_ProductInterceptor" type="Sailthru\MageSail\Plugin\ProductIntercept" />
     </type>

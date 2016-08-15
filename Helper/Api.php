@@ -184,6 +184,22 @@ class Api extends AbstractHelper
 		return $this->hid->get();
 	}
 
+    public function getAddressVars($address){
+        if (!$address) return false;
+        $vars = [
+            "countryCode"   => $address->getCountry(),
+            "state"         => $address->getRegion(),
+            "stateCode"     => $address->getRegionCode(),
+            "city"          => $address->getCity(),
+            "postal"        => $address->getPostcode(),
+        ];
+        return $vars;
+    }
+
+    public function getAddressVarsByCustomer($customer){
+    	$address = $customer->getPrimaryBillingAddress();
+    	return $this->getAddressVars($address);
+    }
 
 
 }

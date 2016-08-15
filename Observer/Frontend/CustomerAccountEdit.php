@@ -73,6 +73,8 @@ class CustomerAccountEdit implements ObserverInterface
                         ]
                 ];
 
+                // if($address = $this->sailthru->getAddressVarsByCustomer($customer)) $data['vars'] += $address;
+
                 if($customer->getCustomAttribute('is_subscribed')){
                     $data["lists"] = ["Newsletter"=>1];
                 }
@@ -80,11 +82,12 @@ class CustomerAccountEdit implements ObserverInterface
                 $response = $this->sailthru->client->apiPost('user', $data);
                 $this->sailthru->hid->set($response["keys"]["cookie"]);
 
-            } catch(Sailthru_Email_Model_Client_Exception $e) {
+            } catch(\Sailthru_Email_Model_Client_Exception $e) {
                 $this->sailthru->logger($e);
-            } catch(Exception $e) {
+            } catch(\Exception $e) {
                 $this->sailthru->logger($e);
             }
         }
     }
+
 }
