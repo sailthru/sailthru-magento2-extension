@@ -48,6 +48,37 @@ class Api extends AbstractHelper
     const XML_CONTENT_USE_CATEGORIES   = "magesail_content/tags/use_categories";
     const XML_CONTENT_USE_ATTRIBUTES   = "magesail_content/tags/use_attributes";
 
+    public static $unusedVarKeys = [
+        'status',
+        'row_id',
+        'type_id',
+        'attribute_set_id',
+        'media_gallery',
+        'thumbnail',
+        'shipment_type',
+        'url_key',
+        'price_view',
+        'msrp_display_actual_price_type',
+        'page_layout',
+        'options_container',
+        'custom_design',
+        'custom_layout',
+        'gift_message_available',
+        'category_ids',
+        'image',
+        'small_image',
+        'visibility',
+        'relatedProductIds',
+        'upSellProductIds',
+        'description',
+        'meta_keyword',
+        'name',
+        'created_at',
+        'updated_at',
+        'tax_class_id',
+        'quantity_and_stock_status',
+        'sku'
+    ];
 	
 	public function __construct(MutableScopeConfig $scopeConfig, Hid $hid)
 	{
@@ -136,6 +167,60 @@ class Api extends AbstractHelper
 	public function tagsUseCategories(){
 		return $this->getSettingsVal(self::XML_CONTENT_USE_CATEGORIES);
 	}
+
+	public function getTags($product, $attributes = null, $categories = null)
+    {
+        $tags = '';
+        if ($this->tagsUseKeywords()) {
+            $keywords = htmlspecialchars($product->getData('meta_keyword'));
+            $tags .= "$keywords,";
+        }
+        if ($this->tagsUseAttributes()) {
+        	if ($attributes === null) {
+        		$attributes = $this->getProductAttributeValues($product);
+        	}
+            foreach ($attributes as $key => $value) {
+                if (!is_numeric($value)) {
+                    $tags .= (($value == "Yes" or $value == "Enabled") ? $key : $value) . ",";
+                }
+            }
+        }
+        if ($this->tagsUseCategories()) {
+        	if ($categories === null){
+        		$categories = $this->getCategories($product);
+        	}
+            $tags .= implode(",", $categories);
+        }
+        return $tags;
+    }
+
+    public function getProductAttributeValues($product)
+    {
+        $setId = $product->getAttributeSetId();
+        $attributeSet = $product->getAttributes();
+        $data = [];
+        foreach ($attributeSet as $attribute) {
+            $label = $attribute->getName();
+            if (!in_array($label, self::$unusedVarKeys)) {
+                $value = $attribute->getFrontend()->getValue($product);
+                if ($value and $label and $value != "No") {
+                    $data[$label] = $value;
+                }
+            }
+        }
+        return $data;
+    }
+
+    public function getCategories($product)
+    {
+        $collection = $product->getCategoryCollection();
+        $items = $collection->addAttributeToSelect('name')->getItems();
+        $categories = [];
+        foreach ($items as $item) {
+            $categories[] = $item->getName();
+        }
+        return $categories;
+    }
 
 
 	/* Abandoned Cart */
