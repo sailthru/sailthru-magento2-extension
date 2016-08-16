@@ -191,5 +191,4 @@ class ProductIntercept
         return $this->_storeManager->getStore()
             ->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA) . 'catalog/product' . $product->getImage();
     }
-
 }
