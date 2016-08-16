@@ -1,5 +1,5 @@
 {
-  "name": "sailthru/magesail",
+  "name": "sailthru/magento2-sailthru",
   "description": "Sailthru Module for Magento",
   "type":"magento2-module",
   "require": {
@@ -7,11 +7,9 @@
     "sailthru/sailthru-php5-client": "^1.2",
     "magento/newsletter": "100.1.*"
   },
-  "version": "0.0.1",
+  "version": "0.9",
   "autoload": {
     "files": [ "registration.php" ],
-    "psr-4": {
-      "Sailthru\\MageSail\\": "app/code/Sailthru/MageSail"
-    }
+    "psr-4": { "Sailthru\\MageSail\\": "" }
   }
 }
