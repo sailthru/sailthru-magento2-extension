@@ -11,10 +11,9 @@ use Magento\Framework\Filesystem;
 use Magento\Store\Model\StoreManagerInterface;
 use Sailthru\MageSail\Helper\Api;
 
-
 class ProductIntercept
 {
-    // Need some things from EAV attributes which seems more intensive. Attributes below, 
+    // Need some things from EAV attributes which seems more intensive. Attributes below,
     // we'd rather get from Product.
     public static $unusedVarKeys = [
         'status',
@@ -48,7 +47,13 @@ class ProductIntercept
         'sku'
     ];
 
-    public function __construct(Api $sailthru, StoreManagerInterface $storeManager, ProductHelper $productHelper, ImageHelper $imageHelper, Configurable $cpModel){
+    public function __construct(
+        Api $sailthru,
+        StoreManagerInterface $storeManager,
+        ProductHelper $productHelper,
+        ImageHelper $imageHelper,
+        Configurable $cpModel
+    ) {
         $this->sailthru = $sailthru;
         $this->_storeManager = $storeManager;
         $this->productHelper = $productHelper;
@@ -56,14 +61,15 @@ class ProductIntercept
         $this->cpModel = $cpModel;
     }
 
-    public function afterAfterSave(Product $productModel, $productResult){
-        if ($this->sailthru->isProductInterceptOn()){
+    public function afterAfterSave(Product $productModel, $productResult)
+    {
+        if ($this->sailthru->isProductInterceptOn()) {
             $data = $this->getProductData($productResult);
-            if ($data){
+            if ($data) {
                 try {
                     $this->sailthru->client->_eventType = 'SaveProduct';
                     $response = $this->sailthru->client->apiPost('content', $data);
-                } catch(\Exception $e) {
+                } catch (\Exception $e) {
                     $this->sailthru->logger('ProductData Error');
                     $this->sailthru->logger($e->getMessage());
                 }
@@ -83,7 +89,7 @@ class ProductIntercept
         $productType = $product->getTypeId();
         $isMaster = ($productType == 'configurable');
         $updateMaster = $this->sailthru->canSyncMasterProducts();
-        if ($isMaster and !$updateMaster){
+        if ($isMaster and !$updateMaster) {
             return false;
         }
 
@@ -92,34 +98,37 @@ class ProductIntercept
         $isVariant = ($isSimple and $parents);
         $updateVariants = $this->sailthru->canSyncVariantProducts();
         $this->sailthru->logger($updateVariants);
-        if ($isVariant and !$updateVariants){
+        if ($isVariant and !$updateVariants) {
             return false;
         }
 
         // scope fix for intercept launched from backoffice, which causes admin URLs for products
         $storeScopes = $product->getStoreIds();
         $storeId = $storeScopes ? $storeScopes[0] : $product->getStoreId();
-        if ($storeId) $product->setStoreId($storeId);
+        if ($storeId) {
+            $product->setStoreId($storeId);
+        }
         $this->_storeManager->setCurrentStore($storeId);
-
 
         $attributes = $this->_getProductAttributeValues($product);
         $categories = $this->getCategories($product);
 
         try {
             $data = [
-                'url'   => $isVariant ? $this->getProductFragmentedUrl($product, $parents[0]) : $product->setStoreId($storeId)->getProductUrl(true),
+                'url'   => $isVariant ? $this->getProductFragmentedUrl($product, $parents[0]) :
+                    $product->setStoreId($storeId)->getProductUrl(true),
                 'title' => htmlspecialchars($product->getName()),
-                //'date' => '',
                 'spider' => 1,
-                'price' => $price = ($product->getPrice() ? $product->getPrice() : $product->getPriceInfo()->getPrice('final_price')->getValue()) * 100,
+                'price' => $price = ($product->getPrice() ? $product->getPrice() :
+                    $product->getPriceInfo()->getPrice('final_price')->getValue()) * 100,
                 'description' => strip_tags($product->getDescription()),
                 'tags' => $this->getTags($product, $attributes, $categories),
-                'images' => array(),
+                'images' => [],
                 'vars' => [
-                    'isMaster' => $isMaster,
-                    'isVariant' => $isVariant,
+                    'isMaster' => (int) $isMaster,
+                    'isVariant' =>(int) $isVariant,
                     'sku' => $product->getSku(),
+                    'weight'  => $product->getWeight(),
                     'storeId' => $product->getStoreId(),
                     'typeId' => $product->getTypeId(),
                     'status' => $product->getStatus(),
@@ -137,55 +146,62 @@ class ProductIntercept
                     'relatedProductIds' => $product->getRelatedProductIds(),
                     'upSellProductIds' => $product->getUpSellProductIds(),
                     'getCrossSellProductIds' => $product->getCrossSellProductIds(),
-                    'isConfigurable'  => $product->canConfigure(),
-                    'isSalable' => $product->isSalable(),
-                    'isAvailable'  => $product->isAvailable(),
-                    'isVirtual'  => $product->isVirtual(),
-                    'isInStock'  => $product->isInStock(),
-                    'weight'  => $product->getWeight(),
-                    'isVisible' => $this->productHelper->canShow($product)
+                    'isConfigurable'  => (int) $product->canConfigure(),
+                    'isSalable' => (int) $product->isSalable(),
+                    'isAvailable'  => (int) $product->isAvailable(),
+                    'isVirtual'  => (int) $product->isVirtual(),
+                    'isInStock'  => (int) $product->isInStock(),
+                    'isVisible' => (int) $this->productHelper->canShow($product)
                 ] + $attributes,
             ];
 
-            if($isVariant) $data['inventory'] = $product->getStockData()["qty"];
+            if ($isVariant) {
+                $data['inventory'] = $product->getStockData()["qty"];
+            }
 
             // Add product images
-            if($image = $product->getImage()) {
-                $data['images']['thumb'] = ["url" => $this->imageHelper->init($product, 'product_listing_thumbnail')->getUrl()];
-                $data['images']['full'] = ['url'=> $this->getBaseImageUrl($product)];
+            if ($image = $product->getImage()) {
+                $data['images']['thumb'] = [
+                    "url" => $this->imageHelper->init($product, 'product_listing_thumbnail')->getUrl()
+                ];
+                $data['images']['full'] = [
+                    "url"=> $this->getBaseImageUrl($product)
+                ];
             }
-            if($parents and sizeof($parents) == 1){
+            if ($parents and count($parents) == 1) {
                 $data['vars']['parentID'] = $parents[0];
             }
 
             return $data;
-
-        } catch(Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         }
     }
 
-    public function getProductFragmentedUrl($product, $parent){
+    public function getProductFragmentedUrl($product, $parent)
+    {
         $parentUrl = $this->productHelper->getProductUrl($parent);
         $pSku = $product->getSku();
         return "{$parentUrl}#{$pSku}";
     }
 
-
     // Magento 2 getImage seems to add a strange slash, therefore this.
-    public function getBaseImageUrl($product){
-        return $this->_storeManager->getStore()->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA) . 'catalog/product' . $product->getImage();
+    public function getBaseImageUrl($product)
+    {
+        return $this->_storeManager->getStore()
+            ->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA) . 'catalog/product' . $product->getImage();
     }
 
-    private function _getProductAttributeValues($product){
+    private function _getProductAttributeValues($product)
+    {
         $setId = $product->getAttributeSetId();
         $attributeSet = $product->getAttributes();
         $data = [];
         foreach ($attributeSet as $attribute) {
             $label = $attribute->getName();
-            if (!in_array($label, self::$unusedVarKeys)){
+            if (!in_array($label, self::$unusedVarKeys)) {
                 $value = $attribute->getFrontend()->getValue($product);
-                if ($value and $label and $value != "No"){
+                if ($value and $label and $value != "No") {
                     $data[$label] = $value;
                 }
             }
@@ -193,31 +209,31 @@ class ProductIntercept
         return $data;
     }
 
-
-    public function getTags($product, $attributes, $categories){
+    public function getTags($product, $attributes, $categories)
+    {
         $tags = '';
         if ($this->sailthru->tagsUseKeywords()) {
-          $keywords = htmlspecialchars($product->getData('meta_keyword'));  
-          $tags .= "$keywords,";
+            $keywords = htmlspecialchars($product->getData('meta_keyword'));
+            $tags .= "$keywords,";
         }
-        if ($this->sailthru->tagsUseAttributes()){ 
+        if ($this->sailthru->tagsUseAttributes()) {
             foreach ($attributes as $key => $value) {
-                if (!is_numeric($value)){
+                if (!is_numeric($value)) {
                     $tags .= (($value == "Yes" or $value == "Enabled") ? $key : $value) . ",";
                 }
             }
         }
-        if ($this->sailthru->tagsUseCategories()){
+        if ($this->sailthru->tagsUseCategories()) {
             $tags .= implode(",", $categories);
-        }
-        else {
+        } else {
             $this->sailthru->logger('skipping tags');
         }
 
         return $tags;
     }
 
-    public function getCategories($product){
+    public function getCategories($product)
+    {
         $collection = $product->getCategoryCollection();
         $items = $collection->addAttributeToSelect('name')->getItems();
         $categories = [];
@@ -226,5 +242,4 @@ class ProductIntercept
         }
         return $categories;
     }
-
 }
