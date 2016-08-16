@@ -64,8 +64,7 @@ class ProductIntercept
     public function afterAfterSave(Product $productModel, $productResult)
     {
         if ($this->sailthru->isProductInterceptOn()) {
-            $data = $this->getProductData($productResult);
-            if ($data) {
+            if ($data = $this->getProductData($productResult)) {
                 try {
                     $this->sailthru->client->_eventType = 'SaveProduct';
                     $response = $this->sailthru->client->apiPost('content', $data);
@@ -110,8 +109,8 @@ class ProductIntercept
         }
         $this->_storeManager->setCurrentStore($storeId);
 
-        $attributes = $this->_getProductAttributeValues($product);
-        $categories = $this->getCategories($product);
+        $attributes = $this->sailthru->getProductAttributeValues($product);
+        $categories = $this->sailthru->getCategories($product);
 
         try {
             $data = [
@@ -122,7 +121,7 @@ class ProductIntercept
                 'price' => $price = ($product->getPrice() ? $product->getPrice() :
                     $product->getPriceInfo()->getPrice('final_price')->getValue()) * 100,
                 'description' => strip_tags($product->getDescription()),
-                'tags' => $this->getTags($product, $attributes, $categories),
+                'tags' => $this->sailthru->getTags($product, $attributes, $categories),
                 'images' => [],
                 'vars' => [
                     'isMaster' => (int) $isMaster,
@@ -132,7 +131,7 @@ class ProductIntercept
                     'storeId' => $product->getStoreId(),
                     'typeId' => $product->getTypeId(),
                     'status' => $product->getStatus(),
-                    'categories' => $this->getCategories($product),
+                    'categories' => $categories,
                     'websiteIds' => $product->getWebsiteIds(),
                     'storeIds'  => $product->getStoreIds(),
                     'price' => $product->getPrice() * 100,
@@ -145,7 +144,7 @@ class ProductIntercept
                     'specialToDate'  => $product->getSpecialToDate(),
                     'relatedProductIds' => $product->getRelatedProductIds(),
                     'upSellProductIds' => $product->getUpSellProductIds(),
-                    'getCrossSellProductIds' => $product->getCrossSellProductIds(),
+                    'crossSellProductIds' => $product->getCrossSellProductIds(),
                     'isConfigurable'  => (int) $product->canConfigure(),
                     'isSalable' => (int) $product->isSalable(),
                     'isAvailable'  => (int) $product->isAvailable(),
@@ -174,7 +173,8 @@ class ProductIntercept
 
             return $data;
         } catch (\Exception $e) {
-            throw $e;
+            $this->sailthru->logger($e->getMessage());
+            return false;
         }
     }
 
@@ -192,54 +192,4 @@ class ProductIntercept
             ->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA) . 'catalog/product' . $product->getImage();
     }
 
-    private function _getProductAttributeValues($product)
-    {
-        $setId = $product->getAttributeSetId();
-        $attributeSet = $product->getAttributes();
-        $data = [];
-        foreach ($attributeSet as $attribute) {
-            $label = $attribute->getName();
-            if (!in_array($label, self::$unusedVarKeys)) {
-                $value = $attribute->getFrontend()->getValue($product);
-                if ($value and $label and $value != "No") {
-                    $data[$label] = $value;
-                }
-            }
-        }
-        return $data;
-    }
-
-    public function getTags($product, $attributes, $categories)
-    {
-        $tags = '';
-        if ($this->sailthru->tagsUseKeywords()) {
-            $keywords = htmlspecialchars($product->getData('meta_keyword'));
-            $tags .= "$keywords,";
-        }
-        if ($this->sailthru->tagsUseAttributes()) {
-            foreach ($attributes as $key => $value) {
-                if (!is_numeric($value)) {
-                    $tags .= (($value == "Yes" or $value == "Enabled") ? $key : $value) . ",";
-                }
-            }
-        }
-        if ($this->sailthru->tagsUseCategories()) {
-            $tags .= implode(",", $categories);
-        } else {
-            $this->sailthru->logger('skipping tags');
-        }
-
-        return $tags;
-    }
-
-    public function getCategories($product)
-    {
-        $collection = $product->getCategoryCollection();
-        $items = $collection->addAttributeToSelect('name')->getItems();
-        $categories = [];
-        foreach ($items as $item) {
-            $categories[] = $item->getName();
-        }
-        return $categories;
-    }
 }

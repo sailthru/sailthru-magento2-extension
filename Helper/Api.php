@@ -203,7 +203,7 @@ class Api extends AbstractHelper
             $label = $attribute->getName();
             if (!in_array($label, self::$unusedVarKeys)) {
                 $value = $attribute->getFrontend()->getValue($product);
-                if ($value and $label and $value != "No") {
+                if ($value and $label and $value != "No" and $value != " ") {
                     $data[$label] = $value;
                 }
             }
