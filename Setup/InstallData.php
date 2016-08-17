@@ -3,6 +3,7 @@
 // based on http://www.extensions.sashas.org/blog/magento-2-make-customer-attribute.html
 
 namespace Sailthru\MageSail\Setup;
+
 use Magento\Customer\Setup\CustomerSetupFactory;
 use Magento\Customer\Model\Customer;
 use Magento\Eav\Model\Entity\Attribute\Set as AttributeSet;
@@ -38,7 +39,6 @@ class InstallData implements InstallDataInterface
         $this->customerSetupFactory = $customerSetupFactory;
         $this->attributeSetFactory = $attributeSetFactory;
     }
- 
     
     /**
      * {@inheritdoc}
@@ -76,6 +76,5 @@ class InstallData implements InstallDataInterface
         ]);
         
         $attribute->save();
-          
     }
 }
