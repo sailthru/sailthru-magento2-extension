@@ -81,7 +81,7 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
         }
     }
 
-    public static function cleanEmail($str)
+    public function cleanEmail($str)
     {
         $startPart = strpos($str, '<') + 1;
         $email = substr($str, $startPart);
@@ -89,7 +89,7 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
         return $email;
     }
 
-    public static function cleanEmails($emailStr)
+    public function cleanEmails($emailStr)
     {
         return implode(",", array_map([ $this, 'cleanEmail' ], explode(",", $emailStr)));
     }

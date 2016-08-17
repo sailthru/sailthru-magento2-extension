@@ -12,6 +12,8 @@ use Magento\Catalog\Helper\Image;
 use Magento\Catalog\Helper\Product;
 use Magento\Catalog\Model\Product\Media\Config;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable as ConfigProduct;
+use Magento\Framework\Phrase;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\ResourceModel\Order as OrderResource;
 use Magento\Sales\Model\Email\Sender\OrderSender;
@@ -39,56 +41,94 @@ class OrderIntercept
         $this->cpModel       = $cpModel;
     }
 
+    /**
+     * Even if not using Sailthru to send the transactional, we want Sailthru to track the purchase.
+    */
     public function aroundSend(Interceptor $subject, callable $proceed, Order $order, $syncVar = false)
     {
-        $alreadyOrdered = $order->getEmailSent();
-        if (!$alreadyOrdered) {
+        $orderData = $this->getData($order);
+        if ($this->sailthru->getOrderOverride()) {
+            $template = $this->sailthru->getOrderTemplate();
+            $alreadyOrdered = $order->getEmailSent();
             try {
-                $this->sendOrder($order);
+                if (!$alreadyOrdered) {
+                    $this->sendOrder($orderData, $template);
+                    $order->setEmailSent(true);
+                    $this->orderResource->saveAttribute($order, ['send_email', 'email_sent']);
+                } else {
+                    $this->sendCopy($orderData, $template);
+                }
             } catch (\Exception $e) {
                 $this->sailthru->logger($e->getMessage());
-                throw new \Magento\Framework\Exception\LocalizedException('Could not send purchase confirmation.');
+                throw new LocalizedException(new Phrase('Could not send purchase confirmation.'));
             }
-        }
-        if ($alreadyOrdered or !$this->sailthru->getOrderOverride()) {
+        } else {
+            $this->sendOrder($orderData, false);
             $val = $proceed($order);
             return $val;
         }
     }
 
-    public function sendOrder(Order $order)
+    public function sendOrder($orderData, $template = null)
     {
         try {
             $this->sailthru->client->_eventType = 'placeOrder';
-            $data = [
-                    'email'       => $email = $order->getCustomerEmail(),
-                    'items'       => $this->processItems($order->getAllVisibleItems()),
-                    'adjustments' => $adjustments = $this->processAdjustments($order),
-                    'vars'        => $this->getOrderVars($order, $adjustments),
-                    'message_id'  => $this->sailthru->getBlastId(),
-                    'tenders'     => $this->processTenders($order),
-            ];
-            if ($template = $this->sailthru->getOrderOverride()) {
-                $data['send_template'] = $template;
+            if ($template) {
+                $orderData['send_template'] = $template;
             }
-            $response = $this->sailthru->client->apiPost('purchase', $data);
+            $response = $this->sailthru->client->apiPost('purchase', $orderData);
             if (array_key_exists('error', $response)) {
-                throw new \Magento\Framework\Exception\LocalizedException($response['error']);
-            } elseif ($template) {
-                $order->setEmailSent(true);
-                $this->orderResource->saveAttribute($order, ['send_email', 'email_sent']);
+                throw new LocalizedException(new Phrase($response['error']));
             }
             $hid = $this->sailthru->hid->get();
             if (!$hid) {
-                $response = $this->sailthru->client->apiGet('user', [ 'id' => $email, 'fields' => ['keys'=>1]]);
+                $response = $this->sailthru->client->apiGet(
+                    'user',
+                    [
+                        'id' => $orderData['email'],
+                        'fields' => ['keys'=>1]
+                    ]
+                );
                 if (isset($response['keys']['cookie'])) {
                     $this->sailthru->hid->set($response['keys']['cookie']);
                 }
             }
         } catch (\Exception $e) {
-            $this->sailthru->logger($e->getMessage());
             throw $e;
         }
+    }
+
+    public function sendCopy($orderData, $template)
+    {
+        $this->sailthru->client->_eventType = 'orderEmail';
+        $sendData = [
+            'email' => $orderData['email'],
+            'vars' => $orderData['vars'],
+            'template' => $template,
+        ];
+        unset($orderData['email']);
+        unset($orderData['vars']);
+        $sendData['vars'] += $orderData;
+        try {
+            $response = $this->sailthru->client->apiPost('send', $sendData);
+            if (array_key_exists('error', $response)) {
+                throw new LocalizedException(new Phrase($response['error']));
+            }
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    public function getData($order)
+    {
+            return [
+                'email'       => $email = $order->getCustomerEmail(),
+                'items'       => $this->processItems($order->getAllVisibleItems()),
+                'adjustments' => $adjustments = $this->processAdjustments($order),
+                'vars'        => $this->getOrderVars($order, $adjustments),
+                'message_id'  => $this->sailthru->getBlastId(),
+                'tenders'     => $this->processTenders($order),
+            ];
     }
 
     /**

@@ -255,10 +255,14 @@ class Api extends AbstractHelper
 	public function getOrderOverride(){
 		if ($this->getTransactionalsEnabled() && 
 			$this->getSettingsVal(self::XML_ORDER_ENABLED) &&
-			$template = $this->getSettingsVal(self::XML_ORDER_TEMPLATE)){
-			return $template;
+			$this->getSettingsVal(self::XML_ORDER_TEMPLATE)) {
+			return true;
 		}
 		return false;
+	}
+
+	public function getOrderTemplate(){
+		return $this->getSettingsVal(self::XML_ORDER_TEMPLATE);
 	}
 
 	public function getBlastId(){
