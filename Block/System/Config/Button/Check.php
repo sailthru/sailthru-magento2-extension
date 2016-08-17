@@ -7,31 +7,23 @@ use Magento\Framework\App\Config\ScopeConfigInterface;
 class Check extends \Magento\Config\Block\System\Config\Form\Field
 {
 
-    /**
-    * Sailthru object 
-    * @var \Sailthru\MageSail\Helper\Api
-    */
-    protected $_sailthru;
-
-
-
-    public function __construct(\Magento\Backend\Block\Template\Context $context, \Sailthru\MageSail\Helper\Api $sailthru, array $data = [])
-    {
+    public function __construct(
+        \Magento\Backend\Block\Template\Context $context,
+        \Sailthru\MageSail\Helper\Api $sailthru,
+        array $data = []
+    ) {
         $this->_sailthru = $sailthru;
         parent::__construct($context, $data);
     }
-
 
     /**
      * Path to block template
      */
     const CHECK_TEMPLATE = 'system/validateapi.phtml';
-    
 
     /**
      * Set template to itself
      *
-     * @return \Sailthru\MageSail\Block\Adminhtml\System\Config\Validateapi
      */
     protected function _prepareLayout()
     {
@@ -55,8 +47,6 @@ class Check extends \Magento\Config\Block\System\Config\Form\Field
         return parent::render($element);
     }
 
-
-
     /**
      * Get the button and scripts contents
      *
@@ -68,7 +58,7 @@ class Check extends \Magento\Config\Block\System\Config\Form\Field
         $originalData = $element->getOriginalData();
         $buttonLabel = !empty($originalData['button_label']) ? $originalData['button_label'] : 'Validate Credentials';
         $api_validate = $this->_sailthru->apiValidate();
-        if ($api_validate[0] == 1){
+        if ($api_validate[0] == 1) {
             $data = [
                 'class' => 'sail_success',
                 'status' => 'API Validation Complete',
