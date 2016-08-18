@@ -1,13 +1,15 @@
 {
-  "name": "sailthru/magento2-sailthru",
+  "name": "sailthru/sailthru-magento2-extension",
   "description": "Sailthru Module for Magento",
   "type":"magento2-module",
   "require": {
     "php": "~5.6.0|~7.0.0",
     "sailthru/sailthru-php5-client": "^1.2",
-    "magento/newsletter": "100.1.*"
+    "magento/newsletter": "100.1.*",
+    "magento/catalog": "100.1.*",
+    "magento/customer": "100.1.*"
   },
-  "version": "0.9",
+  "version": "1.0",
   "autoload": {
     "files": [ "registration.php" ],
     "psr-4": { "Sailthru\\MageSail\\": "" }
