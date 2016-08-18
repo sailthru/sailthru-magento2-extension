@@ -9,16 +9,14 @@ class Sailthrulists implements ArrayInterface
 
     private $_sailthru;
 
-    public function __construct(\Sailthru\MageSail\Helper\Api $sailthru){
+    public function __construct(\Sailthru\MageSail\Helper\Api $sailthru)
+    {
         $this->_sailthru = $sailthru;
     }
 
-    /**
-     * @return array
-     */
     public function toOptionArray()
     {
-        if (!$this->_sailthru->isValid()){
+        if (!$this->_sailthru->isValid()) {
             return [
                 ['value'=>0, 'label'=>__('Please Enter Valid Credentials')]
                 ];
@@ -26,12 +24,11 @@ class Sailthrulists implements ArrayInterface
 
         $data = $this->_sailthru->client->getLists();
         $lists = $data["lists"];
-        $lists_options = [ 
-            ['value'=> 0, 'label'=>' '] 
+        $lists_options = [
+            ['value'=> 0, 'label'=>' ']
         ];
         foreach ($lists as $list) {
-            if ($list['type'] == 'normal')
-            {
+            if ($list['type'] == 'normal') {
                 $lists_options[] = [
                     'value' => $list['name'],
                     'label' => __("{$list['name']} ({$list['email_count']} Emails)")
@@ -40,6 +37,5 @@ class Sailthrulists implements ArrayInterface
         }
 
         return $lists_options;
- 
     }
 }

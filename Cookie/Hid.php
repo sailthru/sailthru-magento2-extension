@@ -1,10 +1,9 @@
-<?php 
+<?php
 
 /*** 
 Basic Magento 2 cookie getter/setter class for sailthru_hid 
 Based on code from http://magento.stackexchange.com/questions/100136/how-to-add-cookie-magento-2
 ***/
-
 
 namespace Sailthru\MageSail\Cookie;
 
@@ -20,7 +19,6 @@ class Hid
      */
     const COOKIE_NAME = 'sailthru_hid';
 
- 
     /**
      * CookieManager
      *
@@ -63,7 +61,8 @@ class Hid
         return $this->cookieManager->getCookie(self::COOKIE_NAME);
     }
 
-    public function getBid(){
+    public function getBid()
+    {
         return $this->cookieManager->getCookie('sailthru_bid');
     }
 

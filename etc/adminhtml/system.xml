@@ -146,6 +146,7 @@
                     <label>Purchase Confirmation Template</label>
                     <depends>
                         <field id="*/*/purchase_enabled">1</field>
+                        <field id="*/*/send_through_sailthru">1</field>
                     </depends>
                     <source_model>Sailthru\MageSail\Model\Config\Source\Sailthrutemplates</source_model>
                 </field>

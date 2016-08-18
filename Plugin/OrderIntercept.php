@@ -3,7 +3,7 @@
 Purchase sync + Email Override
 - Sync purchase
 - Sendend normal email
-*/ 
+*/
 
 namespace Sailthru\MageSail\Plugin;
 
@@ -12,6 +12,8 @@ use Magento\Catalog\Helper\Image;
 use Magento\Catalog\Helper\Product;
 use Magento\Catalog\Model\Product\Media\Config;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable as ConfigProduct;
+use Magento\Framework\Phrase;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\ResourceModel\Order as OrderResource;
 use Magento\Sales\Model\Email\Sender\OrderSender;
@@ -21,8 +23,15 @@ use Sailthru\MageSail\Helper\Api;
 class OrderIntercept
 {
 
-    public function __construct(Api $sailthru, ProductRepositoryInterface $productRepo, Image $imageHelper, Config $mediaConfig, Product $productHelper, OrderResource $orderResource, ConfigProduct $cpModel)
-    {
+    public function __construct(
+        Api $sailthru,
+        ProductRepositoryInterface $productRepo,
+        Image $imageHelper,
+        Config $mediaConfig,
+        Product $productHelper,
+        OrderResource $orderResource,
+        ConfigProduct $cpModel
+    ) {
         $this->sailthru      = $sailthru;
         $this->productRepo   = $productRepo;
         $this->imageHelper   = $imageHelper;
@@ -32,58 +41,94 @@ class OrderIntercept
         $this->cpModel       = $cpModel;
     }
 
-    public function aroundSend(Interceptor $subject, callable $proceed, Order $order, $syncVar=false )
+    /**
+     * Even if not using Sailthru to send the transactional, we want Sailthru to track the purchase.
+    */
+    public function aroundSend(Interceptor $subject, callable $proceed, Order $order, $syncVar = false)
     {
-        $alreadyOrdered = $order->getEmailSent();
-        if(!$alreadyOrdered){
+        $orderData = $this->getData($order);
+        if ($this->sailthru->getOrderOverride()) {
+            $template = $this->sailthru->getOrderTemplate();
+            $alreadyOrdered = $order->getEmailSent();
             try {
-                $this->_sendOrder($order);
-            } catch (\Exception $e){
-                $this->sailthru->logger($e);
-                throw new \Exception($e);
-            } 
-        }
-        if ($alreadyOrdered or !$this->sailthru->getOrderOverride()) {
+                if (!$alreadyOrdered) {
+                    $this->sendOrder($orderData, $template);
+                    $order->setEmailSent(true);
+                    $this->orderResource->saveAttribute($order, ['send_email', 'email_sent']);
+                } else {
+                    $this->sendCopy($orderData, $template);
+                }
+            } catch (\Exception $e) {
+                $this->sailthru->logger($e->getMessage());
+                throw new LocalizedException(new Phrase('Could not send purchase confirmation.'));
+            }
+        } else {
+            $this->sendOrder($orderData, false);
             $val = $proceed($order);
             return $val;
         }
     }
 
-
-    protected function _sendOrder(Order $order)
+    public function sendOrder($orderData, $template = null)
     {
-        try{
+        try {
             $this->sailthru->client->_eventType = 'placeOrder';
-            $data = [
-                    'email'       => $email = $order->getCustomerEmail(),
-                    'items'       => $this->_getItems($order->getAllVisibleItems()),
-                    'adjustments' => $adjustments = $this->_getAdjustments($order),
-                    'vars'        => $this->getOrderVars($order, $adjustments), 
-                    'message_id'  => $this->sailthru->getBlastId(),
-                    'tenders'     => $this->_getTenders($order)
-            ];
-            if ($template = $this->sailthru->getOrderOverride()){
-                $data['send_template'] = $template;
+            if ($template) {
+                $orderData['send_template'] = $template;
             }
-            $response = $this->sailthru->client->apiPost('purchase', $data);
-            if (array_key_exists('error', $response)){
-                throw new \Exception($response['error']);
-            } 
-            elseif($template){
-                $order->setEmailSent(true);
-                $this->orderResource->saveAttribute($order, ['send_email', 'email_sent']);
+            $response = $this->sailthru->client->apiPost('purchase', $orderData);
+            if (array_key_exists('error', $response)) {
+                throw new LocalizedException(new Phrase($response['error']));
             }
             $hid = $this->sailthru->hid->get();
-            if (!$hid){
-                $response = $this->sailthru->client->apiGet('user', [ 'id' => $email, 'fields' => ['keys'=>1]]);
-                if (isset($response['keys']['cookie'])){
+            if (!$hid) {
+                $response = $this->sailthru->client->apiGet(
+                    'user',
+                    [
+                        'id' => $orderData['email'],
+                        'fields' => ['keys'=>1]
+                    ]
+                );
+                if (isset($response['keys']['cookie'])) {
                     $this->sailthru->hid->set($response['keys']['cookie']);
                 }
             }
         } catch (\Exception $e) {
-            $this->sailthru->logger($e);
-            throw new \Exception($e->getMessage());
+            throw $e;
         }
+    }
+
+    public function sendCopy($orderData, $template)
+    {
+        $this->sailthru->client->_eventType = 'orderEmail';
+        $sendData = [
+            'email' => $orderData['email'],
+            'vars' => $orderData['vars'],
+            'template' => $template,
+        ];
+        unset($orderData['email']);
+        unset($orderData['vars']);
+        $sendData['vars'] += $orderData;
+        try {
+            $response = $this->sailthru->client->apiPost('send', $sendData);
+            if (array_key_exists('error', $response)) {
+                throw new LocalizedException(new Phrase($response['error']));
+            }
+        } catch (\Exception $e) {
+            throw $e;
+        }
+    }
+
+    public function getData($order)
+    {
+            return [
+                'email'       => $email = $order->getCustomerEmail(),
+                'items'       => $this->processItems($order->getAllVisibleItems()),
+                'adjustments' => $adjustments = $this->processAdjustments($order),
+                'vars'        => $this->getOrderVars($order, $adjustments),
+                'message_id'  => $this->sailthru->getBlastId(),
+                'tenders'     => $this->processTenders($order),
+            ];
     }
 
     /**
@@ -91,23 +136,23 @@ class OrderIntercept
      *
      * @return type
      */
-    protected function _getItems($items)
+    public function processItems($items)
     {
         try {
-            $data = array();
-            $configurableSkus = array();
-            foreach($items as $item) {
+            $data = [];
+            $configurableSkus = [];
+            foreach ($items as $item) {
                 $product = $item->getProduct();
-                $_item = array();
-                $_item['vars'] = array();
+                $_item = [];
+                $_item['vars'] = [];
                 if ($item->getProduct()->getTypeId() == 'configurable') {
                     $parentIds[] = $item->getParentItemId();
                     $options = $item->getProductOptions();
                     $_item['id'] = $options['simple_sku'];
                     $_item['title'] = $options['simple_name'];
-                    $_item['vars'] = $this->_getVars($options);
+                    $_item['vars'] = $this->getItemVars($options);
                     $configurableSkus[] = $options['simple_sku'];
-                } elseif (!in_array($item->getSku(),$configurableSkus) && $item->getProductType() != 'bundle') {
+                } elseif (!in_array($item->getSku(), $configurableSkus) && $item->getProductType() != 'bundle') {
                     $_item['id'] = $item->getSku();
                     $_item['title'] = $item->getName();
                 } else {
@@ -118,7 +163,7 @@ class OrderIntercept
                     $_item['url'] = $item->getProduct()->getProductUrl();
                     $_item['image']=$this->productHelper->getSmallImageUrl($product);
                     $_item['price'] = $item->getPrice() * 100;
-                    if ($tags = $this->_getTags($product)) {
+                    if ($tags = $this->sailthru->getTags($product)) {
                         $_item['tags'] = $tags;
                     }
                     $data[] = $_item;
@@ -126,9 +171,8 @@ class OrderIntercept
             }
             return $data;
         } catch (\Exception $e) {
-             $this->sailthru->logger($e);
-             throw $e;
-            return false;
+            $this->sailthru->logger($e);
+            throw $e;
         }
     }
     /**
@@ -136,10 +180,10 @@ class OrderIntercept
      * @param Mage_Sales_Model_Order $order
      * @return array
      */
-    protected function _getAdjustments(Order $order)
+    public function processAdjustments(Order $order)
     {
         $adjustments = [];
-        if ($shipCost = $order->getShippingAmount()){
+        if ($shipCost = $order->getShippingAmount()) {
             $adjustments[] = [
                 'title' => 'Shipping',
                 'price' => $shipCost*100,
@@ -164,15 +208,15 @@ class OrderIntercept
      * @param Mage_Sales_Model_Order $order
      * @return mixed
      */
-    protected function _getTenders(Order $order)
+    public function processTenders(Order $order)
     {
         if ($order->getPayment()) {
-           $tenders = array(
-                        array(
-                          'title' => $order->getPayment()->getCcType(),
-                          'price' => $order->getPayment()->getBaseAmountOrdered()
-                           )
-                       );
+            $tenders = [
+                [
+                  'title' => $order->getPayment()->getCcType(),
+                  'price' => $order->getPayment()->getBaseAmountOrdered()
+                ]
+            ];
             if ($tenders[0]['title'] == null) {
                 return '';
             }
@@ -181,35 +225,25 @@ class OrderIntercept
             return '';
         }
     }
-    /**
-     * Get product meta keywords
-     * @param string $productId
-     * @return string
-     */
-    protected function _getTags($product)
-    {
-        // return Mage::getResourceModel('catalog/product')->getAttributeRawValue($productId, 'meta_keyword', $this->_storeId);
-        return $product->getData('meta_keyword');
-    }
-    
     
     /**
      *
      * @param array $options
      * @return array
      */
-    protected function _getVars($options)
+    public function getItemVars($options)
     {
-        $vars = array();
+        $vars = [];
         if (array_key_exists('attributes_info', $options)) {
-            foreach($options['attributes_info'] as $attribute) {
+            foreach ($options['attributes_info'] as $attribute) {
                 $vars[$attribute['label']] = $attribute['value'];
             }
         }
         return $vars;
     }
 
-    protected function getOrderVars($order, $adjustments){
+    public function getOrderVars($order, $adjustments)
+    {
         $vars = [];
         foreach ($adjustments as $adj) {
             $vars[$adj['title']] =  $adj['price'];
@@ -217,7 +251,4 @@ class OrderIntercept
         $vars['orderId'] = $order->getId();
         return $vars;
     }
-
-
-
 }
