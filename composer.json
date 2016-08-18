@@ -9,7 +9,7 @@
     "magento/catalog": "100.1.*",
     "magento/customer": "100.1.*"
   },
-  "version": "1.0",
+  "version": "1.0.0",
   "autoload": {
     "files": [ "registration.php" ],
     "psr-4": { "Sailthru\\MageSail\\": "" }
