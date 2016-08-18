@@ -9,23 +9,21 @@ class Verifiedemails implements ArrayInterface
 
     private $_sailthru;
 
-    public function __construct(\Sailthru\MageSail\Helper\Api $sailthru){
+    public function __construct(\Sailthru\MageSail\Helper\Api $sailthru)
+    {
         $this->_sailthru = $sailthru;
     }
 
-    /**
-     * @return array
-     */
     public function toOptionArray()
     {
-        if (!$this->_sailthru->isValid()){
+        if (!$this->_sailthru->isValid()) {
             return [
                 ['value'=>0, 'label'=>__('Please Enter Valid Credentials')]
                 ];
         }
         $emails = $this->_sailthru->client->getVerifiedSenders();
-        $sender_options = [ 
-            ['value'=> 0, 'label'=>' '] 
+        $sender_options = [
+            ['value'=> 0, 'label'=>' ']
         ];
         foreach ($emails as $key => $email) {
             $sender_options[] = [
@@ -34,6 +32,5 @@ class Verifiedemails implements ArrayInterface
             ];
         }
         return $sender_options;
- 
     }
 }
