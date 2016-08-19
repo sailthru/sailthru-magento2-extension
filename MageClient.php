@@ -73,9 +73,13 @@ class MageClient extends \Sailthru_Client
 
     public function logger($message)
     {
-        $writer = new \Zend\Log\Writer\Stream(BP . $this->logFileURI);
-        $logger = new \Zend\Log\Logger();
-        $logger->addWriter($writer);
-        $logger->info($message);
+        try {
+            $writer = new \Zend\Log\Writer\Stream(BP . $this->logFileURI);
+            $logger = new \Zend\Log\Logger();
+            $logger->addWriter($writer);
+            $logger->info($message);
+        } catch (\Exception $e) {
+            return 0;
+        }
     }
 }
