@@ -16,10 +16,9 @@
 
 ## SPM Setup
 The Sailthru MageSail module comes ready to use Sailthru's new PersonalizeJs javascript.
- - To add page-tracking and gather associated data, set "Site Domain" [here][3].
+ - To add page-tracking and gather onsite data like pageviews and clicks, set "Site Domain" at https://my.sailthru.com/settings/domains.
  - To use Site Personalization Manager, please contact Sailthru.
 
 
 [1]: https://getstarted.sailthru.com/integrations/overview/
 [2]: https://my.sailthru.com/settings/spider
-[3]: https://my.sailthru.com/settings/domains
