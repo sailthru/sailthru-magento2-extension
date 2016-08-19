@@ -1,21 +1,25 @@
-Sailthru Magento2 Extension
+# MageSail 
+##### Sailthru Magento 2 Extension
 ----------------------
-####codename: *MageSail*
 
-##Instructions
-1. From Magento root: `composer require sailthru/sailthru-php5-client`
-2. `cd app/code && mkdir Sailthru`
-3.  git clone or copy MageSail folder into `app/code/Sailthru/`
-4.  cd back to Magento root: 
-5. `bin/magento module:enable Sailthru_MageSail`
-6. `bin/magento cache:flush`
-7. go to Magento Admin > Stores > Configuration > Sailthru
-8. If configured products (simple products) don't have their own public URLs, enable "Preserve Fragments" in Sailthru UI at https://my.sailthru.com/settings/spider
-9. Set sail!
+## Installation Instructions
+
+1. Get the module
+	via composer  `composer require sailthru/sailthru-magento2-extension`
+
+2. Enable the module
+    `bin/magento module:enable Sailthru_Magesail`
+
+3. Go to Magento Admin > Stores > Configuration > Sailthru to configure. Visit the [Sailthru Documentation Site][1] for setup documentation.
+
+*__Note__: If sync'ing variant products with no visible individual URL, you should enable "Preserve Fragments" in Sailthru [here][2].*
 
 ## SPM Setup
-The Sailthru MageSail module comes ready to use Sailthru's new PersonalizeJs javascript, enabling Site Personalization Manager. To use:
-1. Add your site under "Site Domain" at https://my.sailthru.com/settings/domains
-2. To use more advanced features, edit 'app/code/Sailthru/MageSail/view/frontend/web/spm.js' to add SPM callbacks and more. Or create your own file with the RequireJS method as shown in spm.js
+The Sailthru MageSail module comes ready to use Sailthru's new PersonalizeJs javascript.
+ - To add page-tracking and gather associated data, set "Site Domain" [here][3].
+ - To use Site Personalization Manager, please contact Sailthru.
 
 
+[1]: https://getstarted.sailthru.com/integrations/overview/
+[2]: https://my.sailthru.com/settings/spider
+[3]: https://my.sailthru.com/settings/domains
