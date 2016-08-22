@@ -190,21 +190,27 @@ class Api extends AbstractHelper
             $keywords = htmlspecialchars($product->getData('meta_keyword'));
             $tags .= "$keywords,";
         }
-        if ($this->tagsUseAttributes()) {
-            if ($attributes === null) {
-                $attributes = $this->getProductAttributeValues($product);
-            }
-            foreach ($attributes as $key => $value) {
-                if (!is_numeric($value)) {
-                    $tags .= (($value == "Yes" or $value == "Enabled") ? $key : $value) . ",";
-                }
-            }
-        }
         if ($this->tagsUseCategories()) {
             if ($categories === null) {
                 $categories = $this->getCategories($product);
             }
             $tags .= implode(",", $categories);
+        }
+        try {
+            $attribute_str = '';
+            if ($this->tagsUseAttributes()) {
+                if ($attributes === null) {
+                    $attributes = $this->getProductAttributeValues($product);
+                }
+                foreach ($attributes as $key => $value) {
+                    if (!is_numeric($value)) {
+                        $attribute_str .= (($value == "Yes" or $value == "Enabled") ? $key : $value) . ",";
+                    }
+                }
+                $tags .= $attribute_str;
+            }
+        } catch (\Exception $e) {
+            $this->logger($e);
         }
         return $tags;
     }

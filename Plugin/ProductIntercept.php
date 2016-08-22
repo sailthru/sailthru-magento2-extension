@@ -117,7 +117,7 @@ class ProductIntercept
                 'url'   => $isVariant ? $this->getProductFragmentedUrl($product, $parents[0]) :
                     $product->setStoreId($storeId)->getProductUrl(true),
                 'title' => htmlspecialchars($product->getName()),
-                'spider' => 1,
+                'spider' => 0,
                 'price' => $price = ($product->getPrice() ? $product->getPrice() :
                     $product->getPriceInfo()->getPrice('final_price')->getValue()) * 100,
                 'description' => strip_tags($product->getDescription()),
