@@ -2,6 +2,7 @@
 
 namespace Sailthru\MageSail\Helper;
 
+use Magento\Store\Model\ScopeInterface;
 use Sailthru\MageSail\Cookie\Hid;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\MutableScopeConfig;
@@ -90,12 +91,12 @@ class Api extends AbstractHelper
 
     private function getApiKey()
     {
-        return $this->_scopeConfig->getValue(self::XML_API_KEY);
+        return $this->getSettingsVal(self::XML_API_KEY);
     }
 
     private function getApiSecret()
     {
-        return $this->_scopeConfig->getValue(self::XML_API_SECRET);
+        return $this->getSettingsVal(self::XML_API_SECRET);
     }
 
     public function getClient()
@@ -138,7 +139,7 @@ class Api extends AbstractHelper
 
     public function getClientID()
     {
-        return $this->_scopeConfig->getValue(self::XML_CLIENT_ID);
+        return $this->getSettingsVal(self::XML_CLIENT_ID);
     }
 
     public function logger($message)
@@ -148,7 +149,7 @@ class Api extends AbstractHelper
 
     public function getSettingsVal($val)
     {
-        return $this->_scopeConfig->getValue($val);
+        return $this->_scopeConfig->getValue($val, ScopeInterface::SCOPE_STORE);
     }
 
     /* Content */
