@@ -45,8 +45,7 @@ class InstallData implements InstallDataInterface
      */
     public function install(ModuleDataSetupInterface $setup, ModuleContextInterface $context)
     {
-        
-        /** @var CustomerSetup $customerSetup */
+        /** @var \Magento\Customer\Setup\CustomerSetup $customerSetup */
         $customerSetup = $this->customerSetupFactory->create(['setup' => $setup]);
         
         $customerEntity = $customerSetup->getEavConfig()->getEntityType('customer');
@@ -67,14 +66,8 @@ class InstallData implements InstallDataInterface
             'position' => 1000,
             'system' => 0,
         ]);
-        
-        $attribute = $customerSetup->getEavConfig()->getAttribute(Customer::ENTITY, 'sailthru_id')
-        ->addData([
-            'attribute_set_id' => $attributeSetId,
-            'attribute_group_id' => $attributeGroupId,
-            'used_in_forms' => ['adminhtml_customer'],
-        ]);
-        
-        $attribute->save();
+
+        $entityTypeId = $customerEntity->getEntityTypeId();
+        $customerSetup->addAttributeToGroup($entityTypeId, $attributeSetId, $attributeGroupId, 'sailthru_id');
     }
 }
