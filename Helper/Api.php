@@ -158,8 +158,9 @@ class Api extends AbstractHelper
 
     public function getSettingsVal($val)
     {
-        $scope = ($this->request->getParam('store')) ?: $this->request->getParam('website');
-        return $this->_scopeConfig->getValue($val, ScopeInterface::SCOPE_STORE, $scope);
+        $scope = ($s = $this->request->getParam('store')) ?: $w = $this->request->getParam('website');
+        $scope_label = $s? ScopeInterface::SCOPE_STORE : ScopeInterface::SCOPE_WEBSITE;
+        return $this->_scopeConfig->getValue($val, $scope_label, $scope);
     }
 
     /* Content */
