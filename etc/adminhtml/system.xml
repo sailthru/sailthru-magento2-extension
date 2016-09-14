@@ -14,7 +14,7 @@
             <tab>sailthru</tab>
             <resource>Sailthru_Magesail::config</resource>
 
-            <group id="service" translate="label" type="text" sortOrder="1"  showInDefault="1" showInWebsite="1" showInStore="1">
+            <group id="service" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Sailthru API Setup</label>
                 <field id="api_key" translate="label" type="text" sortOrder="1"  showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>API Key</label>
