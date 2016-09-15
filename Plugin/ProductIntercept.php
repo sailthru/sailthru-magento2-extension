@@ -7,6 +7,7 @@ use Magento\Catalog\Helper\Image as ImageHelper;
 use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\Product\Type\Simple;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable as Configurable;
+use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Filesystem;
 use Magento\Store\Model\StoreManagerInterface;
 use Sailthru\MageSail\Helper\Api;
@@ -52,13 +53,16 @@ class ProductIntercept
         StoreManagerInterface $storeManager,
         ProductHelper $productHelper,
         ImageHelper $imageHelper,
-        Configurable $cpModel
+        Configurable $cpModel,
+        Context $context
     ) {
         $this->sailthru = $sailthru;
         $this->_storeManager = $storeManager;
         $this->productHelper = $productHelper;
         $this->imageHelper = $imageHelper;
         $this->cpModel = $cpModel;
+        $this->context = $context;
+        $this->request = $context->getRequest();
     }
 
     public function afterAfterSave(Product $productModel, $productResult)
@@ -103,7 +107,7 @@ class ProductIntercept
 
         // scope fix for intercept launched from backoffice, which causes admin URLs for products
         $storeScopes = $product->getStoreIds();
-        $storeId = $storeScopes ? $storeScopes[0] : $product->getStoreId();
+        $storeId = $this->request->getParam('store') ?: $storeScopes[0];
         if ($storeId) {
             $product->setStoreId($storeId);
         }
