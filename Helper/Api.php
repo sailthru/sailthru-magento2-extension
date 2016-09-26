@@ -2,10 +2,10 @@
 
 namespace Sailthru\MageSail\Helper;
 
+use Magento\Framework\App\Helper\Context;
 use Magento\Store\Model\ScopeInterface;
 use Sailthru\MageSail\Cookie\Hid;
 use Magento\Framework\App\Helper\AbstractHelper;
-use Magento\Framework\App\MutableScopeConfig;
 
 class Api extends AbstractHelper
 {
@@ -23,7 +23,7 @@ class Api extends AbstractHelper
     const XML_API_KEY                  = "magesail_config/service/api_key";
     const XML_API_SECRET               = "magesail_config/service/secret_key";
     const API_SUCCESS_MESSAGE          = "Successfully Validated!";
-    
+
     // Settings lists
     const XML_ONREGISTER_LIST_ENABLED  = "magesail_lists/lists/enable_signup_list";
     const XML_ONREGISTER_LIST_VALUE    = "magesail_lists/lists/signup_list";
@@ -79,10 +79,19 @@ class Api extends AbstractHelper
         'quantity_and_stock_status',
         'sku'
     ];
-    
-    public function __construct(MutableScopeConfig $scopeConfig, Hid $hid)
-    {
-        $this->_scopeConfig = $scopeConfig;
+
+    /**
+     * @var \Magento\Framework\App\Request\Http
+     */
+    protected $request;
+
+    public function __construct(
+        Context $context,
+        Hid $hid
+    ) {
+        parent::__construct($context);
+        $this->_scopeConfig = $context->getScopeConfig();
+        $this->request = $context->getRequest();
         $this->hid = $hid;
         $this->_apiKey = $this->getApiKey();
         $this->_apiSecret = $this->getApiSecret();
@@ -149,7 +158,9 @@ class Api extends AbstractHelper
 
     public function getSettingsVal($val)
     {
-        return $this->_scopeConfig->getValue($val, ScopeInterface::SCOPE_STORE);
+        $scope = ($s = $this->request->getParam('store')) ?: $w = $this->request->getParam('website');
+        $scope_label = $s? ScopeInterface::SCOPE_STORE : ScopeInterface::SCOPE_WEBSITE;
+        return $this->_scopeConfig->getValue($val, $scope_label, $scope);
     }
 
     /* Content */
