@@ -152,7 +152,7 @@ class OrderIntercept
                     $_item['title'] = $options['simple_name'];
                     $_item['vars'] = $this->getItemVars($options);
                     $configurableSkus[] = $options['simple_sku'];
-                } elseif (!in_array($item->getSku(), $configurableSkus) && $item->getProductType() != 'bundle') {
+                } elseif (!in_array($item->getSku(), $configurableSkus)) {
                     $_item['id'] = $item->getSku();
                     $_item['title'] = $item->getName();
                 } else {
