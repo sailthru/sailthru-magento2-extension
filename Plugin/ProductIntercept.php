@@ -115,15 +115,14 @@ class ProductIntercept
 
         $attributes = $this->sailthru->getProductAttributeValues($product);
         $categories = $this->sailthru->getCategories($product);
-
+        $this->sailthru->logger('testing cache flush!67');
         try {
             $data = [
                 'url'   => $isVariant ? $this->getProductFragmentedUrl($product, $parents[0]) :
                     $product->setStoreId($storeId)->getProductUrl(true),
                 'title' => htmlspecialchars($product->getName()),
                 'spider' => 0,
-                'price' => $price = ($product->getPrice() ? $product->getPrice() :
-                    $product->getPriceInfo()->getPrice('final_price')->getValue()) * 100,
+                'price' => $this->getPrice($product, $productType),
                 'description' => strip_tags($product->getDescription()),
                 'tags' => $this->sailthru->getTags($product, $attributes, $categories),
                 'images' => [],
@@ -194,5 +193,41 @@ class ProductIntercept
     {
         return $this->_storeManager->getStore()
             ->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA) . 'catalog/product' . $product->getImage();
+    }
+
+    public function getPrice($product, $productType){
+        if ($productType == 'bundle' and !$product->getPrice()) { 
+            $this->sailthru->logger("getting a bundle price");
+            $price = $product->getPriceModel()->getTotalPrices($product);
+            $this->sailthru->logger($price);
+            $this->sailthru->logger('Store id is ' . $product->getStoreId());
+            $productAmount = $product
+                ->getPriceInfo()
+                ->getPrice(\Magento\Catalog\Pricing\Price\FinalPrice::PRICE_CODE)
+                ->getPriceWithoutOption();
+            $baseProductAmount = $product
+                ->getPriceInfo()
+                ->getPrice(\Magento\Catalog\Pricing\Price\RegularPrice::PRICE_CODE)
+                ->getAmount();
+            $this->sailthru->logger($productAmount);
+            $this->sailthru->logger($baseProductAmount);
+            $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+            $product = $objectManager->get('Magento\Catalog\Model\Product')->load($product->getId());
+            $bundleObj=$product->getPriceInfo()->getPrice('final_price');
+            $this->sailthru->logger([
+                $product->getMinimalPrice(),
+                $product->getBasePrice(),
+                $product->getPrice(),
+                $product->getFinal(),
+                $bundleObj->getMinimalPrice(),
+                $bundleObj->getMaximalPrice()
+                ]);
+            $this->sailthru->logger($product->getPriceInfo()->getPrices());
+
+            return $price;
+
+        } else {
+            $price = $product->getFinalPrice() * 100;
+        }
     }
 }
