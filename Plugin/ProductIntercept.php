@@ -198,34 +198,10 @@ class ProductIntercept
     public function getPrice($product, $productType){
         if ($productType == 'bundle' and !$product->getPrice()) { 
             $this->sailthru->logger("getting a bundle price");
-            $price = $product->getPriceModel()->getTotalPrices($product);
-            $this->sailthru->logger($price);
-            $this->sailthru->logger('Store id is ' . $product->getStoreId());
-            $productAmount = $product
-                ->getPriceInfo()
-                ->getPrice(\Magento\Catalog\Pricing\Price\FinalPrice::PRICE_CODE)
-                ->getPriceWithoutOption();
-            $baseProductAmount = $product
-                ->getPriceInfo()
-                ->getPrice(\Magento\Catalog\Pricing\Price\RegularPrice::PRICE_CODE)
-                ->getAmount();
-            $this->sailthru->logger($productAmount);
-            $this->sailthru->logger($baseProductAmount);
             $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
             $product = $objectManager->get('Magento\Catalog\Model\Product')->load($product->getId());
-            $bundleObj=$product->getPriceInfo()->getPrice('final_price');
-            $this->sailthru->logger([
-                $product->getMinimalPrice(),
-                $product->getBasePrice(),
-                $product->getPrice(),
-                $product->getFinal(),
-                $bundleObj->getMinimalPrice(),
-                $bundleObj->getMaximalPrice()
-                ]);
-            $this->sailthru->logger($product->getPriceInfo()->getPrices());
-
+            $price = $product->getPriceModel()->getTotalPrices($product, 'min') * 100;
             return $price;
-
         } else {
             $price = $product->getFinalPrice() * 100;
         }
