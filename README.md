@@ -10,7 +10,7 @@
 2. Enable the module
     `bin/magento module:enable Sailthru_Magesail`
 
-3. Go to Magento Admin > Stores > Configuration > Sailthru to configure. Visit the [Sailthru Documentation Site][1] for setup documentation.
+3. Go to Magento Admin > Stores > Configuration > Sailthru to configure. Visit the [Sailthru Documentation Site](https://getstarted.sailthru.com/integrations/magento/magento-2-extension/) for setup documentation.
 
 *__Note__: If sync'ing variant products with no visible individual URL, you should enable "Preserve Fragments" in Sailthru [here][2].*
 
