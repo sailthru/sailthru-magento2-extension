@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="Sailthru_MageSail::segment" title="Sailthru Customer Groups" module="Sailthru_MageSail" sortOrder="0" parent="Magento_Customer::customer" action="sailthrusegments/index" resource="Sailthru_MageSail::segment"/>
+    </menu>
+</config>

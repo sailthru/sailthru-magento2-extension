@@ -12,6 +12,7 @@
                     <resource id="Magento_Backend::stores_settings">
                         <resource id="Magento_Config::config">
                             <resource id="Sailthru_Magesail::config" title="Sailthru Magento Extension Config" sortOrder="50" />
+                            <resource id="Sailthru_Magesail::segment" title="Sailthru Magento Extension Customer Group Segmenting" sortOrder="50" />
                         </resource>
                     </resource>
                 </resource>
