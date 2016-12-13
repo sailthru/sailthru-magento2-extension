@@ -1,12 +1,9 @@
 <?php
 
-namespace Sailthru\MageSail\Block\Adminhtml;
+namespace Sailthru\MageSail\Block\Adminhtml\Segments;
 
-class Segmentview extends Magento\Backend\Block\Template 
+class Index extends \Magento\Backend\Block\Template 
 {
-
-    protected $_template = 'adminhtml/segmentview.phtml';
-
 	public function __construct(
 		\Magento\Backend\Block\Template\Context $context, 
 		\Magento\Customer\Api\GroupRepositoryInterface $customerGroupRepo,
@@ -27,6 +24,4 @@ class Segmentview extends Magento\Backend\Block\Template
 		$groups = $this->customerGroupRepo->getList();
 		return $groups;
 	}
-
-
 }
