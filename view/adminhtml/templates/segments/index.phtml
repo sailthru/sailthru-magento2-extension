@@ -1,1 +1,25 @@
-Hello World!
+<h2>Define Customer Groups from Sailthru Lists</h2>
+
+<style>	
+	#sailthru div {
+		float: left;
+		margin: 30px;
+	}
+</style>
+<div id="sailthru">
+	<div style="float: left;">
+		<select>
+			<?php foreach ($lists as $list): ?>
+				<option value="<?php echo $list['value']; ?>" ><?php echo $list["label"]; ?></option>
+			<?php endforeach; ?>
+		</select>	
+	</div>	
+	<div> ==></div>
+	<div style="float: left;">
+		<select>
+			<?php foreach ($customer_groups as $customer_group): ?>
+				<option value="<? echo $customer_group->getId(); ?>" ><?php echo $customer_group->getCode(); ?></option>
+			<?php endforeach; ?>
+		</select>
+	</div>
+</div>
