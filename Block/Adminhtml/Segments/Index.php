@@ -18,6 +18,8 @@ class Index extends \Magento\Backend\Block\Template
 		$this->assign("lists", $this->getLists());
 		$customerGroupCriteria->setPageSize(50);
 		$this->assign("customer_groups", $this->getCustomerGroups($customerGroupCriteria)->getItems());
+		$this->assign("import_url", $this->getImportUrl());
+		$this->assign("form_key", $this->getFormKey());
 	}
 
 	protected function getLists(){
@@ -37,6 +39,10 @@ class Index extends \Magento\Backend\Block\Template
 		$groups = $this->customerGroupRepo->getList($criteria);
 		return $groups;
 	}
+
+	protected function getImportUrl(){
+		return $this->getUrl('*/*/import', ['isAjax' => true]);
+    }
 
     /**
      * Add data to view
