@@ -127,11 +127,13 @@ class Api extends AbstractHelper
 
     public function apiValidate()
     {
-        $result = $this->client->getSettings();
-        if (!array_key_exists("error", $result)) {
-            return [1, self::API_SUCCESS_MESSAGE];
-        } else {
-            return [0, $result["errormsg"]];
+        try {
+            $result = $this->client->getSettings();
+            if (!array_key_exists("error", $result)) {
+                return [1, self::API_SUCCESS_MESSAGE];
+            }
+        } catch (\Exception $e) {
+            return [0, $e->getMessage()];
         }
     }
 
