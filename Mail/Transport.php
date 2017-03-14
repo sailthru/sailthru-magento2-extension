@@ -83,8 +83,11 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
 
     public function cleanEmail($str)
     {
-        $startPart = strpos($str, '<') + 1;
-        $email = substr($str, $startPart);
+        $startPart = strpos($str, '<');
+        if ($startPart === false) {
+            return $str;
+        }
+        $email = substr($str, $startPart + 1);
         $email = substr($email, 0, -1);
         return $email;
     }
