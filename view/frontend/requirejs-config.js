@@ -1,6 +1,6 @@
 var config = {
     paths: {
-    "Sailthru": "https://ak.sail-horizon.com/onsite/personalize.v0.0.4.min",
+    	"Sailthru": "https://ak.sail-horizon.com/spm/spm.v1.min",
     },
     waitSeconds: 300,
     shim: {
