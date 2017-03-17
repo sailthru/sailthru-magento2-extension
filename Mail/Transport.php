@@ -21,6 +21,10 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
     protected $_message;
 
     /**
+     * @var \Sailthru\MageSail\Helper\Api
+     */
+    protected $sailthru;
+    /**
      * @param MessageInterface $message
      * @param null $parameters
      * @throws \InvalidArgumentException
@@ -31,6 +35,7 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
         $parameters = null
     ) {
         $this->sailthru = $sailthru;
+        $this->sailthru->logger("CONSTRUCTING TRANSPORT");
         parent::__construct($message, $parameters);
     }
 
@@ -73,8 +78,7 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
                     throw new LocalizedException($response["errormsg"]);
                 }
             } catch (\Exception $e) {
-                $this->sailthru->logger($e->getMessage());
-                throw new \Magento\Framework\Exception\MailException(__("Couldn't send the mail"));
+                throw new \Magento\Framework\Exception\MailException(__("Couldn't send the mail {$e}"));
             }
         } else {
             parent::_sendMail();

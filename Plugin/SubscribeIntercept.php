@@ -15,7 +15,7 @@ class SubscribeIntercept
     }
 
     /**
-     * Saving customer subscription status through FrontEnd Control Panel
+     * Saving customer subscription status
      *
      * @param generic Subscriber Model $subscriberModel
      * @param loaded Subscriber $subscriber
@@ -24,7 +24,9 @@ class SubscribeIntercept
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
      */
-    public function afterSubscribeCustomerById(Subscriber $subscriberModel, $subscriber)
+
+
+    public function afterSave(Subscriber $subscriberModel, $subscriber)
     {
         $this->updateSailthruSubscription($subscriber);
         return $subscriber;
@@ -48,13 +50,16 @@ class SubscribeIntercept
 
     public function updateSailthruSubscription($subscriber)
     {
-        $status = $subscriber->getStatus();
-        $isSubscribed = ($status === Subscriber::STATUS_SUBSCRIBED ? 1 : 0);
         $email = $subscriber->getEmail();
-        if (($status === Subscriber::STATUS_UNSUBSCRIBED or $status === Subscriber::STATUS_SUBSCRIBED) and
-            $this->sailthru->getSettingsVal(Api::XML_NEWSLETTER_LIST_ENABLED) and
-            $newsletter_list = $this->sailthru->getSettingsVal(Api::XML_NEWSLETTER_LIST_VALUE)
-            ) {
+        $status = $subscriber->getStatus();
+        $isSubscribed = ($status == Subscriber::STATUS_SUBSCRIBED ? 1 : 0);
+
+        $newsletter_enabled = $this->sailthru->getSettingsVal(Api::XML_NEWSLETTER_LIST_ENABLED);
+        $newsletter_list    = $this->sailthru->getSettingsVal(Api::XML_NEWSLETTER_LIST_VALUE);
+
+        if (($status == Subscriber::STATUS_UNSUBSCRIBED or $status == Subscriber::STATUS_SUBSCRIBED)
+            and $newsletter_list and $newsletter_enabled) {
+
             try {
                 $this->sailthru->client->_eventType = $isSubscribed ? 'CustomerSubscribe' : 'CustomerUnsubscribe';
                 $data = [
@@ -62,7 +67,6 @@ class SubscribeIntercept
                         'key'    => 'email',
                         'lists'  => [ $newsletter_list => $isSubscribed ],
                 ];
-
                 if ($fullName = $subscriber->getSubscriberFullName()) {
                     $data['vars'] = [
                         'firstName' => $subscriber->getFirstname(),
@@ -72,7 +76,8 @@ class SubscribeIntercept
                 }
                 $response = $this->sailthru->client->apiPost('user', $data);
                 if (array_key_exists("error", $response)) {
-                    throw new LocalizedException(__($response["errormsg"]));
+                    $this->sailthru->logger($response["errormsg"]);
+                    throw new \Exception($response['errormsg']);
                 }
             } catch (\Exception $e) {
                 $this->sailthru->logger($e->getMessage());
