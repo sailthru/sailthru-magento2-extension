@@ -165,7 +165,7 @@ class Api extends AbstractHelper
         } elseif ($websiteCode) {
             return $this->scopeConfig->getValue($val, ScopeInterface::SCOPE_WEBSITE, $websiteCode);
         }
-        return $this->scopeConfig->getValue($val);
+        return $this->scopeConfig->getValue($val, ScopeInterface::SCOPE_STORES);
     }
 
     /* Content */
