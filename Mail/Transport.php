@@ -35,7 +35,6 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
         $parameters = null
     ) {
         $this->sailthru = $sailthru;
-        $this->sailthru->logger("CONSTRUCTING TRANSPORT");
         parent::__construct($message, $parameters);
     }
 
