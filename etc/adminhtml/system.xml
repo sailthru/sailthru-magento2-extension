@@ -22,7 +22,7 @@
                 <field id="secret_key" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Secret Key</label>
                 </field>
-               <field id="valid_keys" translate="button_label"  sortOrder="12" showInDefault="1" showInWebsite="1" showInStore="0">
+               <field id="valid_keys" translate="button_label"  sortOrder="12" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label/>
                     <frontend_model>Sailthru\MageSail\Block\System\Config\Button\Check</frontend_model>
                     <comment><![CDATA[After saving valid credentials, other settings will be accesible.]]></comment>

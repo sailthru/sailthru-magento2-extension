@@ -4,13 +4,13 @@ namespace Sailthru\MageSail\Helper;
 
 use Magento\Framework\App\Helper\Context;
 use Magento\Store\Model\ScopeInterface;
-use Sailthru\MageSail\Cookie\Hid;
 use Magento\Framework\App\Helper\AbstractHelper;
+
+use Sailthru\MageSail\Cookie\Hid;
 
 class Api extends AbstractHelper
 {
 
-    protected $_scopeConfig;
     protected $_apiKey;
     protected $_apiSecret;
     public $client;
@@ -90,8 +90,6 @@ class Api extends AbstractHelper
         Hid $hid
     ) {
         parent::__construct($context);
-        $this->_scopeConfig = $context->getScopeConfig();
-        $this->request = $context->getRequest();
         $this->hid = $hid;
         $this->_apiKey = $this->getApiKey();
         $this->_apiSecret = $this->getApiSecret();
@@ -160,9 +158,14 @@ class Api extends AbstractHelper
 
     public function getSettingsVal($val)
     {
-        $scope = ($s = $this->request->getParam('store')) ?: $w = $this->request->getParam('website');
-        $scope_label = $s? ScopeInterface::SCOPE_STORE : ScopeInterface::SCOPE_WEBSITE;
-        return $this->_scopeConfig->getValue($val, $scope_label, $scope);
+        $storeCode = $this->_request->getParam('store');
+        $websiteCode = $this->_request->getParam('website');
+        if ($storeCode) {
+            return $this->scopeConfig->getValue($val, ScopeInterface::SCOPE_STORE, $storeCode);
+        } elseif ($websiteCode) {
+            return $this->scopeConfig->getValue($val, ScopeInterface::SCOPE_WEBSITE, $websiteCode);
+        }
+        return $this->scopeConfig->getValue($val, ScopeInterface::SCOPE_STORES);
     }
 
     /* Content */
