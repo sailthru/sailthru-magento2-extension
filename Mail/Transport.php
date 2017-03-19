@@ -46,6 +46,7 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
                 "content_html" => "{content} {beacon}",
                 "subject" => "{subj}",
                 "from_email" => $this->sailthru->getSender(),
+                "is_link_tracking" => 1
             ];
             $response = $this->sailthru->client->saveTemplate(self::MAGENTO_GENERIC_TEMPLATE, $options);
             if (isset($response["error"])) {
