@@ -21,6 +21,10 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
     protected $_message;
 
     /**
+     * @var \Sailthru\MageSail\Helper\Api
+     */
+    protected $sailthru;
+    /**
      * @param MessageInterface $message
      * @param null $parameters
      * @throws \InvalidArgumentException
@@ -42,6 +46,7 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
                 "content_html" => "{content} {beacon}",
                 "subject" => "{subj}",
                 "from_email" => $this->sailthru->getSender(),
+                "is_link_tracking" => 1
             ];
             $response = $this->sailthru->client->saveTemplate(self::MAGENTO_GENERIC_TEMPLATE, $options);
             if (isset($response["error"])) {
@@ -73,8 +78,7 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
                     throw new LocalizedException($response["errormsg"]);
                 }
             } catch (\Exception $e) {
-                $this->sailthru->logger($e->getMessage());
-                throw new \Magento\Framework\Exception\MailException(__("Couldn't send the mail"));
+                throw new \Magento\Framework\Exception\MailException(__("Couldn't send the mail {$e}"));
             }
         } else {
             parent::_sendMail();
