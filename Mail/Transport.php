@@ -7,7 +7,6 @@
 namespace Sailthru\MageSail\Mail;
 
 use Sailthru\MageSail\Helper\Api;
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\MailException;
 
 class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Framework\Mail\TransportInterface
@@ -24,8 +23,9 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
      * @var \Sailthru\MageSail\Helper\Api
      */
     protected $sailthru;
+
     /**
-     * @param MessageInterface $message
+     * @param \Magento\Framework\Mail\MessageInterface $message
      * @param null $parameters
      * @throws \InvalidArgumentException
      */
@@ -54,7 +54,8 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
                     $this->checkAndSetGenericTemplate();
                 }
                 if ($response['error'] != 14) {
-                    throw new LocalizedException($response['errormsg']);
+                    $this->sailthru->logger($response['errormsg']);
+                    throw new MailException(__($response['errormsg']));
                 }
             }
         }
@@ -75,10 +76,11 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
                 ];
                 $response = $this->sailthru->client->apiPost('send', $message);
                 if (isset($response["error"])) {
-                    throw new LocalizedException($response["errormsg"]);
+                    $this->sailthru->logger($response['errormsg']);
+                    throw new MailException(__($response['errormsg']));
                 }
             } catch (\Exception $e) {
-                throw new \Magento\Framework\Exception\MailException(__("Couldn't send the mail {$e}"));
+                throw new MailException(__("Couldn't send the mail {$e}"));
             }
         } else {
             parent::_sendMail();
