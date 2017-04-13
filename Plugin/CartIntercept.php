@@ -46,21 +46,29 @@ class CartIntercept
     {
         $customer = $cart->getCustomerSession()->getCustomer();
         $email = $customer->getEmail();
+        
         if ($email or $anonymousEmail = $this->isAnonymousReady()) {
             $email = $email ? $email : $anonymousEmail;
+            $quote = $cart->getQuote();
+            
+            // make sure bundle parts don't make it into data
+            $items = $quote->getAllVisibleItems();
+            foreach ($items as $index => $item) {
+                if ($item->getParentItem()){
+                    unset($items[$index]);
+                }
+            }
+
+            $data = [
+                'email'             => $email,
+                'items'             => $this->_getItems($items),
+                'incomplete'        => 1,
+                'reminder_time'     => $this->sailthru->getAbandonedTime(),
+                'reminder_template' => $this->sailthru->getAbandonedTemplate(),
+                'message_id'        => $this->sailthru->getBlastId()
+            ];
             try {
                 $this->sailthru->client->_eventType = "CartUpdate";
-                $quote = $cart->getQuote();
-                $items_visible = $quote->getAllVisibleItems();
-                $items = $this->_getItems($items_visible);
-                $data = [
-                    'email'             => $email,
-                    'items'             => $items,
-                    'incomplete'        => 1,
-                    'reminder_time'     => $this->sailthru->getAbandonedTime(),
-                    'reminder_template' => $this->sailthru->getAbandonedTemplate(),
-                    'message_id'        => $this->sailthru->getBlastId()
-                ];
                 $response = $this->sailthru->client->apiPost("purchase", $data);
             } catch (\Exception $e) {
                 $this->sailthru->logger($e);
@@ -116,6 +124,7 @@ class CartIntercept
      */
     public function _getItems($items)
     {
+
         try {
             $data = [];
             $configurableSkus = [];
@@ -131,11 +140,9 @@ class CartIntercept
                     $_item['title'] = $options['simple_name'];
                     $_item['vars'] = $this->_getVars($options);
                     $configurableSkus[] = $options['simple_sku'];
-                } elseif (!in_array($item->getSku(), $configurableSkus) && $item->getProductType() != 'bundle') {
+                } else {
                     $_item['id'] = $item->getSku();
                     $_item['title'] = $item->getName();
-                } else {
-                    $_item['id'] = null;
                 }
                 if ($_item['id']) {
                     $_item['qty'] = (int) $item->getQty();
@@ -143,19 +150,19 @@ class CartIntercept
                     $_item['image']=$this->productHelper->getSmallImageUrl($product);
                     $current_price = null;
                     $price_used = "reg";
-                    $reg_price = $product->getPrice();
-                    $special_price = $product->getSpecialPrice();
-                    $special_from = $product->getSpecialFromDate();
-                    $special_to = $product->getSpecialToDate();
-                    if ($special_price and
-                        ($special_from === null or (strtotime($special_from) < strtotime("Today"))) and
-                        ($special_to === null or (strtotime($special_to) > strtotime("Today")))) {
-                        $current_price = $special_price;
-                        $price_used = "special";
-                    } else {
-                        $current_price = $reg_price;
-                    }
-                    $_item['price'] = $current_price * 100;
+                    $_item['price'] = $product->getFinalPrice() * 100;
+                    // $special_price = $product->getSpecialPrice();
+                    // $special_from = $product->getSpecialFromDate();
+                    // $special_to = $product->getSpecialToDate();
+                    // if ($special_price and
+                    //     ($special_from === null or (strtotime($special_from) < strtotime("Today"))) and
+                    //     ($special_to === null or (strtotime($special_to) > strtotime("Today")))) {
+                    //     $current_price = $special_price;
+                    //     $price_used = "special";
+                    // } else {
+                    //     $current_price = $reg_price;
+                    // }
+                    // $_item['price'] = $current_price * 100;
                     if ($tags = $this->_getTags($product)) {
                         $_item['tags'] = $tags;
                     }
