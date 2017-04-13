@@ -14,6 +14,14 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
     
     const MAGENTO_GENERIC_TEMPLATE = "Magento Generic";
 
+    const SILENT_ERRORS = [
+        32,
+        33,
+        34,
+        35,
+        37
+    ];
+    
     /**
      * @var \Magento\Framework\Mail\MessageInterface
      */
@@ -77,7 +85,9 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
                 $response = $this->sailthru->client->apiPost('send', $message);
                 if (isset($response["error"])) {
                     $this->sailthru->logger($response['errormsg']);
-                    throw new MailException(__($response['errormsg']));
+                    if (!in_array($response["error"], self::SILENT_ERRORS)) {
+                        throw new MailException(__($response['errormsg']));
+                    }
                 }
             } catch (\Exception $e) {
                 throw new MailException(__("Couldn't send the mail {$e}"));
