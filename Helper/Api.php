@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * Deprecated
+ */
+
 namespace Sailthru\MageSail\Helper;
 
 use Magento\Framework\App\Helper\Context;
