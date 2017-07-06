@@ -2,28 +2,12 @@
  
 namespace Sailthru\MageSail\Model\Config\Source;
 
-use \Magento\Framework\Option\ArrayInterface;
-use \Sailthru\MageSail\Helper\ClientManager;
-use \Sailthru\MageSail\Helper\Settings as SailthruSettings;
-
-class Sailthrulists implements ArrayInterface
+class SailthruLists extends AbstractSource
 {
 
-    private $clientManager;
-
-    public function __construct(ClientManager $clientManager)
+    /** @inheritdoc */
+    protected function getDisplayData()
     {
-        $this->clientManager = $clientManager;
-    }
-
-    public function toOptionArray()
-    {
-        if (!$this->clientManager->isValid()) {
-            return [
-                ['value'=>0, 'label'=>__(SailthruSettings::SOURCE_MODEL_VALIDATION_MSG)]
-                ];
-        }
-
         $data = $this->clientManager->getClient()->getLists();
         $lists = $data["lists"];
         $lists_options = [
