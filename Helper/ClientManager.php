@@ -4,7 +4,6 @@ namespace Sailthru\MageSail\Helper;
 
 use Magento\Store\Model\StoreManager;
 use Magento\Framework\App\Helper\Context;
-
 use Sailthru\MageSail\MageClient;
 
 class ClientManager extends AbstractHelper

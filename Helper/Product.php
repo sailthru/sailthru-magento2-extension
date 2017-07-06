@@ -2,9 +2,6 @@
 
 namespace Sailthru\MageSail\Helper;
 
-use Magento\Framework\App\Helper\Context;
-use Magento\Store\Model\StoreManager;
-
 class Product extends AbstractHelper
 {
 

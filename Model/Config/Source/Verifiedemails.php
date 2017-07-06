@@ -3,25 +3,27 @@
 namespace Sailthru\MageSail\Model\Config\Source;
 
 use \Magento\Framework\Option\ArrayInterface;
+use \Sailthru\MageSail\Helper\ClientManager;
+use \Sailthru\MageSail\Helper\Settings as SailthruSettings;
 
 class Verifiedemails implements ArrayInterface
 {
 
-    private $_sailthru;
+    private $clientManager;
 
-    public function __construct(\Sailthru\MageSail\Helper\Api $sailthru)
+    public function __construct(ClientManager $clientManager)
     {
-        $this->_sailthru = $sailthru;
+        $this->clientManager = $clientManager;
     }
 
     public function toOptionArray()
     {
-        if (!$this->_sailthru->isValid()) {
+        if (!$this->clientManager->isValid()) {
             return [
                 ['value'=>0, 'label'=>__('Please Enter Valid Credentials')]
                 ];
         }
-        $emails = $this->_sailthru->client->getVerifiedSenders();
+        $emails = $this->clientManager->getClient()->getVerifiedSenders();
         $sender_options = [
             ['value'=> 0, 'label'=>' ']
         ];

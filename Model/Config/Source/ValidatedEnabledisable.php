@@ -3,22 +3,24 @@
 namespace Sailthru\MageSail\Model\Config\Source;
 
 use \Magento\Framework\Option\ArrayInterface;
+use \Sailthru\MageSail\Helper\ClientManager;
+use \Sailthru\MageSail\Helper\Settings as SailthruSettings;
 
 class ValidatedEnabledisable implements ArrayInterface
 {
+    /** @var ClientManager  */
+    private $clientManager;
 
-    private $_sailthru;
-
-    public function __construct(\Sailthru\MageSail\Helper\Api $sailthru)
+    public function __construct(ClientManager $clientManager)
     {
-        $this->_sailthru = $sailthru;
+        $this->clientManager = $clientManager;
     }
 
     public function toOptionArray()
     {
-        if (!$this->_sailthru->isValid()) {
+        if (!$this->clientManager->isValid()) {
             return [
-                ['value'=>0, 'label'=>__($this->_sailthru->getInvalidMessage())]
+                ['value'=>0, 'label'=>__(SailthruSettings::SOURCE_MODEL_VALIDATION_MSG)]
                 ];
         }
         return [

@@ -2,22 +2,26 @@
  
 namespace Sailthru\MageSail\Model\Config\Source;
 
-use \Sailthru\MageSail\Helper\Api as Sailthru;
 use \Magento\Framework\Option\ArrayInterface;
+use \Sailthru\MageSail\Helper\ClientManager;
+use \Sailthru\MageSail\Helper\Settings as SailthruSettings;
 
 class Tagsources implements ArrayInterface
 {
 
-    public function __construct(Sailthru $sailthru)
+    /** @var ClientManager  */
+    private $clientManager;
+
+    public function __construct(ClientManager $clientManager)
     {
-        $this->sailthru = $sailthru;
+        $this->clientManager = $clientManager;
     }
 
     public function toOptionArray()
     {
-        if (!$this->sailthru->isValid()) {
+        if (!$this->clientManager->isValid()) {
             return [
-                ['value'=>0, 'label'=>__('Please Enter Valid Credentials')]
+                ['value'=>0, 'label'=>__(SailthruSettings::SOURCE_MODEL_VALIDATION_MSG)]
             ];
         }
 
