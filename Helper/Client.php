@@ -7,7 +7,7 @@ use Magento\Framework\App\Helper\Context;
 
 use Sailthru\MageSail\MageClient;
 
-class ClientBuilder extends AbstractHelper
+class ClientManager extends AbstractHelper
 {
 
     /** @var  string */
@@ -63,6 +63,8 @@ class ClientBuilder extends AbstractHelper
             $result = $this->client->getSettings();
             if (!array_key_exists("error", $result)) {
                 return [1, self::API_SUCCESS_MESSAGE];
+            } else {
+                return 0;
             }
         } catch (\Exception $e) {
             return [0, $e->getMessage()];

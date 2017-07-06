@@ -6,8 +6,11 @@
  */
 namespace Sailthru\MageSail\Mail;
 
-use Sailthru\MageSail\Helper\Api;
 use Magento\Framework\Exception\MailException;
+use Magento\Framework\Mail\MessageInterface;
+use Sailthru\MageSail\Helper\ClientManager;
+use Sailthru\MageSail\Helper\Settings;
+use Sailthru\MageSail\MageClient;
 
 class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Framework\Mail\TransportInterface
 {
@@ -20,41 +23,53 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
     protected $_message;
 
     /**
-     * @var \Sailthru\MageSail\Helper\Api
+     * @var ClientManager
      */
-    protected $sailthru;
+    protected $clientManager;
+
+    /** @var  MageClient */
+    protected $client;
+
+    /** @var Settings */
+    protected $sailthruSettings;
 
     /**
-     * @param \Magento\Framework\Mail\MessageInterface $message
-     * @param null $parameters
-     * @throws \InvalidArgumentException
+     * Transport constructor.
+     *
+     * @param ClientManager    $clientManager
+     * @param Settings         $sailthruSettings
+     * @param MessageInterface $message
+     * @param null             $parameters
      */
     public function __construct(
-        Api $sailthru,
-        \Magento\Framework\Mail\MessageInterface $message,
+        ClientManager $clientManager,
+        Settings $sailthruSettings,
+        MessageInterface $message,
         $parameters = null
     ) {
-        $this->sailthru = $sailthru;
+        $this->clientManager = $clientManager;
+        $this->client = $clientManager->getClient();
+        $this->sailthruSettings = $sailthruSettings;
         parent::__construct($message, $parameters);
     }
 
     public function checkAndSetGenericTemplate()
     {
-        $response = $this->sailthru->client->getTemplate(self::MAGENTO_GENERIC_TEMPLATE);
+        $response = $this->client->getTemplate(self::MAGENTO_GENERIC_TEMPLATE);
         if (isset($response["error"]) && $response['error'] == 14) {
             $options = [
                 "content_html" => "{content} {beacon}",
                 "subject" => "{subj}",
-                "from_email" => $this->sailthru->getSender(),
+                "from_email" => $this->sailthruSettings->getSender(),
                 "is_link_tracking" => 1
             ];
-            $response = $this->sailthru->client->saveTemplate(self::MAGENTO_GENERIC_TEMPLATE, $options);
+            $response = $this->client->saveTemplate(self::MAGENTO_GENERIC_TEMPLATE, $options);
             if (isset($response["error"])) {
                 if ($response['error'] == 14) {
                     $this->checkAndSetGenericTemplate();
                 }
                 if ($response['error'] != 14) {
-                    $this->sailthru->logger($response['errormsg']);
+                    $this->client->logger($response['errormsg']);
                     throw new MailException(__($response['errormsg']));
                 }
             }
@@ -63,7 +78,7 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
 
     public function _sendMail()
     {
-        if ($this->sailthru->getTransactionalsEnabled()) {
+        if ($this->sailthruSettings->getTransactionalsEnabled()) {
             try {
                 $this->checkAndSetGenericTemplate();
                 $message = [
@@ -74,9 +89,9 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
                         "content" => $this->_message->getBody()->getRawContent(),
                     ],
                 ];
-                $response = $this->sailthru->client->apiPost('send', $message);
+                $response = $this->client->apiPost('send', $message);
                 if (isset($response["error"])) {
-                    $this->sailthru->logger($response['errormsg']);
+                    $this->client->logger($response['errormsg']);
                     throw new MailException(__($response['errormsg']));
                 }
             } catch (\Exception $e) {
