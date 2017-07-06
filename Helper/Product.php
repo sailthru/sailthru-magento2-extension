@@ -3,10 +3,7 @@
 namespace Sailthru\MageSail\Helper;
 
 use Magento\Framework\App\Helper\Context;
-use Magento\Store\Model\ScopeInterface;
-use Magento\Framework\App\Helper\AbstractHelper;
-
-use Sailthru\MageSail\Cookie\Hid;
+use Magento\Store\Model\StoreManager;
 
 class Product extends AbstractHelper
 {

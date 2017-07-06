@@ -2,6 +2,7 @@
 
 namespace Sailthru\MageSail\Helper;
 
+use Magento\Store\Model\StoreManager;
 use Magento\Framework\App\Helper\Context;
 
 use Sailthru\MageSail\MageClient;
@@ -23,9 +24,10 @@ class ClientBuilder extends AbstractHelper
     const API_SUCCESS_MESSAGE = "Successfully Validated!";
 
     public function __construct(
-        Context $context
+        Context $context,
+        StoreManager $storeManager
     ) {
-        parent::__construct($context);
+        parent::__construct($context, $storeManager);
         $this->_apiKey = $this->getApiKey();
         $this->_apiSecret = $this->getApiSecret();
         $this->initClient();
