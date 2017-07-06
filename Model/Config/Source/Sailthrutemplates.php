@@ -6,7 +6,7 @@ use \Magento\Framework\Option\ArrayInterface;
 use \Sailthru\MageSail\Helper\ClientManager;
 use \Sailthru\MageSail\Helper\Settings as SailthruSettings;
 
-class Sailthrutemplates implements ArrayInterface
+class SailthruTemplates implements ArrayInterface
 {
 
     /** @var ClientManager  */
