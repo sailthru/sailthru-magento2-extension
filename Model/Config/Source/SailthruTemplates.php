@@ -6,24 +6,12 @@ use \Magento\Framework\Option\ArrayInterface;
 use \Sailthru\MageSail\Helper\ClientManager;
 use \Sailthru\MageSail\Helper\Settings as SailthruSettings;
 
-class SailthruTemplates implements ArrayInterface
+class SailthruTemplates extends AbstractSource
 {
 
-    /** @var ClientManager  */
-    private $clientManager;
-
-    public function __construct(ClientManager $clientManager)
+    /** @inheritdoc */
+    protected function getDisplayData()
     {
-        $this->clientManager = $clientManager;
-    }
-
-    public function toOptionArray()
-    {
-        if (!$this->clientManager->isValid()) {
-            return [
-                ['value'=>0, 'label'=>__(SailthruSettings::SOURCE_MODEL_VALIDATION_MSG)]
-            ];
-        }
         $data = $this->clientManager->getClient()->getTemplates();
         $templates = $data["templates"];
         $tpl_options = [
