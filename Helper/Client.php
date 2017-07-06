@@ -18,9 +18,9 @@ class ClientBuilder extends AbstractHelper
     /** @var  MageClient */
     protected $client;
 
-    const XML_API_KEY                  = "magesail_config/service/api_key";
-    const XML_API_SECRET               = "magesail_config/service/secret_key";
-    const API_SUCCESS_MESSAGE          = "Successfully Validated!";
+    const XML_API_KEY         = "magesail_config/service/api_key";
+    const XML_API_SECRET      = "magesail_config/service/secret_key";
+    const API_SUCCESS_MESSAGE = "Successfully Validated!";
 
     public function __construct(
         Context $context

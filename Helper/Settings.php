@@ -19,13 +19,13 @@ class Settings extends AbstractHelper
     // TODO
     // const XML_CUSTOMER_ID              = "magesail_"
 
-    // Settings lists
+    // Lists
     const XML_ONREGISTER_LIST_ENABLED  = "magesail_lists/lists/enable_signup_list";
     const XML_ONREGISTER_LIST_VALUE    = "magesail_lists/lists/signup_list";
     const XML_NEWSLETTER_LIST_ENABLED  = "magesail_lists/lists/enable_newsletter";
     const XML_NEWSLETTER_LIST_VALUE    = "magesail_lists/lists/newsletter_list";
 
-    // Settings transactionals
+    // Transactional Emails
     const XML_ABANDONED_CART_ENABLED   = "magesail_send/abandoned_cart/enabled";
     const XML_ABANDONED_CART_TEMPLATE  = "magesail_send/abandoned_cart/template";
     const XML_ABANDONED_CART_TIME      = "magesail_send/abandoned_cart/delay_time";
