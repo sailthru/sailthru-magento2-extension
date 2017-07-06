@@ -4,26 +4,35 @@ namespace Sailthru\MageSail\Plugin;
 
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Helper\Image;
-use Magento\Catalog\Helper\Product;
+use Magento\Catalog\Model\Product;
+use Magento\Catalog\Helper\Product as ProductHelper;
 use Magento\Catalog\Model\Product\Media\Config;
 use Magento\Checkout\Model\Cart;
+use Magento\ConfigurableProduct\Model\ConfigurableAttributeData;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
-use Sailthru\MageSail\Helper\Api;
+use Magento\Swatches\Block\Product\Renderer\Configurable as SwatchModel;
+use Sailthru\MageSail\Helper\ClientManager as ClientManager;
+use Sailthru\MageSail\Helper\Settings as SailthruSettings;
+use Sailthru\MageSail\Cookie\Hid as SailthruCookie;
 
 class CartIntercept
 {
 
     public function __construct(
-        Api $sailthru,
+        ClientManager $clientManager,
+        SailthruSettings $sailthruSettings,
+        SailthruCookie $sailthruCookie,
         ProductRepositoryInterface $productRepo,
         Image $imageHelper,
         Config $mediaConfig,
-        Product $productHelper,
-        \Magento\ConfigurableProduct\Model\ConfigurableAttributeData $cpData,
+        ProductHelper $productHelper,
+        ConfigurableAttributeData $cpData,
         Configurable $configProduct,
-        \Magento\Swatches\Block\Product\Renderer\Configurable $swatchModel
+        SwatchModel $swatchModel
     ) {
-        $this->sailthru = $sailthru;
+        $this->client = $clientManager->getClient();
+        $this->sailthruSettings = $sailthruSettings;
+        $this->sailthruCookie = $sailthruCookie;
         $this->productRepo = $productRepo;
         $this->imageHelper = $imageHelper;
         $this->mediaConfig = $mediaConfig;
@@ -33,37 +42,37 @@ class CartIntercept
         $this->swatchModel = $swatchModel;
     }
 
-    public function _gate($cart)
+    public function _gate(Cart $cart)
     {
-        if ($this->sailthru->isAbandonedCartEnabled()) {
+        if ($this->sailthruSettings->isAbandonedCartEnabled()) {
             return $this->sendCart($cart);
         } else {
             return $cart;
         }
     }
 
-    public function sendCart($cart)
+    public function sendCart(Cart $cart)
     {
         $customer = $cart->getCustomerSession()->getCustomer();
         $email = $customer->getEmail();
         if ($email or $anonymousEmail = $this->isAnonymousReady()) {
             $email = $email ? $email : $anonymousEmail;
             try {
-                $this->sailthru->client->_eventType = "CartUpdate";
-                $quote = $cart->getQuote();
-                $items_visible = $quote->getAllVisibleItems();
-                $items = $this->_getItems($items_visible);
+                $this->client->_eventType = "CartUpdate";
+                $items = $this->_getItems($cart);
                 $data = [
                     'email'             => $email,
                     'items'             => $items,
                     'incomplete'        => 1,
-                    'reminder_time'     => $this->sailthru->getAbandonedTime(),
-                    'reminder_template' => $this->sailthru->getAbandonedTemplate(),
-                    'message_id'        => $this->sailthru->getBlastId()
+                    'reminder_time'     => $this->sailthruSettings->getAbandonedTime(),
+                    'reminder_template' => $this->sailthruSettings->getAbandonedTemplate(),
+                    'message_id'        => $this->sailthruCookie->getBid(),
                 ];
-                $response = $this->sailthru->client->apiPost("purchase", $data);
+                $this->client->apiPost("purchase", $data);
+            } catch (\Sailthru_Client_Exception $e) {
+                $this->client->logger($e);
             } catch (\Exception $e) {
-                $this->sailthru->logger($e);
+                $this->client->logger($e);
                 throw $e;
             } finally {
                 return $cart;
@@ -99,8 +108,8 @@ class CartIntercept
 
     public function isAnonymousReady()
     {
-        if ($this->sailthru->canAbandonAnonymous() and $hid = $this->sailthru->getHid()) {
-            $response = $this->sailthru->client->getUserByKey($hid, 'cookie', ['keys' => 1]);
+        if ($this->sailthruSettings->canAbandonAnonymous() and $hid = $this->sailthruCookie->get()) {
+            $response = $this->client->getUserByKey($hid, 'cookie', ['keys' => 1]);
             if (array_key_exists("keys", $response)) {
                 $email = $response["keys"]["email"];
                 return $email;
@@ -114,8 +123,9 @@ class CartIntercept
      *
      * @return array|false
      */
-    public function _getItems($items)
+    public function _getItems(Cart $cart)
     {
+        $items = $cart->getQuote()->getAllVisibleItems();
         try {
             $data = [];
             $configurableSkus = [];
@@ -164,17 +174,17 @@ class CartIntercept
             }
             return $data;
         } catch (\Exception $e) {
-            $this->sailthru->logger($e);
+            $this->client->logger($e);
             return false;
         }
     }
 
     /**
      * Get product meta keywords
-     * @param string $productId
+     * @param Product $product
      * @return string
      */
-    public function _getTags($product)
+    public function _getTags(Product $product)
     {
         return $product->getData('meta_keyword');
     }
