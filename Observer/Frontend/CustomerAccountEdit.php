@@ -2,32 +2,48 @@
 
 namespace Sailthru\MageSail\Observer\Frontend;
 
-use Sailthru\MageSail\Helper\Api;
-use Sailthru\MageSail\Cookie\Hid;
 use Magento\Customer\Model\Session;
 use Magento\CUstomer\Model\Customer;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Module\Manager;
 use Magento\Store\Model\StoreManagerInterface;
+use Sailthru\MageSail\Helper\ClientManager;
+use Sailthru\MageSail\Helper\Settings as SailthruSettings;
+use Sailthru\MageSail\Helper\Customer as SailthruCustomer;
+use Sailthru\MageSail\Cookie\Hid as SailthruCookie;
 
 class CustomerAccountEdit implements ObserverInterface
 {
+
+    private $moduleManager;
+    private $customerModel;
+    private $storeManager;
+    private $sailthruClient;
+    private $sailthruCookie;
+    private $sailthruCustomer;
+    private $sailthruSettings;
 
     const SETTING_ENABLED = "magesail_lists/lists/enable_signup_list";
 
     const SETTING_VALUE = "magesail_lists/lists/signup_list";
 
     public function __construct(
-        Api $sailthru,
+        ClientManager $clientManager,
+        SailthruSettings $sailthruSettings,
+        SailthruCookie $sailthruCookie,
+        SailthruCustomer $sailthruCustomer,
         Manager $moduleManager,
         Customer $customerModel,
         StoreManagerInterface $storeManager
     ) {
         $this->moduleManager = $moduleManager;
-        $this->sailthru = $sailthru;
         $this->customerModel = $customerModel;
         $this->storeManager = $storeManager;
+        $this->sailthruClient = $clientManager->getClient();
+        $this->sailthruSettings = $sailthruSettings;
+        $this->sailthruCookie = $sailthruCookie;
+        $this->sailthruCustomer = $sailthruCustomer;
     }
 
     public function execute(Observer $observer)
@@ -40,7 +56,7 @@ class CustomerAccountEdit implements ObserverInterface
             $sid = $customer->getData('sailthru_id');
 
             try {
-                $this->sailthru->client->_eventType = 'CustomerUpdate';
+                $this->sailthruClient->_eventType = 'CustomerUpdate';
 
                 $data = [
                         'id' => $sid ? $sid : $email,
@@ -56,7 +72,7 @@ class CustomerAccountEdit implements ObserverInterface
                         ]
                 ];
 
-                if ($address = $this->sailthru->getAddressVarsByCustomer($customer)) {
+                if ($address = $this->sailthruSettings->getAddressVarsByCustomer($customer)) {
                     $data['vars'] += $address;
                 }
 
@@ -64,12 +80,12 @@ class CustomerAccountEdit implements ObserverInterface
                     $data["lists"] = ["Newsletter"=>1];
                 }
 
-                $response = $this->sailthru->client->apiPost('user', $data);
-                $this->sailthru->hid->set($response["keys"]["cookie"]);
-            } catch (\Sailthru_Email_Model_Client_Exception $e) {
-                $this->sailthru->logger($e);
+                $response = $this->sailthruClient->apiPost('user', $data);
+                $this->sailthruCookie->set($response["keys"]["cookie"]);
+            } catch (\Sailthru_Client_Exception $e) {
+                $this->sailthruClient->logger($e);
             } catch (\Exception $e) {
-                $this->sailthru->logger($e);
+                $this->sailthruClient->logger($e);
             }
         }
     }
