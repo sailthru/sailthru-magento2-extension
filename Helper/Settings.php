@@ -94,4 +94,25 @@ class Settings extends AbstractHelper
     {
         return $this->getSettingsVal(self::XML_ORDER_TEMPLATE);
     }
+
+    public function customerListEnabled()
+    {
+        return boolval($this->getSettingsVal(self::XML_ONREGISTER_LIST_ENABLED));
+    }
+
+    public function getCustomerList()
+    {
+        return $this->getSettingsVal(self::XML_ONREGISTER_LIST_VALUE);
+    }
+
+    public function newsletterListEnabled()
+    {
+        return boolval($this->getSettingsVal(self::XML_NEWSLETTER_LIST_ENABLED));
+    }
+
+    public function getNewsletterList()
+    {
+        return $this->getSettingsVal(self::XML_NEWSLETTER_LIST_VALUE);
+    }
+
 }

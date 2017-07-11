@@ -2,7 +2,6 @@
 
 namespace Sailthru\MageSail\Observer\Frontend;
 
-use Magento\Customer\Model\Session;
 use Magento\CUstomer\Model\Customer;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
@@ -24,10 +23,6 @@ class CustomerAccountEdit implements ObserverInterface
     private $sailthruCustomer;
     private $sailthruSettings;
 
-    const SETTING_ENABLED = "magesail_lists/lists/enable_signup_list";
-
-    const SETTING_VALUE = "magesail_lists/lists/signup_list";
-
     public function __construct(
         ClientManager $clientManager,
         SailthruSettings $sailthruSettings,
@@ -46,47 +41,46 @@ class CustomerAccountEdit implements ObserverInterface
         $this->sailthruCustomer = $sailthruCustomer;
     }
 
-    public function execute(Observer $observer)
-    {
-        if ($this->moduleManager->isEnabled('Sailthru_MageSail')) {
-            $websiteId  = $this->storeManager->getWebsite()->getWebsiteId();
-            $this->customerModel->setWebsiteId($websiteId);
-            $email = $observer->getData('email');
-            $customer = $this->customerModel->loadByEmail($email);
-            $sid = $customer->getData('sailthru_id');
+    public function execute(Observer $observer) {
+        $websiteId = $this->storeManager->getWebsite()->getWebsiteId();
+        $this->customerModel->setWebsiteId($websiteId);
+        $email = $observer->getData('email');
+        $customer = $this->customerModel->loadByEmail($email);
+        $sid = $customer->getData('sailthru_id');
 
-            try {
-                $this->sailthruClient->_eventType = 'CustomerUpdate';
+        try {
+            $this->sailthruClient->_eventType = 'CustomerUpdate';
 
-                $data = [
-                        'id' => $sid ? $sid : $email,
-                        'fields' => ['keys' => 1],
-                        'keysconflict' => 'merge',
-                        'keys'=> [
-                            'email' => $email
-                        ],
-                        'vars' => [
-                            'firstName' => $customer->getFirstname(),
-                            'lastName'  => $customer->getLastname(),
-                            'name'  => "{$customer->getFirstname()} {$customer->getLastname()}"
-                        ]
-                ];
+            $data = [
+                'id'           => $sid ? $sid : $email,
+                'fields'       => [ 'keys' => 1 ],
+                'keysconflict' => 'merge',
+                'keys'         => [
+                    'email' => $email
+                ],
+                'vars'         => [
+                    'firstName' => $customer->getFirstname(),
+                    'lastName'  => $customer->getLastname(),
+                    'name'      => "{$customer->getFirstname()} {$customer->getLastname()}"
+                ]
+            ];
 
-                if ($address = $this->sailthruSettings->getAddressVarsByCustomer($customer)) {
-                    $data['vars'] += $address;
-                }
-
-                if ($customer->getCustomAttribute('is_subscribed')) {
-                    $data["lists"] = ["Newsletter"=>1];
-                }
-
-                $response = $this->sailthruClient->apiPost('user', $data);
-                $this->sailthruCookie->set($response["keys"]["cookie"]);
-            } catch (\Sailthru_Client_Exception $e) {
-                $this->sailthruClient->logger($e);
-            } catch (\Exception $e) {
-                $this->sailthruClient->logger($e);
+            if ($address = $this->sailthruSettings->getAddressVarsByCustomer($customer)) {
+                $data['vars'] += $address;
             }
+
+            if ($this->sailthruSettings->newsletterListEnabled() and
+                $customer->getCustomAttribute('is_subscribed')
+            ) {
+                $data["lists"] = [ "Newsletter" => 1 ];
+            }
+
+            $response = $this->sailthruClient->apiPost('user', $data);
+            $this->sailthruCookie->set($response["keys"]["cookie"]);
+        } catch (\Sailthru_Client_Exception $e) {
+            $this->sailthruClient->logger($e);
+        } catch (\Exception $e) {
+            $this->sailthruClient->logger($e);
         }
     }
 }
