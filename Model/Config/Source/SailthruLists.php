@@ -2,27 +2,13 @@
  
 namespace Sailthru\MageSail\Model\Config\Source;
 
-use \Magento\Framework\Option\ArrayInterface;
-
-class Sailthrulists implements ArrayInterface
+class SailthruLists extends AbstractSource
 {
 
-    private $_sailthru;
-
-    public function __construct(\Sailthru\MageSail\Helper\Api $sailthru)
+    /** @inheritdoc */
+    protected function getDisplayData()
     {
-        $this->_sailthru = $sailthru;
-    }
-
-    public function toOptionArray()
-    {
-        if (!$this->_sailthru->isValid()) {
-            return [
-                ['value'=>0, 'label'=>__('Please Enter Valid Credentials')]
-                ];
-        }
-
-        $data = $this->_sailthru->client->getLists();
+        $data = $this->clientManager->getClient()->getLists();
         $lists = $data["lists"];
         $lists_options = [
             ['value'=> 0, 'label'=>' ']

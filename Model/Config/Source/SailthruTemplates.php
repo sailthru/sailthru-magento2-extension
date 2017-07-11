@@ -3,25 +3,16 @@
 namespace Sailthru\MageSail\Model\Config\Source;
 
 use \Magento\Framework\Option\ArrayInterface;
+use \Sailthru\MageSail\Helper\ClientManager;
+use \Sailthru\MageSail\Helper\Settings as SailthruSettings;
 
-class Sailthrutemplates implements ArrayInterface
+class SailthruTemplates extends AbstractSource
 {
 
-    private $_sailthru;
-
-    public function __construct(\Sailthru\MageSail\Helper\Api $sailthru)
+    /** @inheritdoc */
+    protected function getDisplayData()
     {
-        $this->_sailthru = $sailthru;
-    }
-
-    public function toOptionArray()
-    {
-        if (!$this->_sailthru->isValid()) {
-            return [
-                ['value'=>0, 'label'=>__($this->_sailthru->getInvalidMessage())]
-            ];
-        }
-        $data = $this->_sailthru->client->getTemplates();
+        $data = $this->clientManager->getClient()->getTemplates();
         $templates = $data["templates"];
         $tpl_options = [
             ['value'=> 0, 'label'=>' ']

@@ -2,16 +2,18 @@
 
 namespace Sailthru\MageSail\Plugin;
 
-use Sailthru\MageSail\Helper\Api;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Newsletter\Model\Subscriber;
+use Sailthru\MageSail\Helper\ClientManager;
+use Sailthru\MageSail\Helper\Settings as SailthruSettings;
 
 class SubscribeIntercept
 {
 
-    public function __construct(Api $sailthru)
+    public function __construct(ClientManager $clientManager, SailthruSettings $sailthruSettings)
     {
-        $this->sailthru = $sailthru;
+        $this->client = $clientManager->getClient();
+        $this->sailthruSettings = $sailthruSettings;
     }
 
     /**
@@ -42,46 +44,39 @@ class SubscribeIntercept
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
      */
-    public function afterUnsubscribeCustomerById(Subscriber $subscriberModel, $subscriber)
+    public function afterUnsubscribeCustomerById(Subscriber $subscriberModel, Subscriber $subscriber)
     {
         $this->updateSailthruSubscription($subscriber);
         return $subscriber;
     }
 
-    public function updateSailthruSubscription($subscriber)
+    public function updateSailthruSubscription(Subscriber $subscriber)
     {
         $email = $subscriber->getEmail();
         $status = $subscriber->getStatus();
         $isSubscribed = ($status == Subscriber::STATUS_SUBSCRIBED ? 1 : 0);
 
-        $newsletter_enabled = $this->sailthru->getSettingsVal(Api::XML_NEWSLETTER_LIST_ENABLED);
-        $newsletter_list    = $this->sailthru->getSettingsVal(Api::XML_NEWSLETTER_LIST_VALUE);
-
         if (($status == Subscriber::STATUS_UNSUBSCRIBED or $status == Subscriber::STATUS_SUBSCRIBED)
-            and $newsletter_list and $newsletter_enabled) {
+            and $this->sailthruSettings->newsletterListEnabled()) {
 
-            try {
-                $this->sailthru->client->_eventType = $isSubscribed ? 'CustomerSubscribe' : 'CustomerUnsubscribe';
-                $data = [
-                        'id'     => $email,
-                        'key'    => 'email',
-                        'lists'  => [ $newsletter_list => $isSubscribed ],
+            $data = [
+                    'id'     => $email,
+                    'key'    => 'email',
+                    'lists'  => [ $this->sailthruSettings->getNewsletterList() => $isSubscribed ],
+            ];
+            if ($fullName = $subscriber->getSubscriberFullName()) {
+                $data['vars'] = [
+                    'firstName' => $subscriber->getFirstname(),
+                    'lastName'  => $subscriber->getLastname(),
+                    'name'      => $fullName,
                 ];
-                if ($fullName = $subscriber->getSubscriberFullName()) {
-                    $data['vars'] = [
-                        'firstName' => $subscriber->getFirstname(),
-                        'lastName'  => $subscriber->getLastname(),
-                        'name'      => $fullName,
-                    ];
-                }
-                $response = $this->sailthru->client->apiPost('user', $data);
-                if (array_key_exists("error", $response)) {
-                    $this->sailthru->logger($response["errormsg"]);
-                    throw new \Exception($response['errormsg']);
-                }
-            } catch (\Exception $e) {
-                $this->sailthru->logger($e->getMessage());
-                throw new LocalizedException(__('We were unable to subscribe the customer.'));
+            }
+            try {
+                $this->client->_eventType = $isSubscribed ? 'CustomerSubscribe' : 'CustomerUnsubscribe';
+                $this->client->apiPost('user', $data);
+            } catch(\Sailthru_Client_Exception $e) {
+                $this->client->logger($e->getMessage());
+                throw new \Exception($e->getMessage());
             }
         }
     }

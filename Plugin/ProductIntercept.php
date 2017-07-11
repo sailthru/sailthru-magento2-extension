@@ -11,6 +11,8 @@ use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Filesystem;
 use Magento\Store\Model\StoreManagerInterface;
 use Sailthru\MageSail\Helper\Api;
+use Sailthru\MageSail\Helper\ClientManager;
+use Sailthru\MageSail\Helper\Product as SailthruProduct;
 
 class ProductIntercept
 {
@@ -49,32 +51,34 @@ class ProductIntercept
     ];
 
     public function __construct(
-        Api $sailthru,
+        ClientManager $clientManager,
+        SailthruProduct $sailthruProduct,
         StoreManagerInterface $storeManager,
         ProductHelper $productHelper,
         ImageHelper $imageHelper,
         Configurable $cpModel,
         Context $context
     ) {
-        $this->sailthru = $sailthru;
-        $this->_storeManager = $storeManager;
-        $this->productHelper = $productHelper;
-        $this->imageHelper = $imageHelper;
-        $this->cpModel = $cpModel;
-        $this->context = $context;
-        $this->request = $context->getRequest();
+        $this->clientManager    = $clientManager;
+        $this->sailthruProduct  = $sailthruProduct;
+        $this->_storeManager    = $storeManager;
+        $this->productHelper    = $productHelper;
+        $this->imageHelper      = $imageHelper;
+        $this->cpModel          = $cpModel;
+        $this->context          = $context;
+        $this->request          = $context->getRequest();
     }
 
     public function afterAfterSave(Product $productModel, $productResult)
     {
-        if ($this->sailthru->isProductInterceptOn()) {
+        if ($this->sailthruProduct->isProductInterceptOn()) {
             if ($data = $this->getProductData($productResult)) {
                 try {
-                    $this->sailthru->client->_eventType = 'SaveProduct';
-                    $response = $this->sailthru->client->apiPost('content', $data);
-                } catch (\Exception $e) {
-                    $this->sailthru->logger('ProductData Error');
-                    $this->sailthru->logger($e->getMessage());
+                    $this->clientManager->getClient()->_eventType = 'SaveProduct';
+                    $this->clientManager->getClient()->apiPost('content', $data);
+                } catch (\Sailthru_Client_Exception $e) {
+                    $this->clientManager->getClient()->logger('ProductData Error');
+                    $this->clientManager->getClient()->logger($e->getMessage());
                 }
             }
         }
@@ -84,14 +88,14 @@ class ProductIntercept
     /**
      * Create Product array for Content API
      *
-     * @param \Magento\Catalog\Model\Product $product
-     * @return array
+     * @param Product $product
+     * @return array|false
      */
-    public function getProductData($product)
+    public function getProductData(Product $product)
     {
         $productType = $product->getTypeId();
         $isMaster = ($productType == 'configurable');
-        $updateMaster = $this->sailthru->canSyncMasterProducts();
+        $updateMaster = $this->sailthruProduct->canSyncMasterProducts();
         if ($isMaster and !$updateMaster) {
             return false;
         }
@@ -99,8 +103,8 @@ class ProductIntercept
         $isSimple = ($productType == 'simple');
         $parents = $this->cpModel->getParentIdsByChild($product->getId());
         $isVariant = ($isSimple and $parents);
-        $updateVariants = $this->sailthru->canSyncVariantProducts();
-        $this->sailthru->logger($updateVariants);
+        $updateVariants = $this->sailthruProduct->canSyncVariantProducts();
+        $this->clientManager->getClient()->logger($updateVariants);
         if ($isVariant and !$updateVariants) {
             return false;
         }
@@ -113,8 +117,8 @@ class ProductIntercept
         }
         $this->_storeManager->setCurrentStore($storeId);
 
-        $attributes = $this->sailthru->getProductAttributeValues($product);
-        $categories = $this->sailthru->getCategories($product);
+        $attributes = $this->sailthruProduct->getProductAttributeValues($product);
+        $categories = $this->sailthruProduct->getCategories($product);
 
         try {
             $data = [
@@ -125,7 +129,7 @@ class ProductIntercept
                 'price' => $price = ($product->getPrice() ? $product->getPrice() :
                     $product->getPriceInfo()->getPrice('final_price')->getValue()) * 100,
                 'description' => strip_tags($product->getDescription()),
-                'tags' => $this->sailthru->getTags($product, $attributes, $categories),
+                'tags' => $this->sailthruProduct->getTags($product, $attributes, $categories),
                 'images' => [],
                 'vars' => [
                     'isMaster' => (int) $isMaster,
@@ -177,12 +181,12 @@ class ProductIntercept
 
             return $data;
         } catch (\Exception $e) {
-            $this->sailthru->logger($e->getMessage());
+            $this->clientManager->getClient()->logger($e->getMessage());
             return false;
         }
     }
 
-    public function getProductFragmentedUrl($product, $parent)
+    public function getProductFragmentedUrl(Product $product, $parent)
     {
         $parentUrl = $this->productHelper->getProductUrl($parent);
         $pSku = $product->getSku();

@@ -25,7 +25,7 @@
                <field id="valid_keys" translate="button_label"  sortOrder="12" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label/>
                     <frontend_model>Sailthru\MageSail\Block\System\Config\Button\Check</frontend_model>
-                    <comment><![CDATA[After saving valid credentials, other settings will be accesible.]]></comment>
+                    <comment><![CDATA[After saving valid credentials, other settings will be accessible.]]></comment>
                 </field>
             </group>
         </section>
@@ -85,12 +85,12 @@
                 <label>Lists</label>
                 <field id="enable_signup_list" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Add new registering customers to Sailthru list</label>
-                    <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnabledisable</source_model>
+                    <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnableDisable</source_model>
                     <comment>Upon registration, set users to be added to a Sailthru list of your choice.</comment>
                 </field>
                  <field id="signup_list" translate="label" type="select" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Customer Sign-Up Lists</label>
-                    <source_model>Sailthru\MageSail\Model\Config\Source\Sailthrulists</source_model>
+                    <source_model>Sailthru\MageSail\Model\Config\Source\SailthruLists</source_model>
                     <tooltip><![CDATA[New a new list? Check my.sailthru.com to create it!]]></tooltip>
                     <comment>Select the Sailthru list where newly registered customers will be added.</comment>
                     <depends>
@@ -99,12 +99,12 @@
                 </field>
                 <field id="enable_newsletter" translate="label comment" type="select" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Override Default Magento Newsletter Subscribe</label>
-                    <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnabledisable</source_model>
+                    <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnableDisable</source_model>
                     <comment>Override Magento's default Newsletter system and add users instead to a Sailthru List</comment>
                 </field>
                <field id="newsletter_list" translate="label" type="select" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Newsletter Lists</label>
-                    <source_model>Sailthru\MageSail\Model\Config\Source\Sailthrulists</source_model>
+                    <source_model>Sailthru\MageSail\Model\Config\Source\SailthruLists</source_model>
                     <tooltip><![CDATA[New a new list? Check my.sailthru.com to create it!]]></tooltip>
                     <depends>
                         <field id="*/*/enable_newsletter">1</field>
@@ -128,7 +128,7 @@
                 </field>
                 <field id="from_sender" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>From Email</label>
-                    <source_model>Sailthru\MageSail\Model\Config\Source\Verifiedemails</source_model>
+                    <source_model>Sailthru\MageSail\Model\Config\Source\VerifiedEmails</source_model>
                     <comment>All transactionals sent using Magento templates must be sent from a Sailthru-verified email.</comment>
                     <tooltip>Don't see the right email? Add it at https://my.sailthru.com/verify</tooltip>
                     <depends>
@@ -137,7 +137,7 @@
                 </field>
                 <field id="purchase_enabled" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="3">
                     <label>Override Magento Purchase Confirmation</label>
-                    <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnabledisable</source_model>
+                    <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnableDisable</source_model>
                     <depends>
                         <field id="*/*/send_through_sailthru">1</field>
                     </depends>
@@ -148,7 +148,7 @@
                         <field id="*/*/purchase_enabled">1</field>
                         <field id="*/*/send_through_sailthru">1</field>
                     </depends>
-                    <source_model>Sailthru\MageSail\Model\Config\Source\Sailthrutemplates</source_model>
+                    <source_model>Sailthru\MageSail\Model\Config\Source\SailthruTemplates</source_model>
                 </field>
             </group>
 
@@ -163,7 +163,7 @@
                     <depends>
                         <field id="*/*/enabled">1</field>
                     </depends>
-                    <source_model>Sailthru\MageSail\Model\Config\Source\Sailthrutemplates</source_model>
+                    <source_model>Sailthru\MageSail\Model\Config\Source\SailthruTemplates</source_model>
                 </field>
                 <field id="delay_time" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Abandoned Cart Send Time</label>
@@ -176,7 +176,7 @@
                 <field id="anonymous_carts" translate="label" type="select" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Send Abandoned Carts to Guest Users with HID</label>
                     <comment>Enabling will allow you to send Abandoned Carts to customers who aren't currently signed-in, but have a sailthru_hid cookie for your site.</comment>
-                    <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnabledisable</source_model>
+                    <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnableDisable</source_model>
                 </field>
             </group>
         </section>

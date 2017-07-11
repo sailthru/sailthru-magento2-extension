@@ -16,15 +16,21 @@ use Magento\Framework\Phrase;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\ResourceModel\Order as OrderResource;
-use Magento\Sales\Model\Email\Sender\OrderSender;
+use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender\Interceptor; // generated in var/generation. http://alanstorm.com/magento_2_object_manager_plugin_system
-use Sailthru\MageSail\Helper\Api;
+use Sailthru\MageSail\Helper\ClientManager;
+use Sailthru\MageSail\Helper\Settings as SailthruSettings;
+use Sailthru\MageSail\Helper\Product as SailthruProduct;
+use Sailthru\MageSail\Cookie\Hid as SailthruCookie;
 
 class OrderIntercept
 {
 
     public function __construct(
-        Api $sailthru,
+        ClientManager $clientManager,
+        SailthruSettings $sailthruSettings,
+        SailthruProduct $sailthruProduct,
+        SailthruCookie $sailthruCookie,
         ProductRepositoryInterface $productRepo,
         Image $imageHelper,
         Config $mediaConfig,
@@ -32,13 +38,16 @@ class OrderIntercept
         OrderResource $orderResource,
         ConfigProduct $cpModel
     ) {
-        $this->sailthru      = $sailthru;
-        $this->productRepo   = $productRepo;
-        $this->imageHelper   = $imageHelper;
-        $this->mediaConfig   = $mediaConfig;
-        $this->productHelper = $productHelper;
-        $this->orderResource = $orderResource;
-        $this->cpModel       = $cpModel;
+        $this->sailthruClient   = $clientManager->getClient();
+        $this->sailthruSettings = $sailthruSettings;
+        $this->sailthruProduct  = $sailthruProduct;
+        $this->sailthruCookie   = $sailthruCookie;
+        $this->productRepo      = $productRepo;
+        $this->imageHelper      = $imageHelper;
+        $this->mediaConfig      = $mediaConfig;
+        $this->productHelper    = $productHelper;
+        $this->orderResource    = $orderResource;
+        $this->cpModel          = $cpModel;
     }
 
     /**
@@ -47,8 +56,8 @@ class OrderIntercept
     public function aroundSend(Interceptor $subject, callable $proceed, Order $order, $syncVar = false)
     {
         $orderData = $this->getData($order);
-        if ($this->sailthru->getOrderOverride()) {
-            $template = $this->sailthru->getOrderTemplate();
+        if ($this->sailthruSettings->getOrderOverride()) {
+            $template = $this->sailthruSettings->getOrderTemplate();
             $alreadyOrdered = $order->getEmailSent();
             try {
                 if (!$alreadyOrdered) {
@@ -59,7 +68,7 @@ class OrderIntercept
                     $this->sendCopy($orderData, $template);
                 }
             } catch (\Exception $e) {
-                $this->sailthru->logger($e->getMessage());
+                $this->sailthruClient->logger($e->getMessage());
                 throw new LocalizedException(new Phrase('Could not send purchase confirmation.'));
             }
         } else {
@@ -72,17 +81,17 @@ class OrderIntercept
     public function sendOrder($orderData, $template = null)
     {
         try {
-            $this->sailthru->client->_eventType = 'placeOrder';
+            $this->sailthruClient->_eventType = 'placeOrder';
             if ($template) {
                 $orderData['send_template'] = $template;
             }
-            $response = $this->sailthru->client->apiPost('purchase', $orderData);
+            $response = $this->sailthruClient->apiPost('purchase', $orderData);
             if (array_key_exists('error', $response)) {
                 throw new LocalizedException(new Phrase($response['error']));
             }
-            $hid = $this->sailthru->hid->get();
+            $hid = $this->sailthruCookie->get();
             if (!$hid) {
-                $response = $this->sailthru->client->apiGet(
+                $response = $this->sailthruClient->apiGet(
                     'user',
                     [
                         'id' => $orderData['email'],
@@ -90,7 +99,7 @@ class OrderIntercept
                     ]
                 );
                 if (isset($response['keys']['cookie'])) {
-                    $this->sailthru->hid->set($response['keys']['cookie']);
+                    $this->sailthruCookie->set($response['keys']['cookie']);
                 }
             }
         } catch (\Exception $e) {
@@ -100,7 +109,7 @@ class OrderIntercept
 
     public function sendCopy($orderData, $template)
     {
-        $this->sailthru->client->_eventType = 'orderEmail';
+        $this->sailthruClient->_eventType = 'orderEmail';
         $sendData = [
             'email' => $orderData['email'],
             'vars' => $orderData['vars'],
@@ -110,7 +119,7 @@ class OrderIntercept
         unset($orderData['vars']);
         $sendData['vars'] += $orderData;
         try {
-            $response = $this->sailthru->client->apiPost('send', $sendData);
+            $response = $this->sailthruClient->apiPost('send', $sendData);
             if (array_key_exists('error', $response)) {
                 throw new LocalizedException(new Phrase($response['error']));
             }
@@ -119,14 +128,14 @@ class OrderIntercept
         }
     }
 
-    public function getData($order)
+    public function getData(Order $order)
     {
             return [
                 'email'       => $email = $order->getCustomerEmail(),
-                'items'       => $this->processItems($order->getAllVisibleItems()),
+                'items'       => $this->processItems($order),
                 'adjustments' => $adjustments = $this->processAdjustments($order),
                 'vars'        => $this->getOrderVars($order, $adjustments),
-                'message_id'  => $this->sailthru->getBlastId(),
+                'message_id'  => $this->sailthruCookie->getBid(),
                 'tenders'     => $this->processTenders($order),
             ];
     }
@@ -134,50 +143,48 @@ class OrderIntercept
     /**
      * Prepare data on items in cart or order.
      *
-     * @return type
+     * @param Order $order
+     * @return array
      */
-    public function processItems($items)
+    public function processItems(Order $order)
     {
-        try {
-            $data = [];
-            $configurableSkus = [];
-            foreach ($items as $item) {
-                $product = $item->getProduct();
-                $_item = [];
-                $_item['vars'] = [];
-                if ($item->getProduct()->getTypeId() == 'configurable') {
-                    $parentIds[] = $item->getParentItemId();
-                    $options = $item->getProductOptions();
-                    $_item['id'] = $options['simple_sku'];
-                    $_item['title'] = $options['simple_name'];
-                    $_item['vars'] = $this->getItemVars($options);
-                    $configurableSkus[] = $options['simple_sku'];
-                } elseif (!in_array($item->getSku(), $configurableSkus) && $item->getProductType() != 'bundle') {
-                    $_item['id'] = $item->getSku();
-                    $_item['title'] = $item->getName();
-                } else {
-                    $_item['id'] = null;
-                }
-                if ($_item['id']) {
-                    $_item['qty'] = $item->getQtyOrdered();
-                    $_item['url'] = $item->getProduct()->getProductUrl();
-                    $_item['image']=$this->productHelper->getSmallImageUrl($product);
-                    $_item['price'] = $item->getPrice() * 100;
-                    if ($tags = $this->sailthru->getTags($product)) {
-                        $_item['tags'] = $tags;
-                    }
-                    $data[] = $_item;
-                }
+        /** @var \Magento\Sales\Model\Order\Item[] $items */
+        $items = $order->getAllVisibleItems();
+        $data = [];
+        $configurableSkus = [];
+        foreach ($items as $item) {
+            $product = $item->getProduct();
+            $_item = [];
+            $_item['vars'] = [];
+            if ($item->getProduct()->getTypeId() == 'configurable') {
+                $parentIds[] = $item->getParentItemId();
+                $options = $item->getProductOptions();
+                $_item['id'] = $options['simple_sku'];
+                $_item['title'] = $options['simple_name'];
+                $_item['vars'] = $this->getItemVars($options);
+                $configurableSkus[] = $options['simple_sku'];
+            } elseif (!in_array($item->getSku(), $configurableSkus) && $item->getProductType() != 'bundle') {
+                $_item['id'] = $item->getSku();
+                $_item['title'] = $item->getName();
+            } else {
+                $_item['id'] = null;
             }
-            return $data;
-        } catch (\Exception $e) {
-            $this->sailthru->logger($e);
-            throw $e;
+            if ($_item['id']) {
+                $_item['qty'] = $item->getQtyOrdered();
+                $_item['url'] = $item->getProduct()->getProductUrl();
+                $_item['image']=$this->productHelper->getSmallImageUrl($product);
+                $_item['price'] = $item->getPrice() * 100;
+                if ($tags = $this->sailthruProduct->getTags($product)) {
+                    $_item['tags'] = $tags;
+                }
+                $data[] = $_item;
+            }
         }
+        return $data;
     }
     /**
      * Get order adjustments
-     * @param Mage_Sales_Model_Order $order
+     * @param Order $order
      * @return array
      */
     public function processAdjustments(Order $order)
@@ -205,7 +212,7 @@ class OrderIntercept
     }
     /**
      * Get payment information
-     * @param Mage_Sales_Model_Order $order
+     * @param Order $order
      * @return mixed
      */
     public function processTenders(Order $order)
@@ -227,7 +234,7 @@ class OrderIntercept
     }
     
     /**
-     *
+     * Get Sailthru item object vars
      * @param array $options
      * @return array
      */
@@ -242,7 +249,14 @@ class OrderIntercept
         return $vars;
     }
 
-    public function getOrderVars($order, $adjustments)
+    /**
+     * Get Sailthru order object vars
+     * @param Order $order
+     * @param array $adjustments
+     *
+     * @return array
+     */
+    public function getOrderVars( Order $order, $adjustments)
     {
         $vars = [];
         foreach ($adjustments as $adj) {
