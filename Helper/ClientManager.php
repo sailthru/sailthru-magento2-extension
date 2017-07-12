@@ -4,16 +4,11 @@ namespace Sailthru\MageSail\Helper;
 
 use Magento\Store\Model\StoreManager;
 use Magento\Framework\App\Helper\Context;
+use Sailthru\MageSail\Logger;
 use Sailthru\MageSail\MageClient;
 
 class ClientManager extends AbstractHelper
 {
-
-    /** @var  string */
-    protected $_apiKey;
-
-    /** @var string */
-    protected $_apiSecret;
 
     /** @var  MageClient */
     protected $client;
@@ -24,35 +19,25 @@ class ClientManager extends AbstractHelper
 
     public function __construct(
         Context $context,
-        StoreManager $storeManager
+        StoreManager $storeManager,
+        Logger $logger
     ) {
-        parent::__construct($context, $storeManager);
-        $this->_apiKey = $this->getApiKey();
-        $this->_apiSecret = $this->getApiSecret();
+        parent::__construct($context, $storeManager, $logger);
         $this->initClient();
-    }
-
-    private function getApiKey()
-    {
-        return $this->getSettingsVal(self::XML_API_KEY);
-    }
-
-    private function getApiSecret()
-    {
-        return $this->getSettingsVal(self::XML_API_SECRET);
     }
 
     public function initClient()
     {
-        $this->client = new MageClient(
-            $this->_apiKey,
-            $this->_apiSecret,
-            '/var/log/sailthru.log'
-        );
+        $apiKey = $this->getSettingsVal(self::XML_API_KEY);
+        $apiSecret = $this->getSettingsVal(self::XML_API_SECRET);
+        $this->client = new MageClient($apiKey, $apiSecret, $this->logger, $this->storeManager);
     }
 
-    public function getClient()
+    public function getClient($update=false)
     {
+        if ($update) {
+            $this->initClient();
+        }
         return $this->client;
     }
 

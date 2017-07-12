@@ -6,15 +6,20 @@ use Magento\Framework\App\Helper\Context;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManager;
 use Magento\Framework\App\Helper\AbstractHelper as MageAbstractHelper;
+use Sailthru\MageSail\Logger;
 
 class AbstractHelper extends MageAbstractHelper
 {
     /** @var StoreManager  */
     protected $storeManager;
 
-    public function __construct(Context $context, StoreManager $storeManager) {
+    /** @var Logger  */
+    protected $logger;
+
+    public function __construct(Context $context, StoreManager $storeManager, Logger $logger) {
         parent::__construct($context);
         $this->storeManager = $storeManager;
+        $this->logger = $logger;
     }
 
     public function getSettingsVal($val)
