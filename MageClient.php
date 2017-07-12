@@ -2,56 +2,57 @@
 
 namespace Sailthru\MageSail;
 
+use Magento\Store\Model\StoreManager;
+
 class MageClient extends \Sailthru_Client
 {
 
     public $_eventType = null;
 
-    private $httpHeaders = ["User-Agent: Sailthru API PHP5 Client"];
+    /** @var Logger  */
+    private $logger;
 
-    private $logFileURI = null;
+    /** @var StoreManager  */
+    private $storeManager;
 
-    /**
-     * Instantiate a new client; constructor optionally takes overrides for api_uri and whether
-     * to share the version of PHP that is being used.
-     *
-     * @param string $api_key
-     * @param string $secret
-     * @param string $api_uri
-     * @param array $options - optional parameters for connect/read timeout
-     * @param boolean $show_version
-     */
-    public function __construct($api_key, $secret, $logURI)
+    public function __construct($api_key, $secret, Logger $logger, StoreManager $storeManager)
     {
-        if ($logURI) {
-            $this->logFileURI = $logURI;
-        }
+        $this->logger = $logger;
+        $this->storeManager = $storeManager;
         $options = [ "timeout" => 3000, "connection_timeout" => 3000];
         parent::__construct($api_key, $secret, false, $options);
     }
 
-    /**
-     * Perform an HTTP request, checking for curl extension support
-     *
-     * @param string $url
-     * @param array $data
-     * @param array $headers
-     * @return string
-     */
+
     protected function httpRequest($action, $data, $method = 'POST', $options = [])
     {
-        $this->logger(
-            [
-            'action'            => $action,
-            'request'           => $data['json'],
-            'http_request_type' => $this->http_request_type,
+        $logAction = "{$method} /{$action}";
+        $storeId = intval($this->storeManager->getStore()->getId());
+        $this->logger->info([
+            'action'            => $logAction,
             'event_type'        => $this->_eventType,
-            ],
-            "{$method} REQUEST"
-        );
-        $json = parent::httpRequest($action, $data, $method, $options);
-        $this->logger($json);
-        return $json;
+            'store_id'          => $storeId,
+            'http_request_type' => $this->http_request_type,
+            'body'              => $data['json']
+        ]);
+        try {
+            $response = parent::httpRequest($action, $data, $method, $options);
+            $this->logger->info([
+              'action_response'  => $logAction,
+              'event_type '      => $this->_eventType,
+              'store_id'         => $storeId,
+              'response'         => $response
+            ]);
+            return $response;
+        } catch (\Sailthru_Client_Exception $e) {
+            $this->logger->err([
+                'error'    => $logAction,
+                'store_id' => $storeId,
+                'code'     => $e->getCode(),
+                'message'  => $e->getMessage(),
+            ]);
+            throw $e;
+        }
     }
 
     protected function prepareJsonPayload(array $data, array $binary_data = [])
@@ -71,15 +72,13 @@ class MageClient extends \Sailthru_Client
         return $settings["from_emails"];
     }
 
+    /**
+     * Log messages. Moved to its own class.
+     * @param $message
+     * @deprecated
+     */
     public function logger($message)
     {
-        try {
-            $writer = new \Zend\Log\Writer\Stream(BP . $this->logFileURI);
-            $logger = new \Zend\Log\Logger();
-            $logger->addWriter($writer);
-            $logger->info($message);
-        } catch (\Exception $e) {
-            return 0;
-        }
+        $this->logger->info($message);
     }
 }

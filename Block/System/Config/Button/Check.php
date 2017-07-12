@@ -3,16 +3,20 @@
 namespace Sailthru\MageSail\Block\System\Config\Button;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
+use Sailthru\MageSail\Helper\ClientManager;
 
 class Check extends \Magento\Config\Block\System\Config\Form\Field
 {
 
+    /** @var ClientManager  */
+    private $clientManager;
+
     public function __construct(
         \Magento\Backend\Block\Template\Context $context,
-        \Sailthru\MageSail\Helper\Api $sailthru,
+        ClientManager $clientManager,
         array $data = []
     ) {
-        $this->_sailthru = $sailthru;
+        $this->clientManager = $clientManager;
         parent::__construct($context, $data);
     }
 
@@ -57,7 +61,7 @@ class Check extends \Magento\Config\Block\System\Config\Form\Field
     {
         $originalData = $element->getOriginalData();
         $buttonLabel = !empty($originalData['button_label']) ? $originalData['button_label'] : 'Validate Credentials';
-        $api_validate = $this->_sailthru->apiValidate();
+        $api_validate = $this->clientManager->apiValidate();
         if ($api_validate[0] == 1) {
             $data = [
                 'class' => 'sail_success',
