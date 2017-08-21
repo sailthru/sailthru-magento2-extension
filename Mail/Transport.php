@@ -78,6 +78,9 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
 
     public function _sendMail()
     {
+        # To get array with template variables and template identifier
+        # use $this->_message->getTemplateInfo();
+
         if ($this->sailthruSettings->getTransactionalsEnabled()) {
             try {
                 $this->checkAndSetGenericTemplate();

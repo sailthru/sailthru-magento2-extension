@@ -8,17 +8,21 @@ namespace Sailthru\MageSail\Helper;
 
 use Magento\Framework\App\Helper\Context;
 use Magento\Store\Model\ScopeInterface;
-use Magento\Framework\App\Helper\AbstractHelper;
+# Was removed to fix compilation error
+# use Magento\Framework\App\Helper\AbstractHelper;
 
 use Sailthru\MageSail\Cookie\Hid;
+use Sailthru\MageSail\Logger;
 
-class Api extends AbstractHelper
+
+class Api extends \Magento\Framework\App\Helper\AbstractHelper
 {
 
     protected $_apiKey;
     protected $_apiSecret;
     public $client;
     public $hid;
+    public $logger;
 
     // Source models
     const SOURCE_MODEL_VALIDATION_MSG  = "Please Enter Valid Sailthru Credentials";
@@ -91,13 +95,15 @@ class Api extends AbstractHelper
 
     public function __construct(
         Context $context,
-        Hid $hid
+        Hid $hid,
+        Logger $logger
     ) {
         parent::__construct($context);
         $this->hid = $hid;
         $this->_apiKey = $this->getApiKey();
         $this->_apiSecret = $this->getApiSecret();
         $this->getClient();
+        $this->logger = $logger;
     }
 
     private function getApiKey()
@@ -116,7 +122,7 @@ class Api extends AbstractHelper
             $this->client = new \Sailthru\MageSail\MageClient(
                 $this->_apiKey,
                 $this->_apiSecret,
-                '/var/log/sailthru.log'
+                $this->logger
             );
         } catch (\Sailthru_Client_Exception $e) {
             $this->client = $e->getMessage();
