@@ -69,7 +69,8 @@ class MageClient extends \Sailthru_Client
     public function getVerifiedSenders()
     {
         $settings = $this->getSettings();
-        return $settings["from_emails"];
+
+        return isset($settings['from_emails']) ? $settings["from_emails"] : [];
     }
 
     /**

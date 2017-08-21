@@ -4,7 +4,6 @@ namespace Sailthru\MageSail\Model\Config\Source;
 
 class ValidatedEnableDisable extends AbstractSource
 {
-
     protected function getDisplayData()
     {
         $this->clientManager->isValid();

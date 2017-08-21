@@ -13,16 +13,21 @@ class SailthruTemplates extends AbstractSource
     protected function getDisplayData()
     {
         $data = $this->clientManager->getClient()->getTemplates();
-        $templates = $data["templates"];
+
         $tpl_options = [
             ['value'=> 0, 'label'=>' ']
         ];
-        foreach ($templates as $tpl) {
+
+        if (isset($data["templates"])) {
+            $templates = $data["templates"];
+            foreach ($templates as $tpl) {
                 $tpl_options[] = [
                     'value' => $tpl['name'],
                     'label' => __($tpl['name'])
                 ];
+            }
         }
+        
         return $tpl_options;
     }
 }
