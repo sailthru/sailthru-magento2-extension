@@ -126,7 +126,7 @@
                     <tooltip>Allows you to send all Magento emails through Sailthru, and override templates for various Magento events.</tooltip>
                     <comment>NOTE: Will create generic Sailthru templates that will accept Magento templates for transactionals not specifically overriden.</comment>
                 </field>
-                <field id="from_sender" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="from_sender" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="1">
                     <label>From Email</label>
                     <source_model>Sailthru\MageSail\Model\Config\Source\VerifiedEmails</source_model>
                     <comment>All transactionals sent using Magento templates must be sent from a Sailthru-verified email.</comment>
@@ -135,7 +135,7 @@
                         <field id="*/*/send_through_sailthru">1</field>
                     </depends>
                 </field>
-                <field id="purchase_enabled" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="3">
+                <!--<field id="purchase_enabled" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="3">
                     <label>Override Magento Purchase Confirmation</label>
                     <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnableDisable</source_model>
                     <depends>
@@ -149,7 +149,7 @@
                         <field id="*/*/send_through_sailthru">1</field>
                     </depends>
                     <source_model>Sailthru\MageSail\Model\Config\Source\SailthruTemplates</source_model>
-                </field>
+                </field>-->
             </group>
 
             <group id="abandoned_cart" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
