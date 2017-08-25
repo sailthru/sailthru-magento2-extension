@@ -87,6 +87,8 @@ class Group
      */
     protected function addField($params, $type)
     {
+        # TODO: optimize adding of dependency fields
+        
         if ('enabled' == $type) {
             $id = isset($params['id']) ? $params['id'].'_enabled' : '';
             $label = isset($params['name']) ? 'Override Magento '.$params['name'] : 'Default label';
@@ -112,6 +114,16 @@ class Group
             $sourceModel = isset($params['template_list_model']) ? $params['template_list_model'] : null;
             $depends = [
                 'fields' => [
+                    '*/*/send_through_sailthru' => [
+                        'id' => 'magesail_send/transactionals/send_through_sailthru',
+                        'value' => '1',
+                        '_elementType' => 'field',
+                        'dependPath' => [
+                            0 => 'magesail_send',
+                            1 => 'transactionals',
+                            2 => 'send_through_sailthru',
+                        ],
+                    ],
                     '*/*/'.$idEnabled => [
                         'id' => 'magesail_send/transactionals/'.$idEnabled,
                         'value' => '1',

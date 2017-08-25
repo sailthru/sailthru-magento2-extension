@@ -115,4 +115,15 @@ class Settings extends AbstractHelper
         return $this->getSettingsVal(self::XML_NEWSLETTER_LIST_VALUE);
     }
 
+    /**
+     * To check If a template is specified.
+     * 
+     * @param  string $id
+     * @return string|null
+     */
+    public function getTemplateEnabled($id)
+    {
+        return $this->getSettingsVal('magesail_send/transactionals/'.$id);
+    }
+
 }

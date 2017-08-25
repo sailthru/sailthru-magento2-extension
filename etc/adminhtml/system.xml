@@ -135,21 +135,6 @@
                         <field id="*/*/send_through_sailthru">1</field>
                     </depends>
                 </field>
-                <!--<field id="purchase_enabled" translate="label" type="select" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="3">
-                    <label>Override Magento Purchase Confirmation</label>
-                    <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnableDisable</source_model>
-                    <depends>
-                        <field id="*/*/send_through_sailthru">1</field>
-                    </depends>
-                </field>
-                <field id="purchase_template" translate="label" type="select"  showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="4">
-                    <label>Purchase Confirmation Template</label>
-                    <depends>
-                        <field id="*/*/purchase_enabled">1</field>
-                        <field id="*/*/send_through_sailthru">1</field>
-                    </depends>
-                    <source_model>Sailthru\MageSail\Model\Config\Source\SailthruTemplates</source_model>
-                </field>-->
             </group>
 
             <group id="abandoned_cart" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
