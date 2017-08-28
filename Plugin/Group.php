@@ -2,8 +2,12 @@
 
 namespace Sailthru\MageSail\Plugin;
 
+use \Magento\Framework\Exception\MailException;
 use \Magento\Config\Model\Config\Structure\Element\Group as OriginalGroup;
 use Sailthru\MageSail\Model\Config\Template\Data as TemplateConfig;
+use Sailthru\MageSail\Helper\ClientManager;
+use Sailthru\MageSail\MageClient;
+use Sailthru\MageSail\Helper\Settings;
 
 class Group
 {
@@ -15,15 +19,35 @@ class Group
     protected $templateConfig;
 
     /**
+     * @var \Sailthru\MageSail\Helper\ClientManager
+     */
+    protected $clientManager;
+
+    /**
+     * @var MageClient
+     */
+    protected $client;
+
+    /**
+     * @var \Sailthru\MageSail\Helper\Settings
+     */
+    protected $sailthruSettings;
+
+    /**
      * Group constructor.
      * 
      * @param TemplateConfig $templateConfig
      */
     public function __construct(
-        TemplateConfig $templateConfig
+        TemplateConfig $templateConfig,
+        ClientManager $clientManager,
+        Settings $sailthruSettings
     )
     {
         $this->templateConfig = $templateConfig;
+        $this->clientManager = $clientManager;
+        $this->client = $clientManager->getClient();
+        $this->sailthruSettings = $sailthruSettings;
     }
 
     /**
@@ -45,10 +69,13 @@ class Group
         # This method runs for every group.
         # Add a condition to check for the one to which we're
         # interested in adding fields.
-        if($data['id'] == self::REQUIRED_GROUP_ID) {
-            $dynamicFields = self::getDynamicConfigFields();
-            if(!empty($dynamicFields)) {
-                $data['children'] += $dynamicFields;
+        if(self::REQUIRED_GROUP_ID == $data['id']) {
+            $apiValidate = $this->clientManager->apiValidate();
+            if (isset($apiValidate[0]) && 1 == $apiValidate[0]) {
+                $dynamicFields = self::getDynamicConfigFields();
+                if(!empty($dynamicFields)) {
+                    $data['children'] += $dynamicFields;
+                }
             }
         }
 
@@ -65,7 +92,54 @@ class Group
         $fields = [];
         $templateList = $this->templateConfig->get('templates');
         if ($templateList) {
+            $apiTemplates = $this->client->getTemplates();
+            $sailthruTemplates = isset($apiTemplates['templates'])
+                ? array_column($apiTemplates['templates'], 'name')
+                : [];
+            
+            # Creates the `Magento Generic` template if it doesn't exist.
+            $sender = $this->sailthruSettings->getSender();
+            if ($sender && !in_array('Magento Generic', $sailthruTemplates)) {
+                try {
+                    $response = $this->client->saveTemplate(
+                        'Magento Generic',
+                        [
+                            "content_html" => "{content} {beacon}",
+                            "subject" => "{subj}",
+                            "from_email" => $sender,
+                            "is_link_tracking" => 1
+                        ]
+                    );
+
+                    if (isset($response['error'])) {
+                        $this->client->logger($response['errormsg']);
+                    }
+                } catch (\Exception $e) {
+                    $this->client->logger($e->getMessage());
+                }
+            }
+            
             foreach ($templateList as $template) {
+                # Creates the `specific` template if it doesn't exists.
+                if ($sender && !in_array('magento_'.$template['id'], $sailthruTemplates)) {
+                    try {
+                        $response = $this->client->saveTemplate(
+                            'magento_'.$template['id'],
+                            [
+                                'subject' => '{subj}',
+                                'content_html' => '{content}',
+                                'from_email' => $sender,
+                            ]
+                        );
+
+                        if (isset($response['error'])) {
+                            $this->client->logger($response['errormsg']);
+                        }
+                    } catch (\Exception $e) {
+                        $this->client->logger($e->getMessage());
+                    }
+                }
+
                 $enabledField = self::addField($template, 'enabled');
                 $tmpListField = self::addField($template, 'template_list');
 
@@ -80,60 +154,46 @@ class Group
     /**
      * To add a field.
      * 
-     * @param array  $params
-     * @param string $type
+     * @param   array  $params
+     * @param   string $type
      *
      * @return  array
      */
     protected function addField($params, $type)
     {
-        # TODO: optimize adding of dependency fields
+        # Each dynamic field always depends from send_through_sailthru.
+        $depends = [
+            'fields' => [
+                '*/*/send_through_sailthru' => [
+                    'id' => 'magesail_send/transactionals/send_through_sailthru',
+                    'value' => '1',
+                    '_elementType' => 'field',
+                    'dependPath' => [
+                        0 => 'magesail_send',
+                        1 => 'transactionals',
+                        2 => 'send_through_sailthru',
+                    ],
+                ],
+            ],
+        ];
         
         if ('enabled' == $type) {
             $id = isset($params['id']) ? $params['id'].'_enabled' : '';
             $label = isset($params['name']) ? 'Override Magento '.$params['name'] : 'Default label';
             $sourceModel = isset($params['enabled_model']) ? $params['enabled_model'] : null;
-            $depends = [
-                'fields' => [
-                    '*/*/send_through_sailthru' => [
-                        'id' => 'magesail_send/transactionals/send_through_sailthru',
-                        'value' => '1',
-                        '_elementType' => 'field',
-                        'dependPath' => [
-                            0 => 'magesail_send',
-                            1 => 'transactionals',
-                            2 => 'send_through_sailthru',
-                        ],
-                    ],
-                ],
-            ];
         } else {
             $id = isset($params['id']) ? $params['id'] : '';
             $idEnabled = isset($params['id']) ? $params['id'].'_enabled' : '';
             $label = isset($params['name']) ? $params['name'].' Template' : 'Default Template';
             $sourceModel = isset($params['template_list_model']) ? $params['template_list_model'] : null;
-            $depends = [
-                'fields' => [
-                    '*/*/send_through_sailthru' => [
-                        'id' => 'magesail_send/transactionals/send_through_sailthru',
-                        'value' => '1',
-                        '_elementType' => 'field',
-                        'dependPath' => [
-                            0 => 'magesail_send',
-                            1 => 'transactionals',
-                            2 => 'send_through_sailthru',
-                        ],
-                    ],
-                    '*/*/'.$idEnabled => [
-                        'id' => 'magesail_send/transactionals/'.$idEnabled,
-                        'value' => '1',
-                        '_elementType' => 'field',
-                        'dependPath' => [
-                            0 => 'magesail_send',
-                            1 => 'transactionals',
-                            2 => $idEnabled,
-                        ],
-                    ],
+            $depends['fields']['*/*/'.$idEnabled] = [
+                'id' => 'magesail_send/transactionals/'.$idEnabled,
+                'value' => '1',
+                '_elementType' => 'field',
+                'dependPath' => [
+                    0 => 'magesail_send',
+                    1 => 'transactionals',
+                    2 => $idEnabled,
                 ],
             ];
         }

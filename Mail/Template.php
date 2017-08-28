@@ -19,39 +19,6 @@ class Template extends \Magento\Email\Model\Template
     public $templateVariables;
 
     /**
-     * Get processed template
-     *
-     * @return string
-     * @throws \Magento\Framework\Exception\MailException
-     */
-    public function processTemplate()
-    {
-        // Support theme fallback for email templates
-        $isDesignApplied = $this->applyDesignConfig();
-
-        $templateId = $this->getId();
-        if (is_numeric($templateId)) {
-            $this->load($templateId);
-        } else {
-            $this->loadDefault($templateId);
-        }
-
-        if (!$this->getId()) {
-            throw new \Magento\Framework\Exception\MailException(
-                __('Invalid transactional email code: %1', $templateId)
-            );
-        }
-
-        $this->setUseAbsoluteLinks(true);
-        $text = $this->getProcessedTemplate($this->_getVars());
-
-        if ($isDesignApplied) {
-            $this->cancelDesignConfig();
-        }
-        return $text;
-    }
-
-    /**
      * Load default email template
      *
      * @param string $templateId
@@ -96,9 +63,7 @@ class Template extends \Magento\Email\Model\Template
                         trim(preg_replace('/(\s\s+|var|{|})/', '', $directiveString))
                     );
 
-                    # TODO: replace with preg_replace() method.
-                    $directiveString[0] = str_replace('])', '', $directiveString[0]);
-                    $directiveString[0] = str_replace('"', '', $directiveString[0]);
+                    $directiveString[0] = trim(preg_replace('/(]\)|")/', '', $directiveString[0]));
 
                     $this->templateDirectives[strtolower(str_replace(' ', '_', $directiveString[1]))] = str_replace(
                         ' ',

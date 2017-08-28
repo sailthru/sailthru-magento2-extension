@@ -27,20 +27,16 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
 
     /**
      * List of `order` templates which needs additional variables.
-     * TODO: add real list of template ids.
      */
     const ORDER_TEMPLATES_FOR_ADDITIONAL_VARS = [
-        'test1',
-        'test2',
+        'sales_email_order_template',
     ];
 
     /**
      * List of `shipping` templates which needs additional variables.
-     * TODO: add real list of template ids.
      */
     const SHIPMENT_TEMPLATES_FOR_ADDITIONAL_VARS = [
-        'test1',
-        'test2',
+        'sales_email_shipment_template',
     ];
 
     /**
@@ -159,7 +155,7 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
 
         if ($this->sailthruSettings->getTransactionalsEnabled()) {
             if ($this->sailthruSettings->getTemplateEnabled($templateData['identifier'])) {
-                # send template specific
+                # send specific template
                 self::sendTemplateSpecific();
             } else {
                 # send magento generic

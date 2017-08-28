@@ -9,14 +9,15 @@ class VerifiedEmails extends AbstractSource
     {
         $emails = $this->clientManager->getClient()->getVerifiedSenders();
         $sender_options = [
-            ['value'=> 0, 'label'=>' ']
+            ['value'=> 0, 'label'=>' '],
         ];
         foreach ($emails as $key => $email) {
             $sender_options[] = [
                 'value' => $email,
-                'label' => $email
+                'label' => $email,
             ];
         }
+
         return $sender_options;
     }
 }
