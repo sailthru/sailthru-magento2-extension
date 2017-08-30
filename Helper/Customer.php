@@ -4,9 +4,30 @@ namespace Sailthru\MageSail\Helper;
 
 use Magento\Customer\Model\Address;
 use Magento\Customer\Model\Customer as MageCustomer;
+use Magento\Framework\App\Helper\Context;
+use Magento\Store\Model\StoreManager;
+use Sailthru\MageSail\Logger;
 
 class Customer extends AbstractHelper
 {
+    /** @var \Magento\Customer\Model\Group */
+    protected $customerGroupCollection;
+
+    /** @var \Magento\Framework\Stdlib\DateTime\Timezone */
+    protected $timezone;
+
+    public function __construct(
+        Context $context,
+        StoreManager $storeManager,
+        Logger $logger,
+        \Magento\Customer\Model\Group $customerGroupCollection,
+        \Magento\Framework\Stdlib\DateTime\Timezone $timezone
+    ) {
+        parent::__construct($context, $storeManager, $logger);
+
+        $this->customerGroupCollection = $customerGroupCollection;
+        $this->timezone = $timezone;
+    }
 
     public function getAddressVars(Address $address)
     {
@@ -32,40 +53,32 @@ class Customer extends AbstractHelper
     /**
      * To get Customer Info(Array).
      * 
-     * @param  \Magento\Customer\Model\Customer             $customerModel
-     * @param  \Magento\Store\Model\StoreManagerInterface   $storeManager
-     * @param  \Magento\Customer\Model\Group                $groupCollection
-     * @param  \Magento\Framework\Stdlib\DateTime\Timezone  $timezone
+     * @param  \Magento\Customer\Model\Customer $customerModel
      * 
      * @return array
      */
-    public function getCustomerVariable(
-        $customerModel,
-        $storeManager,
-        $groupCollection,
-        $timezone
-    ) {
-        $data = $customerModel->getData();
-        $store = $storeManager->getStore($data['store_id']);
-        $group = $groupCollection->load($data['group_id']);
+    public function getCustomerVars(MageCustomer $customerModel) {
+        $data = $customerModel->getDataModel();
+        $store = $this->storeManager->getStore($data->getStoreId());
+        $group = $this->customerGroupCollection->load($data->getGroupId());
         $defaultBillingAddress = self::getAddress($customerModel->getDefaultBillingAddress());
         $defaultShippingAddress = self::getAddress($customerModel->getDefaultShippingAddress());
 
         $date = \DateTime::createFromFormat(
             'Y-m-d H:i:s',
-            $data['created_at'],
-            new \DateTimeZone($timezone->getConfigTimezone())
+            $data->getCreatedAt(),
+            new \DateTimeZone($this->timezone->getConfigTimezone())
         );
 
         return [
             'customer' => [
-                'magento_id' => $data['entity_id'],
+                'magento_id' => $data->getId(),
                 'name' => $customerModel->getName(),
-                'suffix' => $data['suffix'],
-                'prefix' => $data['prefix'],
-                'firstName' => $data['firstname'],
-                'middleName' => $data['middlename'],
-                'lastName' => $data['lastname'],
+                'suffix' => $data->getSuffix() ? $data->getSuffix() : '',
+                'prefix' => $data->getPrefix() ? $data->getPrefix() : '',
+                'firstName' => $data->getFirstname() ? $data->getFirstname() : '',
+                'middleName' => $data->getMiddlename() ? $data->getMiddlename() : '',
+                'lastName' => $data->getLastname() ? $data->getLastname() : '',
                 'store' => $store->getName(),
                 'customerGroup' => $group->getCustomerGroupCode(),
                 'created_date' => $date->format('Y-m-d'),
@@ -86,19 +99,19 @@ class Customer extends AbstractHelper
      * 
      * @return array
      */
-    public function getAddress($address)
+    public function getAddress(Address $address)
     {
         if ($address) {
-            $addressData = $address->getData();
+            $addressData = $address->getDataModel();
             $streets = $address->getStreet();
 
             return [
                 'name' => $address->getName(),
-                'company' => $addressData['company'],
-                'telephone' => $addressData['telephone'],
-                'street1' => $streets[0],
-                'street2' => $streets[1],
-                'city' => $addressData['city'],
+                'company' => $addressData->getCompany(),
+                'telephone' => $addressData->getTelephone(),
+                'street1' => isset($streets[0]) ? $streets[0] : '',
+                'street2' => isset($streets[1]) ? $streets[1] : '',
+                'city' => $address->getCity(),
                 'state' => $address->getRegion(),
                 'state_code' => $address->getRegionCode(),
                 'country' => $address->getCountryModel()->getName(),
