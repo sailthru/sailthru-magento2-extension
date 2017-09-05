@@ -8,6 +8,7 @@ namespace Sailthru\MageSail\Helper;
 
 use Magento\Framework\App\Helper\Context;
 use Magento\Store\Model\ScopeInterface;
+use Magento\Store\Model\StoreManager;
 # Was removed to fix compilation error
 # use Magento\Framework\App\Helper\AbstractHelper;
 
@@ -18,11 +19,6 @@ use Sailthru\MageSail\Logger;
 class Api extends \Magento\Framework\App\Helper\AbstractHelper
 {
 
-    protected $_apiKey;
-    protected $_apiSecret;
-    public $client;
-    public $hid;
-    public $logger;
 
     // Source models
     const SOURCE_MODEL_VALIDATION_MSG  = "Please Enter Valid Sailthru Credentials";
@@ -87,33 +83,30 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
         'quantity_and_stock_status',
         'sku'
     ];
+    public $sailthruTemplates = [];
+    public $client;
+    public $hid;
+    public $logger;
+    public $storeManager;
+    protected $_apiKey;
+    protected $_apiSecret;
 
-    /**
-     * @var \Magento\Framework\App\Request\Http
-     */
+    /** @var \Magento\Framework\App\Request\Http */
     protected $request;
 
     public function __construct(
         Context $context,
         Hid $hid,
-        Logger $logger
+        Logger $logger,
+        StoreManager $storeManager
     ) {
         parent::__construct($context);
         $this->hid = $hid;
         $this->_apiKey = $this->getApiKey();
         $this->_apiSecret = $this->getApiSecret();
-        $this->getClient();
         $this->logger = $logger;
-    }
-
-    private function getApiKey()
-    {
-        return $this->getSettingsVal(self::XML_API_KEY);
-    }
-
-    private function getApiSecret()
-    {
-        return $this->getSettingsVal(self::XML_API_SECRET);
+        $this->storeManager = $storeManager;
+        $this->getClient();
     }
 
     public function getClient()
@@ -122,7 +115,8 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
             $this->client = new \Sailthru\MageSail\MageClient(
                 $this->_apiKey,
                 $this->_apiSecret,
-                $this->logger
+                $this->logger,
+                $this->storeManager
             );
         } catch (\Sailthru_Client_Exception $e) {
             $this->client = $e->getMessage();
@@ -348,5 +342,28 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
     {
         $address = $customer->getPrimaryBillingAddress();
         return $this->getAddressVars($address);
+    }
+
+    /**
+     * To set Sailthru templates.
+     */
+    public function setSailthruTemplates()
+    {
+        $templates = $this->client->getTemplates();
+        if ($templates) {
+            $this->sailthruTemplates = $templates;
+        }
+
+        return $this->sailthruTemplates;
+    }
+
+    private function getApiKey()
+    {
+        return $this->getSettingsVal(self::XML_API_KEY);
+    }
+
+    private function getApiSecret()
+    {
+        return $this->getSettingsVal(self::XML_API_SECRET);
     }
 }

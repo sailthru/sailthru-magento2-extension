@@ -10,6 +10,8 @@ abstract class AbstractSource implements ArrayInterface
 
     protected $clientManager;
 
+    protected $apiHelper;
+
     /**
      * Catchable function converting Sailthru API -> Source Model Display
      * @return array
@@ -24,9 +26,13 @@ abstract class AbstractSource implements ArrayInterface
         4 => "Disallowed IP. Please reach out to Sailthru support"
     ];
 
-    public function __construct(\Sailthru\MageSail\Helper\ClientManager $clientManager)
+    public function __construct(
+        \Sailthru\MageSail\Helper\ClientManager $clientManager,
+        \Sailthru\MageSail\Helper\Api $apiHelper
+    )
     {
         $this->clientManager = $clientManager;
+        $this->apiHelper = $apiHelper;
     }
 
     public function toOptionArray()

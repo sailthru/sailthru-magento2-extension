@@ -123,7 +123,17 @@ class Settings extends AbstractHelper
      */
     public function getTemplateEnabled($id)
     {
-        return $this->getSettingsVal('magesail_send/transactionals/'.$id);
+        return $this->getSettingsVal('magesail_send/transactionals/'.$id.'_enabled');
     }
 
+    /**
+     * To get template value.
+     * 
+     * @param  string $id
+     * @return string|null
+     */
+    public function getTemplateValue($id)
+    {
+        return $this->getSettingsVal('magesail_send/transactionals/'.$id);
+    }
 }

@@ -5,58 +5,66 @@ namespace Sailthru\MageSail\Plugin;
 use \Magento\Framework\Exception\MailException;
 use \Magento\Config\Model\Config\Structure\Element\Group as OriginalGroup;
 use Sailthru\MageSail\Model\Config\Template\Data as TemplateConfig;
-use Sailthru\MageSail\Helper\ClientManager;
-use Sailthru\MageSail\MageClient;
+use Sailthru\MageSail\Helper\Api;
 use Sailthru\MageSail\Helper\Settings;
 
-class Group
+class GroupIntercept
 {
-    const REQUIRED_GROUP_ID = 'transactionals';
+    /** Prefix for name of new templates. */
+    const MAGENTO_TEMPLATE_NAME_PREFIX = 'magento_';
 
-    /**
-     * @var \Sailthru\MageSail\Model\Config\Template\Data
-     **/
+    /** Name of the `Generic` template. */
+    const MAGENTO_GENERIC_TEMPLATE = 'Magento Generic';
+
+    /** Group id for additional fields. */
+    const GROUP_WITH_CONFIG_FIELDS = 'transactionals';
+
+    /** List of groups in module. */
+    const REQUIRED_GROUP_IDS = [
+        'intercept',
+        'tags',
+        'lists',
+        'abandoned_cart',
+        'transactionals',
+    ];
+
+    /** Renderer class. */
+    const RENDERER_CLASS = 'Sailthru\MageSail\Block\System\Config\Api\FieldRenderer';
+
+    /** @var \Sailthru\MageSail\Model\Config\Template\Data */
     protected $templateConfig;
 
-    /**
-     * @var \Sailthru\MageSail\Helper\ClientManager
-     */
-    protected $clientManager;
-
-    /**
-     * @var MageClient
-     */
-    protected $client;
-
-    /**
-     * @var \Sailthru\MageSail\Helper\Settings
-     */
+    /** @var Sailthru\MageSail\Helper\Settings */
     protected $sailthruSettings;
+
+    /** @var Sailthru\MageSail\Helper\Api */
+    protected $apiHelper;
 
     /**
      * Group constructor.
      * 
      * @param TemplateConfig $templateConfig
+     * @param Settings       $sailthruSettings
+     * @param Api            $apiHelper
      */
     public function __construct(
         TemplateConfig $templateConfig,
-        ClientManager $clientManager,
-        Settings $sailthruSettings
+        Settings $sailthruSettings,
+        Api $apiHelper
     )
     {
         $this->templateConfig = $templateConfig;
-        $this->clientManager = $clientManager;
-        $this->client = $clientManager->getClient();
         $this->sailthruSettings = $sailthruSettings;
+        $this->apiHelper = $apiHelper;
     }
 
     /**
-     * Add dynamic config fields for each template
+     * Set flyweight data.
      *
-     * @param OriginalGroup $subject
-     * @param callable $proceed
-     * @param array $data
-     * @param $scope
+     * @param  OriginalGroup $subject
+     * @param  callable      $proceed
+     * @param  array         $data
+     * @param                $scope
      * 
      * @return mixed
      */
@@ -65,13 +73,10 @@ class Group
         callable $proceed,
         array $data,
         $scope
-    ) {
-        # This method runs for every group.
-        # Add a condition to check for the one to which we're
-        # interested in adding fields.
-        if(self::REQUIRED_GROUP_ID == $data['id']) {
-            $apiValidate = $this->clientManager->apiValidate();
-            if (isset($apiValidate[0]) && 1 == $apiValidate[0]) {
+    ) {        
+        if (in_array($data['id'], self::REQUIRED_GROUP_IDS)) {
+            $data['children'] = self::addRendered($data['children']);
+            if (self::GROUP_WITH_CONFIG_FIELDS == $data['id']) {
                 $dynamicFields = self::getDynamicConfigFields();
                 if(!empty($dynamicFields)) {
                     $data['children'] += $dynamicFields;
@@ -80,6 +85,22 @@ class Group
         }
 
         return $proceed($data, $scope);
+    }
+
+    /**
+     * To add custom renderer.
+     * 
+     * @param   array $fields
+     *
+     * @return  array
+     */
+    protected function addRendered($fields)
+    {
+        foreach ($fields as &$field) {
+            $field['frontend_model'] = self::RENDERER_CLASS;
+        }
+
+        return $fields;
     }
 
     /**
@@ -92,52 +113,24 @@ class Group
         $fields = [];
         $templateList = $this->templateConfig->get('templates');
         if ($templateList) {
-            $apiTemplates = $this->client->getTemplates();
-            $sailthruTemplates = isset($apiTemplates['templates'])
-                ? array_column($apiTemplates['templates'], 'name')
+            if (empty($this->apiHelper->sailthruTemplates)) {
+                $this->apiHelper->setSailthruTemplates();
+            }
+
+            $sailthruTemplates = isset($this->apiHelper->sailthruTemplates['templates'])
+                ? array_column($this->apiHelper->sailthruTemplates['templates'], 'name')
                 : [];
             
-            # Creates the `Magento Generic` template if it doesn't exist.
+            # Create the `Magento Generic` template if doesn't exists.
             $sender = $this->sailthruSettings->getSender();
-            if ($sender && !in_array('Magento Generic', $sailthruTemplates)) {
-                try {
-                    $response = $this->client->saveTemplate(
-                        'Magento Generic',
-                        [
-                            "content_html" => "{content} {beacon}",
-                            "subject" => "{subj}",
-                            "from_email" => $sender,
-                            "is_link_tracking" => 1
-                        ]
-                    );
-
-                    if (isset($response['error'])) {
-                        $this->client->logger($response['errormsg']);
-                    }
-                } catch (\Exception $e) {
-                    $this->client->logger($e->getMessage());
-                }
+            if ($sender && !in_array(self::MAGENTO_GENERIC_TEMPLATE, $sailthruTemplates)) {
+                $this->saveTemplate(self::MAGENTO_GENERIC_TEMPLATE, $sender);
             }
             
             foreach ($templateList as $template) {
-                # Creates the `specific` template if it doesn't exists.
-                if ($sender && !in_array('magento_'.$template['id'], $sailthruTemplates)) {
-                    try {
-                        $response = $this->client->saveTemplate(
-                            'magento_'.$template['id'],
-                            [
-                                'subject' => '{subj}',
-                                'content_html' => '{content}',
-                                'from_email' => $sender,
-                            ]
-                        );
-
-                        if (isset($response['error'])) {
-                            $this->client->logger($response['errormsg']);
-                        }
-                    } catch (\Exception $e) {
-                        $this->client->logger($e->getMessage());
-                    }
+                # Create the `specific` template if doesn't exists.
+                if ($sender && !in_array(self::MAGENTO_TEMPLATE_NAME_PREFIX.$template['id'], $sailthruTemplates)) {
+                    $this->saveTemplate(self::MAGENTO_TEMPLATE_NAME_PREFIX.$template['id'], $sender);
                 }
 
                 $enabledField = self::addField($template, 'enabled');
@@ -152,7 +145,7 @@ class Group
     }
 
     /**
-     * To add a field.
+     * To get field configuration.
      * 
      * @param   array  $params
      * @param   string $type
@@ -177,6 +170,7 @@ class Group
             ],
         ];
         
+        # Prepare data.
         if ('enabled' == $type) {
             $id = isset($params['id']) ? $params['id'].'_enabled' : '';
             $label = isset($params['name']) ? 'Override Magento '.$params['name'] : 'Default label';
@@ -208,9 +202,36 @@ class Group
             'sortOrder' => isset($params['sort_order']) ? $params['sort_order'] : '1',
             'label' => $label,
             'source_model' => $sourceModel,
+            'frontend_model' => self::RENDERER_CLASS,
             'depends' => $depends,
             '_elementType' => 'field',
             'path' => 'magesail_send/transactionals',
         ];
+    }
+
+    /**
+     * To create template in Sailthru.
+     * 
+     * @param  string $templateIdentifier
+     * @param  string $sender
+     */
+    protected function saveTemplate($templateIdentifier, $sender)
+    {
+        try {
+            $template = $this->apiHelper->client->getTemplate($templateIdentifier);
+            if (isset($template["error"]) && $template['error'] == 14) {
+                $response = $this->apiHelper->client->saveTemplate($templateIdentifier, [
+                    "content_html" => "{content} {beacon}",
+                    "subject" => "{subj}",
+                    "from_email" => $sender,
+                    "is_link_tracking" => 1
+                ]);
+
+                if (isset($response['error']))
+                    $this->apiHelper->client->logger($response['errormsg']);
+            }
+        } catch (\Exception $e) {
+            $this->apiHelper->client->logger($e->getMessage());
+        }
     }
 }

@@ -38,6 +38,6 @@
     <!-- config.xml end -->
     <!-- Interceptor for fields rendering -->
     <type name="\Magento\Config\Model\Config\Structure\Element\Group">
-        <plugin name="MageSail_Config_Fields" type="Sailthru\MageSail\Plugin\Group"/>
+        <plugin name="MageSail_Config_Fields" type="Sailthru\MageSail\Plugin\GroupIntercept"/>
     </type>
 </config>

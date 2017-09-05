@@ -8,11 +8,13 @@ use \Sailthru\MageSail\Helper\Settings as SailthruSettings;
 
 class SailthruTemplates extends AbstractSource
 {
-
     /** @inheritdoc */
     protected function getDisplayData()
     {
-        $data = $this->clientManager->getClient()->getTemplates();
+        $data = $this->apiHelper->sailthruTemplates;
+        if (empty($data)) {
+            $data = $this->apiHelper->setSailthruTemplates();
+        }
 
         $tpl_options = [
             ['value'=> 0, 'label'=>' ']

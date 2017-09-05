@@ -87,17 +87,6 @@
             >
                 <label>Sailthru Product Updates</label>
                 <field
-                    id="display_error"
-                    type="text"
-                    translate="label"
-                    sortOrder="0"
-                    showInDefault="1"
-                    showInWebsite="1"
-                    showInStore="1"
-                >
-                    <frontend_model>Sailthru\MageSail\Block\System\Config\Api\Check</frontend_model>
-                </field>
-                <field
                     id="enable_intercept"
                     type="select"
                     translate="label comment"
@@ -108,7 +97,6 @@
                 >
                     <label>Send products to Sailthru on product update</label>
                     <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnableDisable</source_model>
-                    <frontend_model>Sailthru\MageSail\Block\System\Config\Api\Check</frontend_model>
                     <comment>This allows us to keep your content library in-sync with Magento.</comment>
                 </field>
                 <field
@@ -122,7 +110,6 @@
                 >
                     <label>Send Configurable/Master Products to Sailthru</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <frontend_model>Sailthru\MageSail\Block\System\Config\Api\Check</frontend_model>
                     <comment>Should Configurable products (masters) be sent to Sailthru</comment>
                     <depends>
                         <field id="*/*/enable_intercept">1</field>
@@ -139,7 +126,6 @@
                 >
                     <label>Send Variant Products to Sailthru</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <frontend_model>Sailthru\MageSail\Block\System\Config\Api\Check</frontend_model>
                     <comment>
                         Should variant products be sent to Sailthru.
                         NOTE: If variants aren't visible individually, must enable URL-fragmenting in Sailthru.
@@ -160,17 +146,6 @@
             >
                 <label>Product Tags</label>
                 <field
-                    id="display_error"
-                    type="text"
-                    translate="label"
-                    sortOrder="0"
-                    showInDefault="1"
-                    showInWebsite="1"
-                    showInStore="1"
-                >
-                    <frontend_model>Sailthru\MageSail\Block\System\Config\Api\Check</frontend_model>
-                </field>
-                <field
                     id="use_seo"
                     type="select"
                     translate="label"
@@ -181,7 +156,6 @@
                 >
                     <label>Get tags from SEO keywords</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <frontend_model>Sailthru\MageSail\Block\System\Config\Api\Check</frontend_model>
                 </field>
                 <field
                     id="use_attributes"
@@ -194,7 +168,6 @@
                 >
                     <label>Get tags from from product attributes</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <frontend_model>Sailthru\MageSail\Block\System\Config\Api\Check</frontend_model>
                 </field>
                 <field
                     id="use_categories"
@@ -207,7 +180,6 @@
                 >
                     <label>Get tags from categories</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <frontend_model>Sailthru\MageSail\Block\System\Config\Api\Check</frontend_model>
                 </field>
             </group>
         </section>
@@ -234,17 +206,6 @@
             >
                 <label>Lists</label>
                 <field
-                    id="display_error"
-                    type="text"
-                    translate="label"
-                    sortOrder="0"
-                    showInDefault="1"
-                    showInWebsite="1"
-                    showInStore="1"
-                >
-                    <frontend_model>Sailthru\MageSail\Block\System\Config\Api\Check</frontend_model>
-                </field>
-                <field
                     id="enable_signup_list"
                     type="select"
                     translate="label"
@@ -254,7 +215,6 @@
                 >
                     <label>Add new registering customers to Sailthru list</label>
                     <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnableDisable</source_model>
-                    <frontend_model>Sailthru\MageSail\Block\System\Config\Api\Check</frontend_model>
                     <comment>Upon registration, set users to be added to a Sailthru list of your choice.</comment>
                 </field>
                  <field
@@ -268,7 +228,6 @@
                 >
                     <label>Customer Sign-Up Lists</label>
                     <source_model>Sailthru\MageSail\Model\Config\Source\SailthruLists</source_model>
-                    <frontend_model>Sailthru\MageSail\Block\System\Config\Api\Check</frontend_model>
                     <tooltip><![CDATA[New a new list? Check my.sailthru.com to create it!]]></tooltip>
                     <comment>Select the Sailthru list where newly registered customers will be added.</comment>
                     <depends>
@@ -286,7 +245,6 @@
                 >
                     <label>Override Default Magento Newsletter Subscribe</label>
                     <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnableDisable</source_model>
-                    <frontend_model>Sailthru\MageSail\Block\System\Config\Api\Check</frontend_model>
                     <comment>
                         Override Magento's default Newsletter system and add users instead to a Sailthru List
                     </comment>
@@ -302,7 +260,6 @@
                 >
                     <label>Newsletter Lists</label>
                     <source_model>Sailthru\MageSail\Model\Config\Source\SailthruLists</source_model>
-                    <frontend_model>Sailthru\MageSail\Block\System\Config\Api\Check</frontend_model>
                     <tooltip><![CDATA[New a new list? Check my.sailthru.com to create it!]]></tooltip>
                     <depends>
                         <field id="*/*/enable_newsletter">1</field>
@@ -333,17 +290,6 @@
             >
                 <label>Sailthru Abandoned Cart</label>
                 <field
-                    id="display_error"
-                    type="text"
-                    translate="label"
-                    sortOrder="0"
-                    showInDefault="1"
-                    showInWebsite="1"
-                    showInStore="1"
-                >
-                    <frontend_model>Sailthru\MageSail\Block\System\Config\Api\Check</frontend_model>
-                </field>
-                <field
                     id="enabled"
                     type="select"
                     translate="label"
@@ -354,7 +300,6 @@
                 >
                     <label>Enable Abandoned Cart</label>
                     <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnableDisable</source_model>
-                    <frontend_model>Sailthru\MageSail\Block\System\Config\Api\Check</frontend_model>
                 </field>                
                 <field
                     id="template"
@@ -370,7 +315,6 @@
                         <field id="*/*/enabled">1</field>
                     </depends>
                     <source_model>Sailthru\MageSail\Model\Config\Source\SailthruTemplates</source_model>
-                    <frontend_model>Sailthru\MageSail\Block\System\Config\Api\Check</frontend_model>
                 </field>
                 <field
                     id="delay_time"
@@ -383,7 +327,6 @@
                 >
                     <label>Abandoned Cart Send Time</label>
                     <tooltip>e.g. 5 minutes, 1 hour, 1 day</tooltip>
-                    <frontend_model>Sailthru\MageSail\Block\System\Config\Api\Check</frontend_model>
                     <comment>
                         Amount of time after updating a non-empty cart that Sailthru should send the customer an email
                     </comment>
@@ -406,7 +349,6 @@
                         but have a sailthru_hid cookie for your site.
                     </comment>
                     <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnableDisable</source_model>
-                    <frontend_model>Sailthru\MageSail\Block\System\Config\Api\Check</frontend_model>
                 </field>
             </group>
             <group
@@ -420,17 +362,6 @@
             >
                 <label>General Transactionals</label>
                 <field
-                    id="display_error"
-                    type="text"
-                    translate="label"
-                    sortOrder="0"
-                    showInDefault="1"
-                    showInWebsite="1"
-                    showInStore="1"
-                >
-                    <frontend_model>Sailthru\MageSail\Block\System\Config\Api\Check</frontend_model>
-                </field>
-                <field
                     id="send_through_sailthru"
                     type="select"
                     translate="label"
@@ -441,7 +372,6 @@
                 >
                     <label>Send all transactionals through Sailthru</label>
                     <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnableDisable</source_model>
-                    <frontend_model>Sailthru\MageSail\Block\System\Config\Api\Check</frontend_model>
                     <tooltip>
                         Allows you to send all Magento emails through Sailthru,
                         and override templates for various Magento events.
@@ -462,7 +392,6 @@
                 >
                     <label>From Email</label>
                     <source_model>Sailthru\MageSail\Model\Config\Source\VerifiedEmails</source_model>
-                    <frontend_model>Sailthru\MageSail\Block\System\Config\Api\Check</frontend_model>
                     <comment>
                         All transactionals sent using Magento templates must be sent from a Sailthru-verified email.
                     </comment>
