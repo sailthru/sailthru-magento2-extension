@@ -36,6 +36,16 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
     /** Magento `Generic` template name. */
     const MAGENTO_GENERIC_TEMPLATE = "Magento Generic";
 
+    /** List of templates which needs `isGuest` variable. */
+    const TEMPLATES_WITH_IS_GUEST_VAR = [
+        'sales_email_order_template',
+        'sales_email_order_comment_template',
+        'sales_email_order_comment_guest_template',
+        'sales_email_shipment_template',
+        'sales_email_shipment_comment_template',
+        'sales_email_shipment_comment_guest_template',
+    ];
+
     /** @var Magento\Framework\Mail\MessageInterface */
     protected $_message;
 
@@ -194,6 +204,21 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
                     'paymentHtml' => isset($currentVars['payment_html']) ? $currentVars['payment_html'] : '',
                     'comment' => isset($currentVars['shipment_comment']) ? $currentVars['shipment_comment'] : '',
                     'type' => 'shipment',
+                ];
+                break;
+
+            case in_array($id, self::TEMPLATES_WITH_IS_GUEST_VAR):
+                if (strstr($id, 'order')) {
+                    $object = $this->order->loadByIncrementId($currentVars['increment_id']);
+                    $objectType = 'order';
+                } else {
+                    $object = $this->shipment->loadByIncrementId($currentVars['shipment_id']);
+                    $objectType = 'shipment';
+                }
+                $data = [
+                    'object' => $object,
+                    'type' => 'isGuest',
+                    'objectType' => $objectType,
                 ];
                 break;
 

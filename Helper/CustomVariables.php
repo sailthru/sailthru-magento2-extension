@@ -29,6 +29,10 @@ class CustomVariables extends AbstractHelper
             case 'shipment':
                 $variables = $this->getShipmentVariables($data['object'], $data['paymentHtml'], $data['comment']);
                 break;
+
+            case 'isGuest':
+                $variables = $this->getIsGuest($data['object'], $data['objectType']);
+                break;
             
             default:
                 $variables = [];
@@ -135,6 +139,25 @@ class CustomVariables extends AbstractHelper
                 'address' => $this->getAddress($shipment->getShippingAddress()),
             ],
         ];
+    }
+
+    /**
+     * To get `isGuest` variable for order\shipment.
+
+     * @param  mixed  $object
+     * @param  string $type
+     *
+     * @return array
+     */
+    public function getIsGuest($object, $type)
+    {
+        if ('order' == $type) {
+            $isGuest = $object->getCustomerIsGuest() ? 1 : 0;
+        } else {
+            $isGuest = $object->getOrder()->getCustomerIsGuest() ? 1 : 0;
+        }
+
+        return ['isGuest' => $isGuest];
     }
 
     /**
