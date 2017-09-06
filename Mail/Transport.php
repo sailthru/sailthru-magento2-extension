@@ -189,7 +189,7 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
                 ];
                 break;
 
-            case in_array($id, self::CUSTOMER_TEMPLATES_FOR_ADDITIONAL_VARS):
+            case in_array($id, self::ORDER_TEMPLATES_FOR_ADDITIONAL_VARS):
                 $order = $this->order->loadByIncrementId($currentVars['increment_id']);
                 $data = [
                     'object' => $order,
@@ -197,7 +197,7 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
                 ];
                 break;
 
-            case in_array($id, self::CUSTOMER_TEMPLATES_FOR_ADDITIONAL_VARS):
+            case in_array($id, self::SHIPMENT_TEMPLATES_FOR_ADDITIONAL_VARS):
                 $shipment = $this->shipment->loadByIncrementId($currentVars['shipment_id']);
                 $data = [
                     'object' => $shipment,
