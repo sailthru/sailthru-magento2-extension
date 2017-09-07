@@ -27,7 +27,7 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
         $body = $template->processTemplate();
 
         $templateData = [
-            'variables' => $template->templateVariables,
+            'variables' => $template->templateVariables ? $template->templateVariables : [],
             'identifier' => $this->templateIdentifier,
         ];
 

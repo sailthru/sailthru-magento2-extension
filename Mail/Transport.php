@@ -208,17 +208,10 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
                 break;
 
             case in_array($id, self::TEMPLATES_WITH_IS_GUEST_VAR):
-                if (strstr($id, 'order')) {
-                    $object = $this->order->loadByIncrementId($currentVars['increment_id']);
-                    $objectType = 'order';
-                } else {
-                    $object = $this->shipment->loadByIncrementId($currentVars['shipment_id']);
-                    $objectType = 'shipment';
-                }
+                $object = $this->order->loadByIncrementId($currentVars['increment_id']);
                 $data = [
                     'object' => $object,
                     'type' => 'isGuest',
-                    'objectType' => $objectType,
                 ];
                 break;
 

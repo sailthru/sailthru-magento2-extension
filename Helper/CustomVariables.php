@@ -31,7 +31,7 @@ class CustomVariables extends AbstractHelper
                 break;
 
             case 'isGuest':
-                $variables = $this->getIsGuest($data['object'], $data['objectType']);
+                $variables = $this->getIsGuest($data['object']);
                 break;
             
             default:
@@ -143,21 +143,16 @@ class CustomVariables extends AbstractHelper
 
     /**
      * To get `isGuest` variable for order\shipment.
-
+     *
      * @param  mixed  $object
-     * @param  string $type
      *
      * @return array
      */
-    public function getIsGuest($object, $type)
+    public function getIsGuest($object)
     {
-        if ('order' == $type) {
-            $isGuest = $object->getCustomerIsGuest() ? 1 : 0;
-        } else {
-            $isGuest = $object->getOrder()->getCustomerIsGuest() ? 1 : 0;
-        }
-
-        return ['isGuest' => $isGuest];
+        return [
+            'isGuest' => $object->getCustomerIsGuest() ? 1 : 0,
+        ];
     }
 
     /**
