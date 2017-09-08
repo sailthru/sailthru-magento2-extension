@@ -2,32 +2,24 @@
  
 namespace Sailthru\MageSail\Model\Config\Source;
 
-use \Magento\Framework\Option\ArrayInterface;
-use \Sailthru\MageSail\Helper\ClientManager;
-use \Sailthru\MageSail\Helper\Settings as SailthruSettings;
-
 class SailthruTemplates extends AbstractSource
 {
     /** @inheritdoc */
     protected function getDisplayData()
     {
-        $data = $this->apiHelper->sailthruTemplates;
-        if (empty($data)) {
-            $data = $this->apiHelper->setSailthruTemplates();
-        }
-
+        $data = $this->apiHelper->getSailthruTemplates();
         $tpl_options = [
             ['value'=> 0, 'label'=>' ']
         ];
+        
+        if (!isset($data["templates"]))
+            return $tpl_options;
 
-        if (isset($data["templates"])) {
-            $templates = $data["templates"];
-            foreach ($templates as $tpl) {
-                $tpl_options[] = [
-                    'value' => $tpl['name'],
-                    'label' => __($tpl['name'])
-                ];
-            }
+        foreach ($data["templates"] as $tpl) {
+            $tpl_options[] = [
+                'value' => $tpl['name'],
+                'label' => $tpl['name'],
+            ];
         }
         
         return $tpl_options;

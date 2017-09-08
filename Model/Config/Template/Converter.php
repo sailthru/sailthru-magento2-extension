@@ -27,16 +27,18 @@ class Converter implements \Magento\Framework\Config\ConverterInterface
         $templateList = $source->getElementsByTagName('template');
         # Empty storage for templates info.
         $templatesInfo = [];
-        if ($templateList) {
-            foreach ($templateList as $template) {
-                $templateAttrs = [];
-                foreach ($template->childNodes as $attribute) {
-                    if ('#text' != $attribute->nodeName) {
-                        $templateAttrs[$attribute->nodeName] = $attribute->nodeValue;
-                    }
+
+        if (!$templateList)
+            return ['templates' => $templatesInfo];
+
+        foreach ($templateList as $template) {
+            $templateAttrs = [];
+            foreach ($template->childNodes as $attribute) {
+                if ('#text' != $attribute->nodeName) {
+                    $templateAttrs[$attribute->nodeName] = $attribute->nodeValue;
                 }
-                $templatesInfo[] = $templateAttrs;
             }
+            $templatesInfo[] = $templateAttrs;
         }
 
         return ['templates' => $templatesInfo];

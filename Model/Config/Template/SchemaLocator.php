@@ -33,8 +33,8 @@ class SchemaLocator implements SchemaLocatorInterface
     public function __construct(\Magento\Framework\Module\Dir\Reader $moduleReader)
     {
         $configDir = $moduleReader->getModuleDir(Dir::MODULE_ETC_DIR, 'Sailthru_MageSail');
-        $this->schema = $configDir.DIRECTORY_SEPARATOR.self::CONFIG_FILE_SCHEMA;
-        $this->perFileSchema = $configDir.DIRECTORY_SEPARATOR.self::CONFIG_FILE_SCHEMA;
+        $this->schema = $configDir . DIRECTORY_SEPARATOR . self::CONFIG_FILE_SCHEMA;
+        $this->perFileSchema = $configDir . DIRECTORY_SEPARATOR . self::CONFIG_FILE_SCHEMA;
     }
 
     /**

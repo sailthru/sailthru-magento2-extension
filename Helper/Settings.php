@@ -3,6 +3,7 @@
 namespace Sailthru\MageSail\Helper;
 
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\App\ObjectManager;
 use Sailthru\MageSail\Cookie\Hid;
 
 class Settings extends AbstractHelper
@@ -34,6 +35,49 @@ class Settings extends AbstractHelper
     const XML_TRANSACTIONALS_SENDER    = "magesail_send/transactionals/from_sender";
     const XML_ORDER_ENABLED            = "magesail_send/transactionals/purchase_enabled";
     const XML_ORDER_TEMPLATE           = "magesail_send/transactionals/purchase_template";
+
+    /** Helper map for templates */
+    const HELPERS_MAP = [
+        'Sailthru\MageSail\Helper\Customer' => [
+            'customer_create_account_email_template',
+            'customer_create_account_email_confirmation_template',
+            'customer_create_account_email_confirmed_template',
+        ],
+        'Sailthru\MageSail\Helper\Order' => [
+            'sales_email_order_template',
+        ],
+        'Sailthru\MageSail\Helper\Shipment' => [
+            'sales_email_shipment_template',
+        ],
+    ];
+
+    /** List of `customer` templates which needs additional variables. */
+    const CUSTOMER_TEMPLATES_FOR_ADDITIONAL_VARS = [
+        'customer_create_account_email_template',
+        'customer_create_account_email_confirmation_template',
+        'customer_create_account_email_confirmed_template',
+    ];
+
+    /** List of `order` templates which needs additional variables. */
+    const ORDER_TEMPLATES_FOR_ADDITIONAL_VARS = [
+        'sales_email_order_template',
+    ];
+
+    /** List of `shipping` templates which needs additional variables. */
+    const SHIPMENT_TEMPLATES_FOR_ADDITIONAL_VARS = [
+        'sales_email_shipment_template',
+    ];
+
+    /** List of templates which needs `isGuest` variable. */
+    const TEMPLATES_WITH_IS_GUEST_VAR = [
+        'sales_email_order_template',
+        'sales_email_order_comment_template',
+        'sales_email_order_comment_guest_template',
+        'sales_email_shipment_template',
+        'sales_email_shipment_comment_template',
+        'sales_email_shipment_comment_guest_template',
+    ];
+
 
     public function getInvalidMessage()
     {
@@ -123,7 +167,7 @@ class Settings extends AbstractHelper
      */
     public function getTemplateEnabled($id)
     {
-        return $this->getSettingsVal('magesail_send/transactionals/'.$id.'_enabled');
+        return $this->getSettingsVal('magesail_send/transactionals/' . $id . '_enabled');
     }
 
     /**
@@ -134,6 +178,62 @@ class Settings extends AbstractHelper
      */
     public function getTemplateValue($id)
     {
-        return $this->getSettingsVal('magesail_send/transactionals/'.$id);
+        return $this->getSettingsVal('magesail_send/transactionals/' . $id);
+    }
+
+    /**
+     * To get additional variables for given template.
+     * 
+     * @param  string  $id
+     * @param  array   $currentVars
+     * 
+     * @return array
+     */
+    public function getTemplateAdditionalVariables($id, $currentVars = [])
+    {
+        $helper = $this->getHelperByTemplateId($id);
+
+        if (in_array($id, self::CUSTOMER_TEMPLATES_FOR_ADDITIONAL_VARS)) {
+            $customer = $helper->getObject($currentVars['customer_email']);
+            $currentVars += $helper->getCustomVariables($customer);
+        }
+
+        if (in_array($id, self::ORDER_TEMPLATES_FOR_ADDITIONAL_VARS)) {
+            $order = $helper->getObject($currentVars['increment_id']);
+            $currentVars += $helper->getCustomVariables($order);
+
+            if (in_array($id, self::TEMPLATES_WITH_IS_GUEST_VAR)) {
+                $currentVars += $helper->getIsGuestVariable($order);
+            }
+        }
+
+        if (in_array($id, self::SHIPMENT_TEMPLATES_FOR_ADDITIONAL_VARS)) {
+            $shipment = $helper->getObject($currentVars['shipment_id']);
+            $currentVars += $helper->getCustomVariables($shipment);
+
+            if (in_array($id, self::TEMPLATES_WITH_IS_GUEST_VAR)) {
+                $currentVars += $helper->getIsGuestVariable($shipment);
+            }
+        }
+
+        return $currentVars;
+    }
+
+    /**
+     * To get helper by template identifier.
+     * 
+     * @param  string $templateId
+     * 
+     * @return mixed
+     */
+    public function getHelperByTemplateId($templateId)
+    {
+        foreach (self::HELPERS_MAP as $helper => $templates) {
+            if (in_array($templateId, $templates)) {
+                return ObjectManager::getInstance()->create($helper);
+            }
+        }
+
+        return null;
     }
 }

@@ -7,7 +7,7 @@ class VerifiedEmails extends AbstractSource
 
     protected function getDisplayData()
     {
-        $emails = $this->clientManager->getClient()->getVerifiedSenders();
+        $emails = $this->apiHelper->client->getVerifiedSenders();
         $sender_options = [
             ['value'=> 0, 'label'=>' '],
         ];

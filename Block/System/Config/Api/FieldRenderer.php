@@ -42,7 +42,7 @@ class FieldRenderer extends \Magento\Config\Block\System\Config\Form\Field
      * @return mixed
      */
     public function render(\Magento\Framework\Data\Form\Element\AbstractElement $element)
-    {        
+    {
         return $this->apiEnabled ? parent::render($element) : self::renderError(
             $element->getId(),
             'API Validation Failed.',
@@ -62,9 +62,9 @@ class FieldRenderer extends \Magento\Config\Block\System\Config\Form\Field
     private function renderError($elementId, $error, $note = null)
     {
         if (in_array($elementId, self::IDS)) {
-            $message = '<div><center><h1>Error</h1><h3>'.$error.'</h3></center></div>';
+            $message = '<div><center><h1>Error</h1><h3>' . $error . '</h3></center></div>';
             if ($note)
-                $message .= '<div><center><p class="note"><span>'.$note.'</span></p></center></div>';    
+                $message .= '<div><center><p class="note"><span>' . $note . '</span></p></center></div>';    
         } else {
             $message = null;
         }      

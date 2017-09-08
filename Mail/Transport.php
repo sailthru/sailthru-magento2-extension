@@ -10,41 +10,12 @@ use Magento\Framework\Exception\MailException;
 use Magento\Framework\Mail\MessageInterface;
 use Sailthru\MageSail\Helper\ClientManager;
 use Sailthru\MageSail\Helper\Settings;
-use Sailthru\MageSail\Helper\CustomVariables;
 use Sailthru\MageSail\MageClient;
 
 class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Framework\Mail\TransportInterface
 {
-    
-    /** List of `customer` templates which needs additional variables. */
-    const CUSTOMER_TEMPLATES_FOR_ADDITIONAL_VARS = [
-        'customer_create_account_email_template',
-        'customer_create_account_email_confirmation_template',
-        'customer_create_account_email_confirmed_template',
-    ];
-
-    /** List of `order` templates which needs additional variables. */
-    const ORDER_TEMPLATES_FOR_ADDITIONAL_VARS = [
-        'sales_email_order_template',
-    ];
-
-    /** List of `shipping` templates which needs additional variables. */
-    const SHIPMENT_TEMPLATES_FOR_ADDITIONAL_VARS = [
-        'sales_email_shipment_template',
-    ];
-
     /** Magento `Generic` template name. */
     const MAGENTO_GENERIC_TEMPLATE = "Magento Generic";
-
-    /** List of templates which needs `isGuest` variable. */
-    const TEMPLATES_WITH_IS_GUEST_VAR = [
-        'sales_email_order_template',
-        'sales_email_order_comment_template',
-        'sales_email_order_comment_guest_template',
-        'sales_email_shipment_template',
-        'sales_email_shipment_comment_template',
-        'sales_email_shipment_comment_guest_template',
-    ];
 
     /** @var Magento\Framework\Mail\MessageInterface */
     protected $_message;
@@ -58,49 +29,23 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
     /** @var Settings */
     protected $sailthruSettings;
 
-    /** @var CustomVariables */
-    protected $customVariables;
-
-    /** @var Magento\Store\Model\StoreManagerInterface */
-    protected $storeManager;
-
-    /** @var Magento\Sales\Model\Order */
-    protected $order;
-
-    /** @var Magento\Sales\Model\Shipment */
-    protected $shipment;
-
     /**
      * Transport constructor.
      * 
      * @param ClientManager                              $clientManager
      * @param Settings                                   $sailthruSettings
      * @param MessageInterface                           $message
-     * @param \Magento\Store\Model\StoreManagerInterface $storeManager
-     * @param \Magento\Customer\Model\Customer           $customerModel
-     * @param \Magento\Sales\Model\Order                 $order
-     * @param \Magento\Sales\Model\Order\Shipment        $shipment
      * @param mixed                                      $parameters
      */
     public function __construct(
         ClientManager $clientManager,
         Settings $sailthruSettings,
         MessageInterface $message,
-        CustomVariables $customVariables,
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Customer\Model\Customer $customerModel,
-        \Magento\Sales\Model\Order $order,
-        \Magento\Sales\Model\Order\Shipment $shipment,
         $parameters = null
     ) {
         $this->clientManager = $clientManager;
         $this->client = $clientManager->getClient();
         $this->sailthruSettings = $sailthruSettings;
-        $this->storeManager = $storeManager;
-        $this->customerModel = $customerModel;
-        $this->order = $order;
-        $this->shipment = $shipment;
-        $this->customVariables = $customVariables;
         parent::__construct($message, $parameters);
     }
 
@@ -146,7 +91,10 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
             ];
 
             # Vars used in Sailthru Magento 1 extension and template file.
-            $vars += $this->needsAdditionalVars($templateData['identifier'], $templateData['variables']);
+            $vars += $this->sailthruSettings->getTemplateAdditionalVariables(
+                $templateData['identifier'],
+                $templateData['variables']
+            );
             # Template name
             $template = $this->sailthruSettings->getTemplateEnabled($templateData['identifier'])
                 ? $this->sailthruSettings->getTemplateValue($templateData['identifier'])
@@ -157,6 +105,7 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
                 "email" => $this->cleanEmails($this->recipients),
                 "vars" => $vars,
             ];
+
             $response = $this->client->apiPost('send', $message);
             if (isset($response["error"])) {
                 $this->client->logger($response['errormsg']);
@@ -165,62 +114,5 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
         } catch (\Exception $e) {
             throw new MailException(__("Couldn't send the mail {$e}"));
         }
-    }
-
-
-    /**
-     * To check if template needs additional variables.
-     * 
-     * @param  string  $id
-     * @param  array   $currentVars
-     * 
-     * @return array
-     */
-    public function needsAdditionalVars($id, $currentVars = [])
-    {
-        switch (true) {
-            case in_array($id, self::CUSTOMER_TEMPLATES_FOR_ADDITIONAL_VARS):
-                $customer = $this->customerModel;
-                $customer->setWebsiteId($this->storeManager->getStore()->getWebsiteId());
-                $customer->loadByEmail($currentVars['customer_email']);
-                $data = [
-                    'object' => $customer,
-                    'type' => 'customer',
-                ];
-                break;
-
-            case in_array($id, self::ORDER_TEMPLATES_FOR_ADDITIONAL_VARS):
-                $order = $this->order->loadByIncrementId($currentVars['increment_id']);
-                $data = [
-                    'object' => $order,
-                    'type' => 'order',
-                ];
-                break;
-
-            case in_array($id, self::SHIPMENT_TEMPLATES_FOR_ADDITIONAL_VARS):
-                $shipment = $this->shipment->loadByIncrementId($currentVars['shipment_id']);
-                $data = [
-                    'object' => $shipment,
-                    'paymentHtml' => isset($currentVars['payment_html']) ? $currentVars['payment_html'] : '',
-                    'comment' => isset($currentVars['shipment_comment']) ? $currentVars['shipment_comment'] : '',
-                    'type' => 'shipment',
-                ];
-                break;
-
-            case in_array($id, self::TEMPLATES_WITH_IS_GUEST_VAR):
-                $object = $this->order->loadByIncrementId($currentVars['increment_id']);
-                $data = [
-                    'object' => $object,
-                    'type' => 'isGuest',
-                ];
-                break;
-
-            default:
-                return $currentVars;
-        }
-
-        $currentVars += $this->customVariables->getVariables($data);
-
-        return $currentVars;
     }
 }

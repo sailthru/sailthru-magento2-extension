@@ -3,13 +3,11 @@
 namespace Sailthru\MageSail\Model\Config\Source;
 
 use Magento\Framework\Option\ArrayInterface;
+use Sailthru\MageSail\Helper\Api;
 use Sailthru_Client_Exception;
 
 abstract class AbstractSource implements ArrayInterface
 {
-
-    protected $clientManager;
-
     protected $apiHelper;
 
     /**
@@ -26,12 +24,7 @@ abstract class AbstractSource implements ArrayInterface
         4 => "Disallowed IP. Please reach out to Sailthru support"
     ];
 
-    public function __construct(
-        \Sailthru\MageSail\Helper\ClientManager $clientManager,
-        \Sailthru\MageSail\Helper\Api $apiHelper
-    )
-    {
-        $this->clientManager = $clientManager;
+    public function __construct(Api $apiHelper) {
         $this->apiHelper = $apiHelper;
     }
 

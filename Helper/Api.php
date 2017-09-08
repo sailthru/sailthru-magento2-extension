@@ -83,13 +83,13 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
         'quantity_and_stock_status',
         'sku'
     ];
-    public $sailthruTemplates = [];
     public $client;
     public $hid;
     public $logger;
     public $storeManager;
     protected $_apiKey;
     protected $_apiSecret;
+    private $sailthruTemplates = [];
 
     /** @var \Magento\Framework\App\Request\Http */
     protected $request;
@@ -347,11 +347,10 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
     /**
      * To set Sailthru templates.
      */
-    public function setSailthruTemplates()
+    public function getSailthruTemplates()
     {
-        $templates = $this->client->getTemplates();
-        if ($templates) {
-            $this->sailthruTemplates = $templates;
+        if (empty($this->sailthruTemplates)) {
+            $this->sailthruTemplates = $this->client->getTemplates();
         }
 
         return $this->sailthruTemplates;

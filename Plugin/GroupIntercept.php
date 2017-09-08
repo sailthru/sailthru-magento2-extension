@@ -32,13 +32,13 @@ class GroupIntercept
     const RENDERER_CLASS = 'Sailthru\MageSail\Block\System\Config\Api\FieldRenderer';
 
     /** @var \Sailthru\MageSail\Model\Config\Template\Data */
-    protected $templateConfig;
+    private $templateConfig;
 
     /** @var Sailthru\MageSail\Helper\Settings */
-    protected $sailthruSettings;
+    private $sailthruSettings;
 
     /** @var Sailthru\MageSail\Helper\Api */
-    protected $apiHelper;
+    private $apiHelper;
 
     /**
      * Group constructor.
@@ -73,14 +73,15 @@ class GroupIntercept
         callable $proceed,
         array $data,
         $scope
-    ) {        
-        if (in_array($data['id'], self::REQUIRED_GROUP_IDS)) {
-            $data['children'] = self::addRendered($data['children']);
-            if (self::GROUP_WITH_CONFIG_FIELDS == $data['id']) {
-                $dynamicFields = self::getDynamicConfigFields();
-                if(!empty($dynamicFields)) {
-                    $data['children'] += $dynamicFields;
-                }
+    ) {
+        if (!in_array($data['id'], self::REQUIRED_GROUP_IDS))
+            return $proceed($data, $scope);
+
+        $data['children'] = $this->addRendered($data['children'] ?? []);
+        if (self::GROUP_WITH_CONFIG_FIELDS == $data['id']) {
+            $dynamicFields = $this->getDynamicConfigFields();
+            if (!empty($dynamicFields)) {
+                $data['children'] += $dynamicFields;
             }
         }
 
@@ -94,7 +95,7 @@ class GroupIntercept
      *
      * @return  array
      */
-    protected function addRendered($fields)
+    private function addRendered($fields)
     {
         foreach ($fields as &$field) {
             $field['frontend_model'] = self::RENDERER_CLASS;
@@ -108,37 +109,32 @@ class GroupIntercept
      * 
      * @return array $fields
      */
-    protected function getDynamicConfigFields()
+    private function getDynamicConfigFields()
     {
         $fields = [];
         $templateList = $this->templateConfig->get('templates');
-        if ($templateList) {
-            if (empty($this->apiHelper->sailthruTemplates)) {
-                $this->apiHelper->setSailthruTemplates();
+
+        if (!$templateList)
+            return $fields;
+
+        $sailthruTemplates = array_column($this->apiHelper->getSailthruTemplates()['templates'], 'name') ?? [];
+        # Create the `Magento Generic` template if doesn't exists.
+        $sender = $this->sailthruSettings->getSender();
+        if ($sender && !in_array(self::MAGENTO_GENERIC_TEMPLATE, $sailthruTemplates)) {
+            $this->saveTemplate(self::MAGENTO_GENERIC_TEMPLATE, $sender);
+        }
+        
+        foreach ($templateList as $template) {
+            # Create the `specific` template if doesn't exists.
+            if ($sender && !in_array(self::MAGENTO_TEMPLATE_NAME_PREFIX . $template['id'], $sailthruTemplates)) {
+                $this->saveTemplate(self::MAGENTO_TEMPLATE_NAME_PREFIX . $template['id'], $sender);
             }
 
-            $sailthruTemplates = isset($this->apiHelper->sailthruTemplates['templates'])
-                ? array_column($this->apiHelper->sailthruTemplates['templates'], 'name')
-                : [];
-            
-            # Create the `Magento Generic` template if doesn't exists.
-            $sender = $this->sailthruSettings->getSender();
-            if ($sender && !in_array(self::MAGENTO_GENERIC_TEMPLATE, $sailthruTemplates)) {
-                $this->saveTemplate(self::MAGENTO_GENERIC_TEMPLATE, $sender);
-            }
-            
-            foreach ($templateList as $template) {
-                # Create the `specific` template if doesn't exists.
-                if ($sender && !in_array(self::MAGENTO_TEMPLATE_NAME_PREFIX.$template['id'], $sailthruTemplates)) {
-                    $this->saveTemplate(self::MAGENTO_TEMPLATE_NAME_PREFIX.$template['id'], $sender);
-                }
+            $enabledField = self::addField($template, 'enabled');
+            $tmpListField = self::addField($template, 'template_list');
 
-                $enabledField = self::addField($template, 'enabled');
-                $tmpListField = self::addField($template, 'template_list');
-
-                $fields[$enabledField['id']] = $enabledField;
-                $fields[$tmpListField['id']] = $tmpListField;
-            }
+            $fields[$enabledField['id']] = $enabledField;
+            $fields[$tmpListField['id']] = $tmpListField;
         }
 
         return $fields;
@@ -152,7 +148,7 @@ class GroupIntercept
      *
      * @return  array
      */
-    protected function addField($params, $type)
+    private function addField($params, $type)
     {
         # Each dynamic field always depends from send_through_sailthru.
         $depends = [
@@ -172,16 +168,16 @@ class GroupIntercept
         
         # Prepare data.
         if ('enabled' == $type) {
-            $id = isset($params['id']) ? $params['id'].'_enabled' : '';
-            $label = isset($params['name']) ? 'Override Magento '.$params['name'] : 'Default label';
-            $sourceModel = isset($params['enabled_model']) ? $params['enabled_model'] : null;
+            $id = $params['id'] . '_enabled' ?? '';
+            $label = 'Override Magento ' . $params['name'] ?? 'Default label';
+            $sourceModel = $params['enabled_model'] ?? null;
         } else {
-            $id = isset($params['id']) ? $params['id'] : '';
-            $idEnabled = isset($params['id']) ? $params['id'].'_enabled' : '';
-            $label = isset($params['name']) ? $params['name'].' Template' : 'Default Template';
-            $sourceModel = isset($params['template_list_model']) ? $params['template_list_model'] : null;
-            $depends['fields']['*/*/'.$idEnabled] = [
-                'id' => 'magesail_send/transactionals/'.$idEnabled,
+            $id = $params['id'] ?? '';
+            $idEnabled = $params['id'] . '_enabled' ?? '';
+            $label = $params['name'] . ' Template' ?? 'Default Template';
+            $sourceModel = $params['template_list_model'] ?? null;
+            $depends['fields']['*/*/' . $idEnabled] = [
+                'id' => 'magesail_send/transactionals/' . $idEnabled,
                 'value' => '1',
                 '_elementType' => 'field',
                 'dependPath' => [
@@ -199,7 +195,7 @@ class GroupIntercept
             'showInDefault' => '1',
             'showInWebsite' => '1',
             'showInStore' => '1',
-            'sortOrder' => isset($params['sort_order']) ? $params['sort_order'] : '1',
+            'sortOrder' => $params['sort_order'] ?? '1',
             'label' => $label,
             'source_model' => $sourceModel,
             'frontend_model' => self::RENDERER_CLASS,
@@ -215,21 +211,18 @@ class GroupIntercept
      * @param  string $templateIdentifier
      * @param  string $sender
      */
-    protected function saveTemplate($templateIdentifier, $sender)
+    private function saveTemplate($templateIdentifier, $sender)
     {
         try {
-            $template = $this->apiHelper->client->getTemplate($templateIdentifier);
-            if (isset($template["error"]) && $template['error'] == 14) {
-                $response = $this->apiHelper->client->saveTemplate($templateIdentifier, [
-                    "content_html" => "{content} {beacon}",
-                    "subject" => "{subj}",
-                    "from_email" => $sender,
-                    "is_link_tracking" => 1
-                ]);
+            $response = $this->apiHelper->client->saveTemplate($templateIdentifier, [
+                "content_html" => "{content} {beacon}",
+                "subject" => "{subj}",
+                "from_email" => $sender,
+                "is_link_tracking" => 1
+            ]);
 
-                if (isset($response['error']))
-                    $this->apiHelper->client->logger($response['errormsg']);
-            }
+            if (isset($response['error']))
+                $this->apiHelper->client->logger($response['errormsg']);
         } catch (\Exception $e) {
             $this->apiHelper->client->logger($e->getMessage());
         }

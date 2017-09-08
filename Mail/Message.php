@@ -14,7 +14,7 @@ class Message extends \Magento\Framework\Mail\Message
      *
      * @var string
      **/
-    public $templateInfo = [];
+    private $templateInfo = [];
 
     /**
      * To get info about template.
