@@ -31,6 +31,9 @@ class GroupIntercept
     /** Renderer class. */
     const RENDERER_CLASS = 'Sailthru\MageSail\Block\System\Config\Api\FieldRenderer';
 
+    /** Source model for dynamic fields. */
+    const FIELD_SOURCE_MODEL = 'Sailthru\MageSail\Model\Config\Source\SailthruTemplates';
+
     /** @var \Sailthru\MageSail\Model\Config\Template\Data */
     private $templateConfig;
 
@@ -121,19 +124,17 @@ class GroupIntercept
         # Create the `Magento Generic` template if doesn't exists.
         $sender = $this->sailthruSettings->getSender();
         if ($sender && !in_array(self::MAGENTO_GENERIC_TEMPLATE, $sailthruTemplates)) {
-            $this->saveTemplate(self::MAGENTO_GENERIC_TEMPLATE, $sender);
+            $this->apiHelper->saveTemplate(self::MAGENTO_GENERIC_TEMPLATE, $sender);
         }
         
         foreach ($templateList as $template) {
             # Create the `specific` template if doesn't exists.
             if ($sender && !in_array(self::MAGENTO_TEMPLATE_NAME_PREFIX . $template['id'], $sailthruTemplates)) {
-                $this->saveTemplate(self::MAGENTO_TEMPLATE_NAME_PREFIX . $template['id'], $sender);
+                $this->apiHelper->saveTemplate(self::MAGENTO_TEMPLATE_NAME_PREFIX . $template['id'], $sender);
             }
 
-            $enabledField = self::addField($template, 'enabled');
             $tmpListField = self::addField($template, 'template_list');
 
-            $fields[$enabledField['id']] = $enabledField;
             $fields[$tmpListField['id']] = $tmpListField;
         }
 
@@ -150,6 +151,9 @@ class GroupIntercept
      */
     private function addField($params, $type)
     {
+        $id = $params['id'] ?? '';
+        $idEnabled = $params['id'] . '_enabled' ?? '';
+        $label = $params['name'] . ' Template' ?? 'Default Template';
         # Each dynamic field always depends from send_through_sailthru.
         $depends = [
             'fields' => [
@@ -165,28 +169,6 @@ class GroupIntercept
                 ],
             ],
         ];
-        
-        # Prepare data.
-        if ('enabled' == $type) {
-            $id = $params['id'] . '_enabled' ?? '';
-            $label = 'Override Magento ' . $params['name'] ?? 'Default label';
-            $sourceModel = $params['enabled_model'] ?? null;
-        } else {
-            $id = $params['id'] ?? '';
-            $idEnabled = $params['id'] . '_enabled' ?? '';
-            $label = $params['name'] . ' Template' ?? 'Default Template';
-            $sourceModel = $params['template_list_model'] ?? null;
-            $depends['fields']['*/*/' . $idEnabled] = [
-                'id' => 'magesail_send/transactionals/' . $idEnabled,
-                'value' => '1',
-                '_elementType' => 'field',
-                'dependPath' => [
-                    0 => 'magesail_send',
-                    1 => 'transactionals',
-                    2 => $idEnabled,
-                ],
-            ];
-        }
 
         return [
             'id' => $id,
@@ -197,34 +179,11 @@ class GroupIntercept
             'showInStore' => '1',
             'sortOrder' => $params['sort_order'] ?? '1',
             'label' => $label,
-            'source_model' => $sourceModel,
+            'source_model' => self::FIELD_SOURCE_MODEL,
             'frontend_model' => self::RENDERER_CLASS,
             'depends' => $depends,
             '_elementType' => 'field',
             'path' => 'magesail_send/transactionals',
         ];
-    }
-
-    /**
-     * To create template in Sailthru.
-     * 
-     * @param  string $templateIdentifier
-     * @param  string $sender
-     */
-    private function saveTemplate($templateIdentifier, $sender)
-    {
-        try {
-            $response = $this->apiHelper->client->saveTemplate($templateIdentifier, [
-                "content_html" => "{content} {beacon}",
-                "subject" => "{subj}",
-                "from_email" => $sender,
-                "is_link_tracking" => 1
-            ]);
-
-            if (isset($response['error']))
-                $this->apiHelper->client->logger($response['errormsg']);
-        } catch (\Exception $e) {
-            $this->apiHelper->client->logger($e->getMessage());
-        }
     }
 }

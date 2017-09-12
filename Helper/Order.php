@@ -58,6 +58,18 @@ class Order extends VariablesAbstractHelper
     }
 
     /**
+     * To get `isGuest` attribute for given Order object.
+     * 
+     * @param  Order  $order
+     * 
+     * @return array
+     */
+    public function getIsGuestVariable(Order $order)
+    {
+        return ['isGuest' => $object->getCustomerIsGuest() ? 1 : 0];
+    }
+
+    /**
      * Prepare data on items in order.
      *
      * @param  Order $order

@@ -110,7 +110,10 @@ class Template extends \Magento\Email\Model\Template
         // Set design params so that CSS will be loaded from the proper theme
         $processor->setDesignParams($this->getDesignParams());
 
-        $storeId = $variables['subscriber']->getStoreId() ?? $this->getDesignConfig()->getStore();
+        $storeId = isset($variables['subscriber'])
+            ? $variables['subscriber']->getStoreId()
+            : $this->getDesignConfig()->getStore();
+
         $processor->setStoreId($storeId);
 
         // Populate the variables array with store, store info, logo, etc. variables

@@ -6,6 +6,8 @@ use Magento\Store\Model\StoreManager;
 use Magento\Framework\App\Helper\Context;
 use Sailthru\MageSail\Logger;
 use Sailthru\MageSail\MageClient;
+use Sailthru\MageSail\Model\Template as TemplateModel;
+use Sailthru\MageSail\Model\Config\Template\Data as TemplateConfig;
 
 class ClientManager extends AbstractHelper
 {
@@ -20,9 +22,17 @@ class ClientManager extends AbstractHelper
     public function __construct(
         Context $context,
         StoreManager $storeManager,
-        Logger $logger
+        Logger $logger,
+        TemplateModel $templateModel,
+        TemplateConfig $templateConfig
     ) {
-        parent::__construct($context, $storeManager, $logger);
+        parent::__construct(
+            $context,
+            $storeManager,
+            $logger,
+            $templateModel,
+            $templateConfig
+        );
         $this->initClient();
     }
 

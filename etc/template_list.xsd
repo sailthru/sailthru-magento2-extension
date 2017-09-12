@@ -19,8 +19,7 @@
         <xs:sequence>
             <xs:element name="id" />
             <xs:element name="name" />
-            <xs:element name="enabled_model" />
-            <xs:element name="template_list_model" />
+            <xs:element name="custom_template_source" />
             <xs:element name="sort_order" />
         </xs:sequence>
     </xs:complexType>

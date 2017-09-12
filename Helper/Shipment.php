@@ -48,6 +48,18 @@ class Shipment extends VariablesAbstractHelper
     }
 
     /**
+     * To get `isGuest` attribute for given Shipment object.
+     * 
+     * @param  \Magento\Sales\Model\Order\Shipment $shipment
+     * 
+     * @return array
+     */
+    public function getIsGuestVariable($shipment)
+    {
+        return ['isGuest' => $shipment->getOrder()->getCustomerIsGuest() ? 1 : 0];
+    }
+
+    /**
      * To get shipment items.
      * 
      * @param  array $items

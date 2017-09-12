@@ -9,7 +9,7 @@ class SailthruTemplates extends AbstractSource
     {
         $data = $this->apiHelper->getSailthruTemplates();
         $tpl_options = [
-            ['value'=> 0, 'label'=>' ']
+            ['value'=> 0, 'label'=>'Use current Magento template']
         ];
         
         if (!isset($data["templates"]))

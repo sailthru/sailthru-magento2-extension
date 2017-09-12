@@ -10,13 +10,11 @@ use Magento\Framework\Exception\MailException;
 use Magento\Framework\Mail\MessageInterface;
 use Sailthru\MageSail\Helper\ClientManager;
 use Sailthru\MageSail\Helper\Settings;
+use Sailthru\MageSail\Helper\Api;
 use Sailthru\MageSail\MageClient;
 
 class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Framework\Mail\TransportInterface
 {
-    /** Magento `Generic` template name. */
-    const MAGENTO_GENERIC_TEMPLATE = "Magento Generic";
-
     /** @var Magento\Framework\Mail\MessageInterface */
     protected $_message;
 
@@ -29,23 +27,29 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
     /** @var Settings */
     protected $sailthruSettings;
 
+    /** @var  */
+    protected $apiHelper;
+    
     /**
      * Transport constructor.
      * 
-     * @param ClientManager                              $clientManager
-     * @param Settings                                   $sailthruSettings
-     * @param MessageInterface                           $message
-     * @param mixed                                      $parameters
+     * @param ClientManager    $clientManager
+     * @param Settings         $sailthruSettings
+     * @param MessageInterface $message
+     * @param Api              $apiHelper
+     * @param mixed
      */
     public function __construct(
         ClientManager $clientManager,
         Settings $sailthruSettings,
         MessageInterface $message,
+        Api $apiHelper,
         $parameters = null
     ) {
         $this->clientManager = $clientManager;
         $this->client = $clientManager->getClient();
         $this->sailthruSettings = $sailthruSettings;
+        $this->apiHelper = $apiHelper;
         parent::__construct($message, $parameters);
     }
 
@@ -95,10 +99,10 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
                 $templateData['identifier'],
                 $templateData['variables']
             );
-            # Template name
-            $template = $this->sailthruSettings->getTemplateEnabled($templateData['identifier'])
-                ? $this->sailthruSettings->getTemplateValue($templateData['identifier'])
-                : self::MAGENTO_GENERIC_TEMPLATE;
+            # Get template name
+            $template = $this->sailthruSettings->getTemplateName($templateData['identifier']);
+            # Create\Update template
+            $this->apiHelper->saveTemplate($template, $this->sailthruSettings->getSender());
 
             $message = [
                 "template" => $template,

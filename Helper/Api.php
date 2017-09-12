@@ -52,6 +52,8 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
     const XML_CONTENT_USE_CATEGORIES   = "magesail_content/tags/use_categories";
     const XML_CONTENT_USE_ATTRIBUTES   = "magesail_content/tags/use_attributes";
 
+    const UNKNOWN_TEPLATE_ERROR_CODE = 14;
+
     public static $unusedVarKeys = [
         'status',
         'row_id',
@@ -354,6 +356,40 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
         }
 
         return $this->sailthruTemplates;
+    }
+
+    /**
+     * To create\update template in Sailthru.
+     * 
+     * @param  string $templateIdentifier
+     * @param  string $sender
+     */
+    public function saveTemplate($templateIdentifier, $sender)
+    {
+        try {
+            $template = $this->client->getTemplate($templateIdentifier);
+            if (isset($template['error']) && self::UNKNOWN_TEPLATE_ERROR_CODE == $template['error']) {
+                # Add template
+                $data = [
+                    "content_html" => "{content} {beacon}",
+                    "subject" => "{subj}",
+                    "from_email" => $sender,
+                    "is_link_tracking" => 1
+                ];
+            } else {
+                # Update template
+                $data = [
+                    "from_email" => $sender,
+                ];
+            }
+
+            $response = $this->client->saveTemplate($templateIdentifier, $data);
+
+            if (isset($response['error']))
+                $this->client->logger($response['errormsg']);
+        } catch (\Exception $e) {
+            $this->client->logger($e->getMessage());
+        }
     }
 
     private function getApiKey()

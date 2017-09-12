@@ -78,6 +78,12 @@ class Settings extends AbstractHelper
         'sales_email_shipment_comment_guest_template',
     ];
 
+    /** Magento `Generic` template name. */
+    const MAGENTO_GENERIC_TEMPLATE = 'Magento Generic';
+
+    /** Prefix for template name. */
+    const MAGENTO_PREFIX = 'magento_';
+
 
     public function getInvalidMessage()
     {
@@ -160,20 +166,48 @@ class Settings extends AbstractHelper
     }
 
     /**
-     * To check If a template is specified.
+     * To get template name.
      * 
-     * @param  string $id
-     * @return string|null
+     * @param  string $templateId
+     * 
+     * @return string
      */
-    public function getTemplateEnabled($id)
+    public function getTemplateName($templateId)
     {
-        return $this->getSettingsVal('magesail_send/transactionals/' . $id . '_enabled');
+        $templateData = $this->templateModel->getTemplateDataById($templateId);
+
+        if ($templateData) {
+            if ($templateData['orig_template_code']) {
+                $value = $this->getTemplateValue($templateData['orig_template_code']);
+                $name = $value == '0' ? self::MAGENTO_PREFIX . $templateData['template_code'] : $value;
+            } else {
+                $templates = $this->templateConfig->get('templates');
+                $ids = [];
+                foreach ($templates as $template) {
+                    if ($templateData['template_id'] == $this->getSettingsVal($template['custom_template_source'])) {
+                        $ids[] = $template['id'];
+                    }
+                }
+
+                if (count($ids) > 1)
+                    return self::MAGENTO_GENERIC_TEMPLATE;
+
+                $value = $this->getTemplateValue($ids[0]);
+                $name = $value == '0' ? self::MAGENTO_PREFIX . $templateData['template_code'] : $value;
+            }
+        } else {
+            $value = $this->getTemplateValue($templateId);
+            $name = $value == '0' ? self::MAGENTO_PREFIX . $templateId : $value;
+        }
+
+        return $name;
     }
 
     /**
      * To get template value.
      * 
      * @param  string $id
+     * 
      * @return string|null
      */
     public function getTemplateValue($id)
