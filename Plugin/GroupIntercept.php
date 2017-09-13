@@ -120,7 +120,11 @@ class GroupIntercept
         if (!$templateList)
             return $fields;
 
-        $sailthruTemplates = array_column($this->apiHelper->getSailthruTemplates()['templates'], 'name') ?? [];
+        $sailthruTemplates = $this->apiHelper->getSailthruTemplates();
+        $sailthruTemplates = isset($sailthruTemplates['templates'])
+            ? array_column($sailthruTemplates['templates'], 'name')
+            : [];
+
         # Create the `Magento Generic` template if doesn't exists.
         $sender = $this->sailthruSettings->getSender();
         if ($sender && !in_array(self::MAGENTO_GENERIC_TEMPLATE, $sailthruTemplates)) {

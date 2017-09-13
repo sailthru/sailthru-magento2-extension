@@ -27,7 +27,7 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
     /** @var Settings */
     protected $sailthruSettings;
 
-    /** @var  */
+    /** @var Api */
     protected $apiHelper;
     
     /**

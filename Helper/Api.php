@@ -52,7 +52,7 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
     const XML_CONTENT_USE_CATEGORIES   = "magesail_content/tags/use_categories";
     const XML_CONTENT_USE_ATTRIBUTES   = "magesail_content/tags/use_attributes";
 
-    const UNKNOWN_TEPLATE_ERROR_CODE = 14;
+    const UNKNOWN_TEMPLATE_ERROR_CODE = 14;
 
     public static $unusedVarKeys = [
         'status',
@@ -368,7 +368,7 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
     {
         try {
             $template = $this->client->getTemplate($templateIdentifier);
-            if (isset($template['error']) && self::UNKNOWN_TEPLATE_ERROR_CODE == $template['error']) {
+            if (isset($template['error']) && self::UNKNOWN_TEMPLATE_ERROR_CODE == $template['error']) {
                 # Add template
                 $data = [
                     "content_html" => "{content} {beacon}",
