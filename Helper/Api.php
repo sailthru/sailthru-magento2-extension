@@ -367,8 +367,12 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
     public function saveTemplate($templateIdentifier, $sender)
     {
         try {
-            $template = $this->client->getTemplate($templateIdentifier);
-            if (isset($template['error']) && self::UNKNOWN_TEMPLATE_ERROR_CODE == $template['error']) {
+            $templates = $this->getSailthruTemplates();
+            $templates = isset($templates['templates'])
+            ? array_column($templates['templates'], 'name')
+            : [];
+
+            if (!in_array($templateIdentifier, $templates)) {
                 # Add template
                 $data = [
                     "content_html" => "{content} {beacon}",
