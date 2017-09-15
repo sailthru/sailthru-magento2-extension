@@ -4,18 +4,25 @@ namespace Sailthru\MageSail\Helper;
 
 use Magento\Framework\App\Helper\Context;
 use Magento\Store\Model\StoreManager;
-use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\Helper\AbstractHelper as MageAbstractHelper;
+use Magento\Directory\Api\CountryInformationAcquirerInterface;
 
 abstract class VariablesAbstractHelper extends MageAbstractHelper
 {
-    const COUNTRY_INFORMATION = 'Magento\Directory\Api\CountryInformationAcquirerInterface';
+    /** @var Magento\Directory\Api\CountryInformationAcquirerInterface */
+    protected $countryInformation;
     
     /** @var StoreManager  */
     protected $storeManager;
 
-    public function __construct(Context $context, StoreManager $storeManager) {
+    public function __construct(
+        Context $context,
+        StoreManager $storeManager,
+        CountryInformationAcquirerInterface $countryInformation
+    ) {
         parent::__construct($context);
+
+        $this->countryInformation = $countryInformation;
         $this->storeManager = $storeManager;
     }
 
@@ -40,17 +47,16 @@ abstract class VariablesAbstractHelper extends MageAbstractHelper
      */
     public function getAddress($address, $useFullAddress = false)
     {
-        if (!$address)
+        if (!$address) {
             return [];
+        }
 
         $streets = $address->getStreet();
         $countryId = in_array('getCountryId', get_class_methods($address))
             ? $address->getCountryId()
             : $address->getCountry();
 
-        $countryInfo = ObjectManager::getInstance()
-            ->create(self::COUNTRY_INFORMATION)
-            ->getCountryInfo($countryId);
+        $countryInfo = $this->countryInformation->getCountryInfo($countryId);
 
         $addressInfo = [
             'city' => $address->getCity(),

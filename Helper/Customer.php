@@ -4,14 +4,38 @@ namespace Sailthru\MageSail\Helper;
 
 use Sailthru\MageSail\Helper\VariablesAbstractHelper;
 use Magento\Customer\Model\Address;
-use Magento\Framework\App\ObjectManager;
 use Magento\Customer\Model\Customer as MageCustomer;
+use Magento\Customer\Model\Group;
+use Magento\Framework\Stdlib\DateTime\Timezone;
+use Magento\Framework\App\Helper\Context;
+use Magento\Store\Model\StoreManager;
+use Magento\Directory\Api\CountryInformationAcquirerInterface;
 
 class Customer extends VariablesAbstractHelper
 {
-    const CUSTOMER_MODEL = 'Magento\Customer\Model\Customer';
-    const CUSTOMER_GROUP_MODEL = 'Magento\Customer\Model\Group';
-    const DATETIME_TIMEZONE = 'Magento\Framework\Stdlib\DateTime\Timezone';
+    /** @var MageCustomer */
+    private $customerModel;
+
+    /** @var Magento\Customer\Model\Group */
+    private $customerGroupModel;
+
+    /** @var Magento\Framework\Stdlib\DateTime\Timezone */
+    private $dateTime;
+
+    public function __construct(
+        MageCustomer $customerModel,
+        Group $customerGroupModel,
+        Timezone $dateTime,
+        Context $context,
+        StoreManager $storeManager,
+        CountryInformationAcquirerInterface $countryInformation
+    ) {
+        parent::__construct($context, $storeManager, $countryInformation);
+
+        $this->customerModel = $customerModel;
+        $this->customerGroupModel = $customerGroupModel;
+        $this->dateTime = $dateTime;
+    }
 
     public function getAddressVars(Address $address)
     {
@@ -46,14 +70,12 @@ class Customer extends VariablesAbstractHelper
     {        
         $dataModel = $object->getDataModel();
         $store = $this->storeManager->getStore($dataModel->getStoreId());
-        $group = ObjectManager::getInstance()->create(self::CUSTOMER_GROUP_MODEL)->load($dataModel->getGroupId());
+        $group = $this->customerGroupModel->load($dataModel->getGroupId());
 
         $date = \DateTime::createFromFormat(
             'Y-m-d H:i:s',
             $dataModel->getCreatedAt(),
-            new \DateTimeZone(
-                ObjectManager::getInstance()->create(self::DATETIME_TIMEZONE)->getConfigTimezone()
-            )
+            new \DateTimeZone($this->dateTime->getConfigTimezone())
         );
 
         return [
@@ -87,10 +109,9 @@ class Customer extends VariablesAbstractHelper
      */
     public function getObject($param)
     {
-        $customer = ObjectManager::getInstance()->create(self::CUSTOMER_MODEL);
-        $customer->setWebsiteId($this->storeManager->getStore()->getWebsiteId());
-        $customer->loadByEmail($param);
+        $this->customerModel->setWebsiteId($this->storeManager->getStore()->getWebsiteId());
+        $this->customerModel->loadByEmail($param);
 
-        return $customer;
+        return $this->customerModel;
     }
 }

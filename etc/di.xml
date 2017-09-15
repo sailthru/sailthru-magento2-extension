@@ -16,12 +16,14 @@
     <type name="Magento\Sales\Model\Order\Email\Sender\OrderSender">
     	<plugin name="MageSail_OrderIntercept" type="Sailthru\MageSail\Plugin\OrderIntercept" />
     </type>
+    <type name="\Magento\Config\Model\Config\Structure\Element\Group">
+        <plugin name="MageSail_Config_Fields" type="Sailthru\MageSail\Plugin\GroupIntercept"/>
+    </type>
     <preference for="\Magento\Framework\Mail\Transport" type="Sailthru\MageSail\Mail\Transport"/>
     <preference for="\Magento\Framework\Mail\Template\TransportBuilder" type="Sailthru\MageSail\Mail\TransportBuilder"/>
     <preference for="\Magento\Framework\Mail\Message" type="Sailthru\MageSail\Mail\Message"/>
     <preference for="\Magento\Email\Model\Template" type="Sailthru\MageSail\Mail\Template"/>
 	<preference for="\Magento\Email\Model\Template\Filter" type="Sailthru\MageSail\Mail\Filter"/>
-    <!-- config.xml begin -->
     <virtualType name="TmplListReader" type="Magento\Framework\Config\Reader\Filesystem">
         <arguments>
             <argument name="converter" xsi:type="object">Sailthru\MageSail\Model\Config\Template\Converter</argument>
@@ -34,10 +36,5 @@
             <argument name="reader" xsi:type="object">TmplListReader</argument>
             <argument name="cacheId" xsi:type="string">sailthru_template_list_cache</argument>
         </arguments>
-    </type>
-    <!-- config.xml end -->
-    <!-- Interceptor for fields rendering -->
-    <type name="\Magento\Config\Model\Config\Structure\Element\Group">
-        <plugin name="MageSail_Config_Fields" type="Sailthru\MageSail\Plugin\GroupIntercept"/>
     </type>
 </config>

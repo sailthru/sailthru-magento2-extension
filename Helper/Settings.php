@@ -51,24 +51,24 @@ class Settings extends AbstractHelper
         ],
     ];
 
-    /** List of `customer` templates which needs additional variables. */
+    /** Templates list where Magento 1 legacy variables will be injected. */
     const CUSTOMER_TEMPLATES_FOR_ADDITIONAL_VARS = [
         'customer_create_account_email_template',
         'customer_create_account_email_confirmation_template',
         'customer_create_account_email_confirmed_template',
     ];
 
-    /** List of `order` templates which needs additional variables. */
+    /** Templates list where Magento 1 legacy variables will be injected. */
     const ORDER_TEMPLATES_FOR_ADDITIONAL_VARS = [
         'sales_email_order_template',
     ];
 
-    /** List of `shipping` templates which needs additional variables. */
+    /** Templates list where Magento 1 legacy variables will be injected. */
     const SHIPMENT_TEMPLATES_FOR_ADDITIONAL_VARS = [
         'sales_email_shipment_template',
     ];
 
-    /** List of templates which needs `isGuest` variable. */
+    /** Templates list where Magento 1 legacy variables will be injected. */
     const TEMPLATES_WITH_IS_GUEST_VAR = [
         'sales_email_order_template',
         'sales_email_order_comment_template',
@@ -189,8 +189,9 @@ class Settings extends AbstractHelper
                     }
                 }
 
-                if (count($ids) > 1)
+                if (count($ids) > 1) {
                     return self::MAGENTO_GENERIC_TEMPLATE;
+                }
 
                 $value = $this->getTemplateValue($ids[0]);
                 $name = $value == '0' ? self::MAGENTO_PREFIX . $templateData['template_code'] : $value;
@@ -227,6 +228,7 @@ class Settings extends AbstractHelper
     {
         $helper = $this->getHelperByTemplateId($id);
 
+        # Magento 1 legacy variables mapping.
         if (in_array($id, self::CUSTOMER_TEMPLATES_FOR_ADDITIONAL_VARS)) {
             $customer = $helper->getObject($currentVars['customer_email']);
             $currentVars += $helper->getCustomVariables($customer);

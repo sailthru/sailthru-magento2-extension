@@ -119,12 +119,12 @@ class Template extends \Magento\Email\Model\Template
         // Populate the variables array with store, store info, logo, etc. variables
         $variables = $this->addEmailVariables($variables, $storeId);
         $processor->setVariables($variables);
-        # Was added to set template directives.
+        # To set template directives.
         $processor->setDirectives($this->templateDirectives);
 
         try {
             $result = $processor->filter($this->getTemplateText());
-            # Was added to set template variables.
+            # To set template variables.
             $templateVariables = $processor->getTemplateVariables();
             if ($templateVariables) {
                 $this->templateVariables = $templateVariables;

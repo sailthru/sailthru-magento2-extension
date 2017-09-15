@@ -77,8 +77,9 @@ class GroupIntercept
         array $data,
         $scope
     ) {
-        if (!in_array($data['id'], self::REQUIRED_GROUP_IDS))
+        if (!in_array($data['id'], self::REQUIRED_GROUP_IDS)) {
             return $proceed($data, $scope);
+        }
 
         $data['children'] = $this->addRendered($data['children'] ?? []);
         if (self::GROUP_WITH_CONFIG_FIELDS == $data['id']) {
@@ -117,8 +118,9 @@ class GroupIntercept
         $fields = [];
         $templateList = $this->templateConfig->get('templates');
 
-        if (!$templateList)
+        if (!$templateList) {
             return $fields;
+        }
 
         $sailthruTemplates = $this->apiHelper->getSailthruTemplates();
         $sailthruTemplates = isset($sailthruTemplates['templates'])

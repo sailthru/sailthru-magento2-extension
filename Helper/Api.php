@@ -9,17 +9,11 @@ namespace Sailthru\MageSail\Helper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManager;
-# Was removed to fix compilation error
-# use Magento\Framework\App\Helper\AbstractHelper;
-
 use Sailthru\MageSail\Cookie\Hid;
 use Sailthru\MageSail\Logger;
 
-
 class Api extends \Magento\Framework\App\Helper\AbstractHelper
 {
-
-
     // Source models
     const SOURCE_MODEL_VALIDATION_MSG  = "Please Enter Valid Sailthru Credentials";
 

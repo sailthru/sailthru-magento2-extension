@@ -3,13 +3,38 @@
 namespace Sailthru\MageSail\Helper;
 
 use Sailthru\MageSail\Helper\VariablesAbstractHelper;
-use Magento\Framework\App\ObjectManager;
+use Magento\Sales\Model\Order as OrderModel;
+use Magento\Catalog\Helper\Product as MagentoProductHelper;
+use Sailthru\MageSail\Helper\Product as SailthruProductHelper;
+use Magento\Framework\App\Helper\Context;
+use Magento\Store\Model\StoreManager;
+use Magento\Directory\Api\CountryInformationAcquirerInterface;
 
 class Order extends VariablesAbstractHelper
 {
-    const ORDER_MODEL = 'Magento\Sales\Model\Order';
-    const MAGENTO_PRODUCT_HELPER = 'Magento\Catalog\Helper\Product';
-    const SAILTHRU_PRODUCT_HELPER = 'Sailthru\MageSail\Helper\Product';
+    /** @var Magento\Sales\Model\Order */
+    private $orderModel;
+
+    /** @var MagentoProductHelper */
+    private $magentoProductHelper;
+
+    /** @var SailthruProductHelper */
+    private $sailthruProductHelper;
+
+    public function __construct(
+        OrderModel $orderodel,
+        MagentoProductHelper $magentoProductHelper,
+        SailthruProductHelper $sailthruProductHelper,
+        Context $context,
+        StoreManager $storeManager,
+        CountryInformationAcquirerInterface $countryInformation
+    ) {
+        parent::__construct($context, $storeManager, $countryInformation);
+
+        $this->orderModel = $orderModel;
+        $this->magentoProductHelper = $magentoProductHelper;
+        $this->sailthruProductHelper = $sailthruProductHelper;
+    }
 
     /**
      * To get processed order variable.
@@ -52,19 +77,17 @@ class Order extends VariablesAbstractHelper
      */
     public function getObject($param)
     {
-        return ObjectManager::getInstance()
-            ->create(self::ORDER_MODEL)
-            ->loadByIncrementId($param);
+        return $this->orderModel->loadByIncrementId($param);
     }
 
     /**
      * To get `isGuest` attribute for given Order object.
      * 
-     * @param  Order  $order
+     * @param  OrderModel $order
      * 
      * @return array
      */
-    public function getIsGuestVariable(Order $order)
+    public function getIsGuestVariable(OrderModel $order)
     {
         return ['isGuest' => $object->getCustomerIsGuest() ? 1 : 0];
     }
@@ -72,11 +95,11 @@ class Order extends VariablesAbstractHelper
     /**
      * Prepare data on items in order.
      *
-     * @param  Order $order
+     * @param  OrderModel $order
      * 
      * @return array
      */
-    private function getOrderItems(Order $order)
+    private function getOrderItems(OrderModel $order)
     {
         /** @var \Magento\Sales\Model\Order\Item[] $items */
         $items = $order->getAllVisibleItems();
@@ -111,15 +134,11 @@ class Order extends VariablesAbstractHelper
                 $_item += [
                     'qty' => $item->getQtyOrdered(),
                     'url' => $item->getProduct()->getProductUrl(),
-                    'image' => ObjectManager::getInstance()
-                                ->create(self::MAGENTO_PRODUCT_HELPER)
-                                ->getSmallImageUrl($product),
+                    'image' => $this->magentoProductHelper->getSmallImageUrl($product),
                     'price' => $item->getPrice() * 100,
                 ];
 
-                if ($tags = ObjectManager::getInstance()
-                    ->create(self::SAILTHRU_PRODUCT_HELPER)
-                    ->getTags($product)) {
+                if ($tags = $this->sailthruProductHelper->getTags($product)) {
                     $_item['tags'] = $tags;
                 }
 
@@ -133,11 +152,11 @@ class Order extends VariablesAbstractHelper
     /**
      * Get order adjustments.
      * 
-     * @param  Order $order
+     * @param  OrderModel $order
      * 
      * @return array
      */
-    private function getOrderAdjustments(Order $order)
+    private function getOrderAdjustments(OrderModel $order)
     {
         $adjustments = [];
 
@@ -168,14 +187,15 @@ class Order extends VariablesAbstractHelper
     /**
      * Get payment information.
      * 
-     * @param  Order $order
+     * @param  OrderModel $order
      * 
      * @return mixed
      */
-    private function getOrderTenders(Order $order)
+    private function getOrderTenders(OrderModel $order)
     {
-        if (!$order->getPayment())
+        if (!$order->getPayment()) {
             return '';
+        }
 
         $tenders = [
             [

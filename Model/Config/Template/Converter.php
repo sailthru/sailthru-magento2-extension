@@ -28,8 +28,9 @@ class Converter implements \Magento\Framework\Config\ConverterInterface
         # Empty storage for templates info.
         $templatesInfo = [];
 
-        if (!$templateList)
+        if (!$templateList) {
             return ['templates' => $templatesInfo];
+        }
 
         foreach ($templateList as $template) {
             $templateAttrs = [];

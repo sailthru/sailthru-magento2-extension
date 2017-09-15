@@ -12,8 +12,9 @@ class Data extends DataConfig
     /**
      * Get config value by key
      *
-     * @param string $path
-     * @param mixed $default
+     * @param  string            $path
+     * @param  mixed             $default
+     * 
      * @return array|mixed|null
      */
     public function get($path = null, $default = null)

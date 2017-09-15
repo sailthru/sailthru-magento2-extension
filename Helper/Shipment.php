@@ -3,11 +3,26 @@
 namespace Sailthru\MageSail\Helper;
 
 use Sailthru\MageSail\Helper\VariablesAbstractHelper;
-use Magento\Framework\App\ObjectManager;
+use Magento\Sales\Model\Order\Shipment as ShipmentModel;
+use Magento\Framework\App\Helper\Context;
+use Magento\Store\Model\StoreManager;
+use Magento\Directory\Api\CountryInformationAcquirerInterface;
 
 class Shipment extends VariablesAbstractHelper
 {
-    const SHIPMENT_MODEL = 'Magento\Sales\Model\Order\Shipment';
+    /** @var Magento\Sales\Model\Order\Shipment */
+    private $shipmentModel;
+
+    public function __construct(
+        ShipmentModel $shipmentModel,
+        Context $context,
+        StoreManager $storeManager,
+        CountryInformationAcquirerInterface $countryInformation
+    ) {
+        parent::__construct($context, $storeManager, $countryInformation);
+
+        $this->shipmentModel = $shipmentModel;
+    }
 
     /**
      * To get processed `shipment` variable.
@@ -42,9 +57,7 @@ class Shipment extends VariablesAbstractHelper
      */
     public function getObject($param)
     {
-        return ObjectManager::getInstance()
-            ->create(self::SHIPMENT_MODEL)
-            ->loadByIncrementId($param);
+        return $this->shipmentModel->loadByIncrementId($param);
     }
 
     /**
