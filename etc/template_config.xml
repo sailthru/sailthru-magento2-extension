@@ -72,25 +72,11 @@ xsi:noNamespaceSchemaLocation="template_list.xsd">
             <custom_template_source>sales_email/order/template</custom_template_source>
             <sort_order>12</sort_order>
         </template>
-        <!-- Magento_Sales(New Order For Guest) -->
-        <template>
-            <id>sales_email_order_guest_template</id>
-            <name>New Order For Guest</name>
-            <custom_template_source>sales_email/order/guest_template</custom_template_source>
-            <sort_order>12</sort_order>
-        </template>
         <!-- Magento_Sales(New Shipment) -->
         <template>
             <id>sales_email_shipment_template</id>
             <name>New Shipment</name>
             <custom_template_source>sales_email/shipment/template</custom_template_source>
-            <sort_order>13</sort_order>
-        </template>
-        <!-- Magento_Sales(New Shipment For Guest) -->
-        <template>
-            <id>sales_email_shipment_guest_template</id>
-            <name>New Shipment For Guest</name>
-            <custom_template_source>sales_email/shipment/guest_template</custom_template_source>
             <sort_order>13</sort_order>
         </template>
         <!-- Magento_Sales(Order Update) -->
