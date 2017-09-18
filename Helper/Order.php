@@ -22,7 +22,7 @@ class Order extends VariablesAbstractHelper
     private $sailthruProductHelper;
 
     public function __construct(
-        OrderModel $orderodel,
+        OrderModel $orderModel,
         MagentoProductHelper $magentoProductHelper,
         SailthruProductHelper $sailthruProductHelper,
         Context $context,
