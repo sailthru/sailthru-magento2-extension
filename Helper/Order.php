@@ -89,7 +89,7 @@ class Order extends VariablesAbstractHelper
      */
     public function getIsGuestVariable(OrderModel $order)
     {
-        return ['isGuest' => $object->getCustomerIsGuest() ? 1 : 0];
+        return ['isGuest' => $order->getCustomerIsGuest() ? 1 : 0];
     }
 
     /**
