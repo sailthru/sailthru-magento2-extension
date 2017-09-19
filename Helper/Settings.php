@@ -170,7 +170,7 @@ class Settings extends AbstractHelper
      * 
      * @param  string $templateId
      * 
-     * @return string
+     * @return array
      */
     public function getTemplateName($templateId)
     {
@@ -180,6 +180,7 @@ class Settings extends AbstractHelper
             if ($templateData['orig_template_code']) {
                 $value = $this->getTemplateValue($templateData['orig_template_code']);
                 $name = $value == '0' ? self::MAGENTO_PREFIX . $templateData['template_code'] : $value;
+                $origCode = $templateData['orig_template_code'];
             } else {
                 $templates = $this->templateConfig->get('templates');
                 $ids = [];
@@ -190,18 +191,26 @@ class Settings extends AbstractHelper
                 }
 
                 if (count($ids) > 1) {
-                    return self::MAGENTO_GENERIC_TEMPLATE;
+                    return [
+                        'name' => self::MAGENTO_GENERIC_TEMPLATE,
+                        'orig_template_code' => self::MAGENTO_GENERIC_TEMPLATE,
+                    ];
                 }
 
                 $value = $this->getTemplateValue($ids[0]);
                 $name = $value == '0' ? self::MAGENTO_PREFIX . $templateData['template_code'] : $value;
+                $origCode = $ids[0];
             }
         } else {
             $value = $this->getTemplateValue($templateId);
             $name = $value == '0' ? self::MAGENTO_PREFIX . $templateId : $value;
+            $origCode = $templateId;
         }
 
-        return $name;
+        return [
+            'name' => $name,
+            'orig_template_code' => $origCode,
+        ];
     }
 
     /**
@@ -230,7 +239,12 @@ class Settings extends AbstractHelper
 
         # Magento 1 legacy variables mapping.
         if (in_array($id, self::CUSTOMER_TEMPLATES_FOR_ADDITIONAL_VARS)) {
-            $customer = $helper->getObject($currentVars['customer_email']);
+            # Get customer id.
+            if (isset($currentVars['reset_url']) && preg_match('/id=(.*?)\&/', $currentVars['reset_url'], $matches)) {
+                $customer = $helper->getObjectById($matches[1] ?? null);
+            } else {
+                $customer = $helper->getObject($currentVars['customer_email']);
+            }
             $currentVars += $helper->getCustomVariables($customer);
         }
 

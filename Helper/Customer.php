@@ -114,4 +114,18 @@ class Customer extends VariablesAbstractHelper
 
         return $this->customerModel;
     }
+
+    /**
+     * To get Customer model.
+     * 
+     * @param  mixed                            $id
+     * @return \Magento\Customer\Model\Customer
+     */
+    public function getObjectById($id)
+    {
+        $this->customerModel->setWebsiteId($this->storeManager->getStore()->getWebsiteId());
+        $this->customerModel->load($id);
+
+        return $this->customerModel;
+    }
 }

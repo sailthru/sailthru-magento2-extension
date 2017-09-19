@@ -94,18 +94,18 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
                 "content" => $this->_message->getBody()->getRawContent(),
             ];
 
-            # Vars used in Sailthru Magento 1 extension and template file.
-            $vars += $this->sailthruSettings->getTemplateAdditionalVariables(
-                $templateData['identifier'],
-                $templateData['variables']
-            );
             # Get template name
             $template = $this->sailthruSettings->getTemplateName($templateData['identifier']);
+            # Vars used in Sailthru Magento 1 extension and template file.
+            $vars += $this->sailthruSettings->getTemplateAdditionalVariables(
+                $template['orig_template_code'],
+                $templateData['variables']
+            );
             # Create\Update template
-            $this->apiHelper->saveTemplate($template, $this->sailthruSettings->getSender());
+            $this->apiHelper->saveTemplate($template['name'], $this->sailthruSettings->getSender());
 
             $message = [
-                "template" => $template,
+                "template" => $template['name'],
                 "email" => $this->cleanEmails($this->recipients),
                 "vars" => $vars,
             ];
