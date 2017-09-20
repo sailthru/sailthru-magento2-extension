@@ -10,6 +10,7 @@ use Magento\ConfigurableProduct\Model\Product\Type\Configurable as Configurable;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Filesystem;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Framework\Url;
 use Sailthru\MageSail\Helper\Api;
 use Sailthru\MageSail\Helper\ClientManager;
 use Sailthru\MageSail\Helper\Product as SailthruProduct;
@@ -50,6 +51,9 @@ class ProductIntercept
         'sku'
     ];
 
+    /** @var Magento\Framework\Url */
+    private $frameworkUrl;
+
     public function __construct(
         ClientManager $clientManager,
         SailthruProduct $sailthruProduct,
@@ -57,7 +61,8 @@ class ProductIntercept
         ProductHelper $productHelper,
         ImageHelper $imageHelper,
         Configurable $cpModel,
-        Context $context
+        Context $context,
+        Url $frameworkUrl
     ) {
         $this->clientManager    = $clientManager;
         $this->sailthruProduct  = $sailthruProduct;
@@ -67,6 +72,7 @@ class ProductIntercept
         $this->cpModel          = $cpModel;
         $this->context          = $context;
         $this->request          = $context->getRequest();
+        $this->frameworkUrl     = $frameworkUrl;
     }
 
     public function afterAfterSave(Product $productModel, $productResult)
@@ -123,7 +129,7 @@ class ProductIntercept
         try {
             $data = [
                 'url'   => $isVariant ? $this->getProductFragmentedUrl($product, $parents[0]) :
-                    $product->setStoreId($storeId)->getProductUrl(true),
+                    $this->getProductUrl($product, $storeId, true),
                 'title' => htmlspecialchars($product->getName()),
                 'spider' => 0,
                 'price' => $price = ($product->getPrice() ? $product->getPrice() :
@@ -191,6 +197,26 @@ class ProductIntercept
         $parentUrl = $this->productHelper->getProductUrl($parent);
         $pSku = $product->getSku();
         return "{$parentUrl}#{$pSku}";
+    }
+
+    /**
+     * To get product url.
+     * 
+     * @param  Product $product
+     * @param  string  $storeId
+     * @param  bool    $useSID
+     * 
+     * @return string
+     */
+    public function getProductUrl(Product $product, $storeId, $useSID = false)
+    {
+        # to get not empty request path
+        $product->setStoreId($storeId)->getProductUrl($useSID);
+        # to get product url
+        return preg_replace('/\?SID=(.*?)(?:[@:*]|$)/', '', $this->frameworkUrl->getUrl('', [
+            '_direct' => $product->getRequestPath(),
+            '_query' => [],
+        ]));
     }
 
     // Magento 2 getImage seems to add a strange slash, therefore this.
