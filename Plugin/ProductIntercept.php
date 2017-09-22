@@ -14,9 +14,19 @@ use Magento\Framework\Url;
 use Sailthru\MageSail\Helper\Api;
 use Sailthru\MageSail\Helper\ClientManager;
 use Sailthru\MageSail\Helper\Product as SailthruProduct;
+use Sailthru\MageSail\Helper\Settings;
 
 class ProductIntercept
 {
+    /** Store code for `All Store Views`. */
+    const ALL_STORE_VIEWS_CODE = 'admin';
+
+    /** Name of the `save product` event. */
+    const SAVE_PRODUCT_EVENT_NAME = 'SaveProduct';
+
+    /** Text for `product data` error. */
+    const PRODUCT_DATA_ERROR_TEXT = 'ProductData Error';
+
     // Need some things from EAV attributes which seems more intensive. Attributes below,
     // we'd rather get from Product.
     public static $unusedVarKeys = [
@@ -54,6 +64,9 @@ class ProductIntercept
     /** @var Magento\Framework\Url */
     private $frameworkUrl;
 
+    /** @var Sailthru\MageSail\Helper\Settings */
+    private $sailthruSettings;
+
     public function __construct(
         ClientManager $clientManager,
         SailthruProduct $sailthruProduct,
@@ -62,7 +75,8 @@ class ProductIntercept
         ImageHelper $imageHelper,
         Configurable $cpModel,
         Context $context,
-        Url $frameworkUrl
+        Url $frameworkUrl,
+        Settings $sailthruSettings
     ) {
         $this->clientManager    = $clientManager;
         $this->sailthruProduct  = $sailthruProduct;
@@ -73,22 +87,70 @@ class ProductIntercept
         $this->context          = $context;
         $this->request          = $context->getRequest();
         $this->frameworkUrl     = $frameworkUrl;
+        $this->sailthruSettings = $sailthruSettings;
     }
 
     public function afterAfterSave(Product $productModel, $productResult)
     {
         if ($this->sailthruProduct->isProductInterceptOn()) {
-            if ($data = $this->getProductData($productResult)) {
-                try {
-                    $this->clientManager->getClient()->_eventType = 'SaveProduct';
-                    $this->clientManager->getClient()->apiPost('content', $data);
-                } catch (\Sailthru_Client_Exception $e) {
-                    $this->clientManager->getClient()->logger('ProductData Error');
-                    $this->clientManager->getClient()->logger($e->getMessage());
-                }
+            if ($this->isAllStoreViews($productModel)) {
+                $this->sendMultipleRequests($productModel, $productResult);
+            } else {
+                $this->sendRequest($productModel);
             }
         }
+
         return $productResult;
+    }
+
+    /**
+     * To send multiple requests to API.
+     * 
+     * @param  Product                        $product
+     * @param  Magento\Catalog\Model\Product  $productResult
+     */
+    private function sendMultipleRequests(Product $product, $productResult)
+    {
+        $storeIds = $product->getStoreIds();
+        foreach ($storeIds as $storeId) {
+            if ($this->sailthruSettings->getTransactionalsEnabled($storeId)) {
+                $this->sendRequest($productResult, $storeId);
+            }
+        }
+    }
+
+    /**
+     * To send single request to API.
+     * 
+     * @param  Magento\Catalog\Model\Product $productResult
+     * @param  string|null                   $storeId
+     */
+    private function sendRequest($productResult, $storeId = null)
+    {
+        $data = $this->getProductData($productResult, $storeId);
+        if ($data) {
+            try {
+                $this->clientManager->getClient()->_eventType = self::SAVE_PRODUCT_EVENT_NAME;
+                $this->clientManager->getClient()->apiPost('content', $data);
+            } catch (\Sailthru_Client_Exception $e) {
+                $this->clientManager->getClient()->logger(self::PRODUCT_DATA_ERROR_TEXT);
+                $this->clientManager->getClient()->logger($e->getMessage());
+            }
+        }
+    }
+
+    /**
+     * To check if product is in "All Store Views" scope.
+     * 
+     * @param  Product $product
+     * 
+     * @return bool
+     */
+    private function isAllStoreViews(Product $product)
+    {
+        return self::ALL_STORE_VIEWS_CODE == $this->_storeManager->getStore($product->getStoreId())->getCode()
+            ? true
+            : false;
     }
 
     /**
@@ -97,7 +159,7 @@ class ProductIntercept
      * @param Product $product
      * @return array|false
      */
-    public function getProductData(Product $product)
+    public function getProductData(Product $product, $storeId = null)
     {
         $productType = $product->getTypeId();
         $isMaster = ($productType == 'configurable');
@@ -116,10 +178,12 @@ class ProductIntercept
         }
 
         // scope fix for intercept launched from backoffice, which causes admin URLs for products
-        $storeScopes = $product->getStoreIds();
-        $storeId = $this->request->getParam('store') ?: $storeScopes[0];
-        if ($storeId) {
-            $product->setStoreId($storeId);
+        if (!$storeId) {
+            $storeScopes = $product->getStoreIds();
+            $storeId = $this->request->getParam('store') ?: $storeScopes[0];
+            if ($storeId) {
+                $product->setStoreId($storeId);
+            }
         }
         $this->_storeManager->setCurrentStore($storeId);
 

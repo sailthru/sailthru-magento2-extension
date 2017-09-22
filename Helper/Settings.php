@@ -120,9 +120,9 @@ class Settings extends AbstractHelper
 
     /* Transactionals */
 
-    public function getTransactionalsEnabled()
+    public function getTransactionalsEnabled($storeId = null)
     {
-        return boolval($this->getSettingsVal(self::XML_TRANSACTIONALS_ENABLED));
+        return boolval($this->getSettingsVal(self::XML_TRANSACTIONALS_ENABLED, $storeId));
     }
 
     public function getSender()

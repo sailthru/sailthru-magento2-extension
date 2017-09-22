@@ -38,21 +38,25 @@ class AbstractHelper extends MageAbstractHelper
         $this->templateConfig = $templateConfig;
     }
 
-    public function getSettingsVal($val)
+    public function getSettingsVal($val, $storeId = null)
     {
         $scopeType = ScopeInterface::SCOPE_STORES;
         $scopeCode = null;
 
-        $storeCode = $this->_request->getParam('store');
-        $websiteCode = $this->_request->getParam('website');
-        if ($storeCode) {
-            $scopeType = ScopeInterface::SCOPE_STORE;
-            $scopeCode = $storeCode;
-        } elseif ($websiteCode) {
-            $scopeType = ScopeInterface::SCOPE_WEBSITE;
-            $scopeCode = $websiteCode;
+        if ($storeId) {
+            $scopeCode = $this->storeManager->getStore($storeId)->getCode();
         } else {
-            $scopeCode = $this->storeManager->getStore()->getCode();
+            $storeCode = $this->_request->getParam('store');
+            $websiteCode = $this->_request->getParam('website');
+            if ($storeCode) {
+                $scopeType = ScopeInterface::SCOPE_STORE;
+                $scopeCode = $storeCode;
+            } elseif ($websiteCode) {
+                $scopeType = ScopeInterface::SCOPE_WEBSITE;
+                $scopeCode = $websiteCode;
+            } else {
+                $scopeCode = $this->storeManager->getStore()->getCode();
+            }
         }
         return $this->scopeConfig->getValue($val, $scopeType, $scopeCode);
     }
