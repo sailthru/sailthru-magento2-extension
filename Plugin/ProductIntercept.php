@@ -61,9 +61,6 @@ class ProductIntercept
         'sku'
     ];
 
-    /** @var Magento\Framework\Url */
-    private $frameworkUrl;
-
     /** @var Sailthru\MageSail\Helper\Settings */
     private $sailthruSettings;
 
@@ -75,7 +72,6 @@ class ProductIntercept
         ImageHelper $imageHelper,
         Configurable $cpModel,
         Context $context,
-        Url $frameworkUrl,
         Settings $sailthruSettings
     ) {
         $this->clientManager    = $clientManager;
@@ -86,7 +82,6 @@ class ProductIntercept
         $this->cpModel          = $cpModel;
         $this->context          = $context;
         $this->request          = $context->getRequest();
-        $this->frameworkUrl     = $frameworkUrl;
         $this->sailthruSettings = $sailthruSettings;
     }
 
@@ -276,11 +271,8 @@ class ProductIntercept
     {
         # to get not empty request path
         $product->setStoreId($storeId)->getProductUrl($useSID);
-        # to get product url
-        return preg_replace('/\?SID=(.*?)(?:[@:*]|$)/', '', $this->frameworkUrl->getUrl('', [
-            '_direct' => $product->getRequestPath(),
-            '_query' => [],
-        ]));
+
+        return $this->_storeManager->getStore()->getBaseUrl() . $product->getRequestPath();
     }
 
     // Magento 2 getImage seems to add a strange slash, therefore this.
