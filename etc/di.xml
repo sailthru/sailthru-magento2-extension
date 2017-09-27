@@ -24,17 +24,4 @@
     <preference for="\Magento\Framework\Mail\Message" type="Sailthru\MageSail\Mail\Message"/>
     <preference for="\Magento\Email\Model\Template" type="Sailthru\MageSail\Mail\Template"/>
 	<preference for="\Magento\Email\Model\Template\Filter" type="Sailthru\MageSail\Mail\Filter"/>
-    <virtualType name="TmplListReader" type="Magento\Framework\Config\Reader\Filesystem">
-        <arguments>
-            <argument name="converter" xsi:type="object">Sailthru\MageSail\Model\Config\Template\Converter</argument>
-            <argument name="schemaLocator" xsi:type="object">Sailthru\MageSail\Model\Config\Template\SchemaLocator</argument>
-            <argument name="fileName" xsi:type="string">template_config.xml</argument>
-        </arguments>
-    </virtualType>
-    <type name="Sailthru\MageSail\Model\Config\Template\Data">
-        <arguments>
-            <argument name="reader" xsi:type="object">TmplListReader</argument>
-            <argument name="cacheId" xsi:type="string">sailthru_template_list_cache</argument>
-        </arguments>
-    </type>
 </config>

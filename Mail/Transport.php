@@ -8,6 +8,7 @@ namespace Sailthru\MageSail\Mail;
 
 use Magento\Framework\Exception\MailException;
 use Magento\Framework\Mail\MessageInterface;
+use Magento\Store\Model\StoreManagerInterface;
 use Sailthru\MageSail\Helper\ClientManager;
 use Sailthru\MageSail\Helper\Settings;
 use Sailthru\MageSail\Helper\Api;
@@ -29,6 +30,9 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
 
     /** @var Api */
     protected $apiHelper;
+
+    /** @var StoreManagerInterface */
+    protected $storeManager;
     
     /**
      * Transport constructor.
@@ -44,12 +48,14 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
         Settings $sailthruSettings,
         MessageInterface $message,
         Api $apiHelper,
+        StoreManagerInterface $storeManager,
         $parameters = null
     ) {
         $this->clientManager = $clientManager;
-        $this->client = $clientManager->getClient();
+        $this->client = $clientManager;
         $this->sailthruSettings = $sailthruSettings;
         $this->apiHelper = $apiHelper;
+        $this->storeManager = $storeManager;
         parent::__construct($message, $parameters);
     }
 
@@ -89,20 +95,22 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
     public function sendViaAPI($templateData)
     {
         try {
+            $storeId = $this->storeManager->getStore()->getId();
+            $this->client = $this->client->getClient(true, $storeId);
             $vars = [
                 "subj" => $this->_message->getSubject(),
                 "content" => $this->_message->getBody()->getRawContent(),
             ];
 
             # Get template name
-            $template = $this->sailthruSettings->getTemplateName($templateData['identifier']);
+            $template = $this->sailthruSettings->getTemplateName($templateData['identifier'], $storeId);
             # Vars used in Sailthru Magento 1 extension and template file.
             $vars += $this->sailthruSettings->getTemplateAdditionalVariables(
                 $template['orig_template_code'],
                 $templateData['variables']
             );
             # Create\Update template
-            $this->apiHelper->saveTemplate($template['name'], $this->sailthruSettings->getSender());
+            $this->apiHelper->saveTemplate($template['name'], $this->sailthruSettings->getSender($storeId));
 
             $message = [
                 "template" => $template['name'],

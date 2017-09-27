@@ -25,7 +25,6 @@ use Sailthru\MageSail\Cookie\Hid as SailthruCookie;
 
 class OrderIntercept
 {
-
     public function __construct(
         ClientManager $clientManager,
         SailthruSettings $sailthruSettings,
@@ -38,7 +37,7 @@ class OrderIntercept
         OrderResource $orderResource,
         ConfigProduct $cpModel
     ) {
-        $this->sailthruClient   = $clientManager->getClient();
+        $this->sailthruClient   = $clientManager;
         $this->sailthruSettings = $sailthruSettings;
         $this->sailthruProduct  = $sailthruProduct;
         $this->sailthruCookie   = $sailthruCookie;
@@ -56,8 +55,10 @@ class OrderIntercept
     public function aroundSend(Interceptor $subject, callable $proceed, Order $order, $syncVar = false)
     {
         $orderData = $this->getData($order);
-        if ($this->sailthruSettings->getOrderOverride()) {
-            $template = $this->sailthruSettings->getOrderTemplate();
+        $entityStoreId = $order->getStoreId();
+        $this->sailthruClient = $this->sailthruClient->getClient(true, $entityStoreId);
+        if ($this->sailthruSettings->getOrderOverride($entityStoreId)) {
+            $template = $this->sailthruSettings->getOrderTemplate($entityStoreId);
             $alreadyOrdered = $order->getEmailSent();
             try {
                 if (!$alreadyOrdered) {

@@ -15,13 +15,14 @@ class AddressIntercept
         SailthruSettings $sailthruSettings,
         SailthruCustomer $sailthruCustomer
     ) {
-        $this->client = $clientManager->getClient();
+        $this->client = $clientManager;
         $this->sailthruSettings = $sailthruSettings;
         $this->sailthruCustomer = $sailthruCustomer;
     }
 
     public function afterSave(Address $subject, Address $addressResult)
     {
+        $customerId = $addressResult->getCustomerId();
         $billing = $addressResult->getDataModel()->isDefaultBilling();
         if ($billing) {
             $customer = $addressResult->getCustomer();
@@ -33,6 +34,7 @@ class AddressIntercept
                 'vars' => $addressVars,
             ];
             try {
+                $this->client = $this->client->getClient(true, $customer->getStore()->getId());
                 $this->client->_eventType = 'CustomerAddressUpdate';
                 $this->client->apiPost('user', $data);
             } catch (\Sailthru_Client_Exception $e) {

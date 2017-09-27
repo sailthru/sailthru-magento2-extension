@@ -46,54 +46,66 @@ class Product extends AbstractHelper
 
     /**
      * Is the Product-saving interceptor enabled
+     * @param string|null $storeId
+     * 
      * @return bool
      */
-    public function isProductInterceptOn()
+    public function isProductInterceptOn($storeId = null)
     {
-        return boolval($this->getSettingsVal(self::XML_CONTENT_INTERCEPT));
+        return boolval($this->getSettingsVal(self::XML_CONTENT_INTERCEPT, $storeId));
     }
 
     /**
      * Is the product-saving interceptor sync'ing master products to Sailthru
+     * @param string|null $storeId
+     * 
      * @return bool
      */
-    public function canSyncMasterProducts()
+    public function canSyncMasterProducts($storeId = null)
     {
-        return boolval($this->getSettingsVal(self::XML_CONTENT_SEND_MASTER));
+        return boolval($this->getSettingsVal(self::XML_CONTENT_SEND_MASTER, $storeId));
     }
 
     /**
      * Is the product-saving interceptor sync'ing variant products to Sailthru
+     * @param string|null $storeId
+     * 
      * @return bool
      */
-    public function canSyncVariantProducts()
+    public function canSyncVariantProducts($storeId = null)
     {
-        return boolval($this->getSettingsVal(self::XML_CONTENT_SEND_VARIANTS));
+        return boolval($this->getSettingsVal(self::XML_CONTENT_SEND_VARIANTS, $storeId));
     }
 
     /**
      * Is Sailthru building tags from meta keywords
+     * @param string|null $storeId
+     * 
      * @return bool
      */
-    public function tagsUseKeywords()
+    public function tagsUseKeywords($storeId = null)
     {
-        return boolval($this->getSettingsVal(self::XML_CONTENT_USE_KEYWORDS));
+        return boolval($this->getSettingsVal(self::XML_CONTENT_USE_KEYWORDS, $storeId));
     }
 
     /**
      * Is Sailthru building tags from product attributes
+     * @param string|null $storeId
+     * 
      * @return bool
      */
-    public function tagsUseAttributes()
+    public function tagsUseAttributes($storeId = null)
     {
-        return boolval($this->getSettingsVal(self::XML_CONTENT_USE_ATTRIBUTES));
+        return boolval($this->getSettingsVal(self::XML_CONTENT_USE_ATTRIBUTES, $storeId));
     }
 
     /**
      * Is Sailthru building tags from product categories
+     * @param string|null $storeId
+     * 
      * @return bool
      */
-    public function tagsUseCategories()
+    public function tagsUseCategories($storeId = null)
     {
         return boolval($this->getSettingsVal(self::XML_CONTENT_USE_CATEGORIES));
     }

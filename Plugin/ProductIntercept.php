@@ -18,15 +18,6 @@ use Sailthru\MageSail\Helper\Settings;
 
 class ProductIntercept
 {
-    /** Store code for `All Store Views`. */
-    const ALL_STORE_VIEWS_CODE = 'admin';
-
-    /** Name of the `save product` event. */
-    const SAVE_PRODUCT_EVENT_NAME = 'SaveProduct';
-
-    /** Text for `product data` error. */
-    const PRODUCT_DATA_ERROR_TEXT = 'ProductData Error';
-
     // Need some things from EAV attributes which seems more intensive. Attributes below,
     // we'd rather get from Product.
     public static $unusedVarKeys = [
@@ -87,11 +78,12 @@ class ProductIntercept
 
     public function afterAfterSave(Product $productModel, $productResult)
     {
-        if ($this->sailthruProduct->isProductInterceptOn()) {
-            if ($this->isAllStoreViews($productModel)) {
-                $this->sendMultipleRequests($productModel, $productResult);
-            } else {
-                $this->sendRequest($productModel);
+        if ($this->isAllStoreViews($productModel)) {
+            $this->sendMultipleRequests($productModel, $productResult);
+        } else {
+            $storeId = $productModel->getStoreId();
+            if ($this->sailthruProduct->isProductInterceptOn($storeId)) {
+                $this->sendRequest($productModel, $storeId);
             }
         }
 
@@ -108,7 +100,7 @@ class ProductIntercept
     {
         $storeIds = $product->getStoreIds();
         foreach ($storeIds as $storeId) {
-            if ($this->sailthruSettings->getTransactionalsEnabled($storeId)) {
+            if ($this->sailthruProduct->isProductInterceptOn($storeId)) {
                 $this->sendRequest($productResult, $storeId);
             }
         }
@@ -122,14 +114,15 @@ class ProductIntercept
      */
     private function sendRequest($productResult, $storeId = null)
     {
+        $client = $this->clientManager->getClient(true, $storeId);
         $data = $this->getProductData($productResult, $storeId);
         if ($data) {
             try {
-                $this->clientManager->getClient()->_eventType = self::SAVE_PRODUCT_EVENT_NAME;
-                $this->clientManager->getClient()->apiPost('content', $data);
+                $client->_eventType = 'SaveProduct';
+                $client->apiPost('content', $data);
             } catch (\Sailthru_Client_Exception $e) {
-                $this->clientManager->getClient()->logger(self::PRODUCT_DATA_ERROR_TEXT);
-                $this->clientManager->getClient()->logger($e->getMessage());
+                $client->logger(__('ProductData Error'));
+                $client->logger($e->getMessage());
             }
         }
     }
@@ -143,7 +136,7 @@ class ProductIntercept
      */
     private function isAllStoreViews(Product $product)
     {
-        return self::ALL_STORE_VIEWS_CODE == $this->_storeManager->getStore($product->getStoreId())->getCode()
+        return $this->_storeManager->getStore($product->getStoreId())->getCode() == 'admin'
             ? true
             : false;
     }
@@ -156,22 +149,6 @@ class ProductIntercept
      */
     public function getProductData(Product $product, $storeId = null)
     {
-        $productType = $product->getTypeId();
-        $isMaster = ($productType == 'configurable');
-        $updateMaster = $this->sailthruProduct->canSyncMasterProducts();
-        if ($isMaster and !$updateMaster) {
-            return false;
-        }
-
-        $isSimple = ($productType == 'simple');
-        $parents = $this->cpModel->getParentIdsByChild($product->getId());
-        $isVariant = ($isSimple and $parents);
-        $updateVariants = $this->sailthruProduct->canSyncVariantProducts();
-        $this->clientManager->getClient()->logger($updateVariants);
-        if ($isVariant and !$updateVariants) {
-            return false;
-        }
-
         // scope fix for intercept launched from backoffice, which causes admin URLs for products
         if (!$storeId) {
             $storeScopes = $product->getStoreIds();
@@ -182,6 +159,22 @@ class ProductIntercept
         }
         $this->_storeManager->setCurrentStore($storeId);
 
+        $productType = $product->getTypeId();
+        $isMaster = ($productType == 'configurable');
+        $updateMaster = $this->sailthruProduct->canSyncMasterProducts($storeId);
+        if ($isMaster and !$updateMaster) {
+            return false;
+        }
+
+        $isSimple = ($productType == 'simple');
+        $parents = $this->cpModel->getParentIdsByChild($product->getId());
+        $isVariant = ($isSimple and $parents);
+        $updateVariants = $this->sailthruProduct->canSyncVariantProducts($storeId);
+        $this->clientManager->getClient()->logger($updateVariants);
+        if ($isVariant and !$updateVariants) {
+            return false;
+        }
+        
         $attributes = $this->sailthruProduct->getProductAttributeValues($product);
         $categories = $this->sailthruProduct->getCategories($product);
 

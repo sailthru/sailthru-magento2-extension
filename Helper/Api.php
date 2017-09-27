@@ -98,8 +98,8 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
     ) {
         parent::__construct($context);
         $this->hid = $hid;
-        $this->_apiKey = $this->getApiKey();
-        $this->_apiSecret = $this->getApiSecret();
+        $this->_apiKey = $this->getApiKey($storeManager->getStore()->getId());
+        $this->_apiSecret = $this->getApiSecret($storeManager->getStore()->getId());
         $this->logger = $logger;
         $this->storeManager = $storeManager;
         $this->getClient();
@@ -390,13 +390,13 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
         }
     }
 
-    private function getApiKey()
+    private function getApiKey($storeId = null)
     {
-        return $this->getSettingsVal(self::XML_API_KEY);
+        return $this->getSettingsVal(self::XML_API_KEY, $storeId);
     }
 
-    private function getApiSecret()
+    private function getApiSecret($storeId = null)
     {
-        return $this->getSettingsVal(self::XML_API_SECRET);
+        return $this->getSettingsVal(self::XML_API_SECRET, $storeId);
     }
 }

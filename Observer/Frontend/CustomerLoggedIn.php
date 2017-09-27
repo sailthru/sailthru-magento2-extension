@@ -13,15 +13,18 @@ class CustomerLoggedIn implements ObserverInterface
     private $sailthruCookie;
     private $sailthruClient;
 
-    public function __construct(ClientManager $clientManager, SailthruCookie $sailthruCookie)
-    {
+    public function __construct(
+        ClientManager $clientManager,
+        SailthruCookie $sailthruCookie
+    ) {
         $this->sailthruCookie = $sailthruCookie;
-        $this->sailthruClient = $clientManager->getClient();
+        $this->sailthruClient = $clientManager;
     }
 
     public function execute(Observer $observer)
     {
         $customer = $observer->getData('customer');
+        $this->sailthruClient = $this->sailthruClient->getClient(true, $customer->getStore()->getId());
         $sid = $customer->getData('sailthru_id');
 
         try {

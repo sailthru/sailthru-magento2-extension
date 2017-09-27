@@ -96,26 +96,47 @@ class Settings extends AbstractHelper
 //        return $this->getSettingsVal(self::XML_CLIENT_ID);
 //    }
 
+    public function getAddressVars($address)
+    {
+        if (!$address) {
+            return false;
+        }
+        $vars = [
+            "countryCode"   => $address->getCountry(),
+            "state"         => $address->getRegion(),
+            "stateCode"     => $address->getRegionCode(),
+            "city"          => $address->getCity(),
+            "postal"        => $address->getPostcode(),
+        ];
+        return $vars;
+    }
+
+    public function getAddressVarsByCustomer($customer)
+    {
+        $address = $customer->getPrimaryBillingAddress();
+        return $this->getAddressVars($address);
+    }
+
     /* Abandoned Cart */
 
-    public function isAbandonedCartEnabled()
+    public function isAbandonedCartEnabled($storeId = null)
     {
-        return boolval($this->getSettingsVal(self::XML_ABANDONED_CART_ENABLED));
+        return boolval($this->getSettingsVal(self::XML_ABANDONED_CART_ENABLED, $storeId));
     }
 
-    public function getAbandonedTemplate()
+    public function getAbandonedTemplate($storeId = null)
     {
-        return $this->getSettingsVal(self::XML_ABANDONED_CART_TEMPLATE);
+        return $this->getSettingsVal(self::XML_ABANDONED_CART_TEMPLATE, $storeId);
     }
 
-    public function getAbandonedTime()
+    public function getAbandonedTime($storeId = null)
     {
-        return $this->getSettingsVal(self::XML_ABANDONED_CART_TIME);
+        return $this->getSettingsVal(self::XML_ABANDONED_CART_TIME, $storeId);
     }
 
-    public function canAbandonAnonymous()
+    public function canAbandonAnonymous($storeId = null)
     {
-        return boolval($this->getSettingsVal(self::XML_ABANDONED_CART_ANONYMOUS));
+        return boolval($this->getSettingsVal(self::XML_ABANDONED_CART_ANONYMOUS, $storeId));
     }
 
     /* Transactionals */
@@ -125,67 +146,73 @@ class Settings extends AbstractHelper
         return boolval($this->getSettingsVal(self::XML_TRANSACTIONALS_ENABLED, $storeId));
     }
 
-    public function getSender()
+    public function getSender($storeId = null)
     {
-        return $this->getSettingsVal(self::XML_TRANSACTIONALS_SENDER);
+        return $this->getSettingsVal(self::XML_TRANSACTIONALS_SENDER, $storeId);
     }
 
-    public function getOrderOverride()
+    public function getOrderOverride($storeId = null)
     {
-        if ($this->getTransactionalsEnabled() &&
-            $this->getSettingsVal(self::XML_ORDER_ENABLED) &&
-            $this->getSettingsVal(self::XML_ORDER_TEMPLATE)) {
+        if ($this->getTransactionalsEnabled($storeId) &&
+            $this->getSettingsVal(self::XML_ORDER_ENABLED, $storeId) &&
+            $this->getSettingsVal(self::XML_ORDER_TEMPLATE, $storeId)) {
             return true;
         }
         return false;
     }
 
-    public function getOrderTemplate()
+    public function getOrderTemplate($storeId = null)
     {
-        return $this->getSettingsVal(self::XML_ORDER_TEMPLATE);
+        return $this->getSettingsVal(self::XML_ORDER_TEMPLATE, $storeId);
     }
 
-    public function customerListEnabled()
+    public function customerListEnabled($storeId = null)
     {
-        return boolval($this->getSettingsVal(self::XML_ONREGISTER_LIST_ENABLED));
+        return boolval($this->getSettingsVal(self::XML_ONREGISTER_LIST_ENABLED, $storeId));
     }
 
-    public function getCustomerList()
+    public function getCustomerList($storeId = null)
     {
-        return $this->getSettingsVal(self::XML_ONREGISTER_LIST_VALUE);
+        return $this->getSettingsVal(self::XML_ONREGISTER_LIST_VALUE, $storeId);
     }
 
-    public function newsletterListEnabled()
+    public function newsletterListEnabled($storeId = null)
     {
-        return boolval($this->getSettingsVal(self::XML_NEWSLETTER_LIST_ENABLED));
+        return boolval($this->getSettingsVal(self::XML_NEWSLETTER_LIST_ENABLED, $storeId));
     }
 
-    public function getNewsletterList()
+    public function getNewsletterList($storeId = null)
     {
-        return $this->getSettingsVal(self::XML_NEWSLETTER_LIST_VALUE);
+        return $this->getSettingsVal(self::XML_NEWSLETTER_LIST_VALUE, $storeId);
     }
 
     /**
      * To get template name.
      * 
-     * @param  string $templateId
+     * @param  string      $templateId
+     * @param  string|null $storeId
      * 
      * @return array
      */
-    public function getTemplateName($templateId)
+    public function getTemplateName($templateId, $storeId = null)
     {
         $templateData = $this->templateModel->getTemplateDataById($templateId);
 
         if ($templateData) {
             if ($templateData['orig_template_code']) {
-                $value = $this->getTemplateValue($templateData['orig_template_code']);
-                $name = $value == '0' ? self::MAGENTO_PREFIX . $templateData['template_code'] : $value;
+                $value = $this->getTemplateValue($templateData['orig_template_code'], $storeId);
+                $name = $value == '0' || $value == null
+                    ? self::MAGENTO_PREFIX . $templateData['template_code']
+                    : $value;
                 $origCode = $templateData['orig_template_code'];
             } else {
                 $templates = $this->templateConfig->get('templates');
                 $ids = [];
                 foreach ($templates as $template) {
-                    if ($templateData['template_id'] == $this->getSettingsVal($template['custom_template_source'])) {
+                    if ($templateData['template_id'] == $this->getSettingsVal(
+                        $template['custom_template_source'],
+                        $storeId
+                    )) {
                         $ids[] = $template['id'];
                     }
                 }
@@ -197,13 +224,15 @@ class Settings extends AbstractHelper
                     ];
                 }
 
-                $value = $this->getTemplateValue($ids[0]);
-                $name = $value == '0' ? self::MAGENTO_PREFIX . $templateData['template_code'] : $value;
+                $value = $this->getTemplateValue($ids[0], $storeId);
+                $name = $value == '0' || $value == null
+                    ? self::MAGENTO_PREFIX . $templateData['template_code']
+                    : $value;
                 $origCode = $ids[0];
             }
         } else {
-            $value = $this->getTemplateValue($templateId);
-            $name = $value == '0' ? self::MAGENTO_PREFIX . $templateId : $value;
+            $value = $this->getTemplateValue($templateId, $storeId);
+            $name = $value == '0' || $value == null ? self::MAGENTO_PREFIX . $templateId : $value;
             $origCode = $templateId;
         }
 
@@ -216,13 +245,14 @@ class Settings extends AbstractHelper
     /**
      * To get template value.
      * 
-     * @param  string $id
+     * @param  string      $id
+     * @param  string|null $storeId
      * 
      * @return string|null
      */
-    public function getTemplateValue($id)
+    public function getTemplateValue($id, $storeId = null)
     {
-        return $this->getSettingsVal('magesail_send/transactionals/' . $id);
+        return $this->getSettingsVal('magesail_send/transactionals/' . $id, $storeId);
     }
 
     /**

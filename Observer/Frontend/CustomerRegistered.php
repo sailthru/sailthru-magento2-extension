@@ -6,6 +6,7 @@ use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Module\Manager;
 use Magento\Newsletter\Model\Subscriber;
+use Magento\Store\Model\StoreManagerInterface;
 use Sailthru\MageSail\Helper\ClientManager;
 use Sailthru\MageSail\Helper\Settings as SailthruSettings;
 use Sailthru\MageSail\Cookie\Hid as SailthruCookie;
@@ -20,7 +21,7 @@ class CustomerRegistered implements ObserverInterface
         SailthruSettings $sailthruSettings,
         SailthruCookie $sailthruCookie
     ) {
-        $this->sailthruClient = $clientManager->getClient();
+        $this->sailthruClient = $clientManager;
         $this->sailthruSettings = $sailthruSettings;
         $this->sailthruCookie = $sailthruCookie;
     }
@@ -28,6 +29,8 @@ class CustomerRegistered implements ObserverInterface
     public function execute(Observer $observer)
     {
         $customer = $observer->getData('customer');
+        $storeId = $customer->getStoreId();
+        $this->sailthruClient = $this->sailthruClient->getClient(true, $storeId);
         $email = $customer->getEmail();
         $data = [
             'id'     => $email,
@@ -41,8 +44,8 @@ class CustomerRegistered implements ObserverInterface
                 'name'  => "{$customer->getFirstname()} {$customer->getLastname()}"
             ]
         ];
-        if ($this->sailthruSettings->customerListEnabled()) {
-            $list = $this->sailthruSettings->getCustomerList();
+        if ($this->sailthruSettings->customerListEnabled($storeId)) {
+            $list = $this->sailthruSettings->getCustomerList($storeId);
             $data["lists"] = [ $list => 1 ];
         }
         try {

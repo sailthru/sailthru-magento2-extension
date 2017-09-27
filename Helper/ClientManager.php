@@ -36,17 +36,17 @@ class ClientManager extends AbstractHelper
         $this->initClient();
     }
 
-    public function initClient()
+    public function initClient($storeId = null)
     {
-        $apiKey = $this->getSettingsVal(self::XML_API_KEY);
-        $apiSecret = $this->getSettingsVal(self::XML_API_SECRET);
+        $apiKey = $this->getSettingsVal(self::XML_API_KEY, $storeId);
+        $apiSecret = $this->getSettingsVal(self::XML_API_SECRET, $storeId);
         $this->client = new MageClient($apiKey, $apiSecret, $this->logger, $this->storeManager);
     }
 
-    public function getClient($update=false)
+    public function getClient($update=false, $storeId = null)
     {
         if ($update) {
-            $this->initClient();
+            $this->initClient($storeId);
         }
         return $this->client;
     }

@@ -54,8 +54,7 @@ class GroupIntercept
         TemplateConfig $templateConfig,
         Settings $sailthruSettings,
         Api $apiHelper
-    )
-    {
+    ) {
         $this->templateConfig = $templateConfig;
         $this->sailthruSettings = $sailthruSettings;
         $this->apiHelper = $apiHelper;
@@ -82,7 +81,7 @@ class GroupIntercept
         }
 
         $data['children'] = $this->addRendered($data['children'] ?? []);
-        if (self::GROUP_WITH_CONFIG_FIELDS == $data['id']) {
+        if (self::GROUP_WITH_CONFIG_FIELDS == $data['id'] && $this->apiHelper->isValid()) {
             $dynamicFields = $this->getDynamicConfigFields();
             if (!empty($dynamicFields)) {
                 $data['children'] += $dynamicFields;
