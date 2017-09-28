@@ -213,8 +213,8 @@ class OrderIntercept
     }
     /**
      * Get payment information
-     * @param Order $order
-     * @return mixed
+     * @param  Order         $order
+     * @return string|array
      */
     public function processTenders(Order $order)
     {

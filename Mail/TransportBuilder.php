@@ -1,9 +1,5 @@
 <?php
-/**
- * Mail Transport
- * Copyright © 2016 Magento. All rights reserved.
- * See COPYING.txt for license details.
- */
+
 namespace Sailthru\MageSail\Mail;
 
 use Magento\Framework\App\TemplateTypesInterface;
@@ -26,12 +22,14 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
 
         $body = $template->processTemplate();
 
+        /** @customization START */
         $templateData = [
             'variables' => $template->templateVariables ?? [],
             'identifier' => $this->templateIdentifier,
         ];
 
         $this->message->setTemplateInfo($templateData);
+        /** @customization END */
 
         $this->message->setMessageType($types[$template->getType()])
             ->setBody($body)

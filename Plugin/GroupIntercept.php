@@ -68,7 +68,7 @@ class GroupIntercept
      * @param  array         $data
      * @param                $scope
      * 
-     * @return mixed
+     * @return callable
      */
     public function aroundSetData(
         OriginalGroup $subject,

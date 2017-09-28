@@ -58,7 +58,7 @@ class CartIntercept
         $customer = $cart->getCustomerSession()->getCustomer();
         $storeId = $cart->getQuote()->getStoreId();
         $email = $customer->getEmail();
-        if ($email or $anonymousEmail = $this->isAnonymousReady($storeId)) {
+        if ($email || $anonymousEmail = $this->isAnonymousReady($storeId)) {
             $email = $email ? $email : $anonymousEmail;
             try {
                 $this->client->_eventType = "CartUpdate";
@@ -111,7 +111,7 @@ class CartIntercept
 
     public function isAnonymousReady($storeId = null)
     {
-        if ($this->sailthruSettings->canAbandonAnonymous($storeId) and $hid = $this->sailthruCookie->get()) {
+        if ($this->sailthruSettings->canAbandonAnonymous($storeId) && $hid = $this->sailthruCookie->get()) {
             $response = $this->client->getUserByKey($hid, 'cookie', ['keys' => 1]);
             if (array_key_exists("keys", $response)) {
                 $email = $response["keys"]["email"];
@@ -162,9 +162,9 @@ class CartIntercept
                     $special_price = $product->getSpecialPrice();
                     $special_from = $product->getSpecialFromDate();
                     $special_to = $product->getSpecialToDate();
-                    if ($special_price and
-                        ($special_from === null or (strtotime($special_from) < strtotime("Today"))) and
-                        ($special_to === null or (strtotime($special_to) > strtotime("Today")))) {
+                    if ($special_price &&
+                        ($special_from === null || (strtotime($special_from) < strtotime("Today"))) &&
+                        ($special_to === null || (strtotime($special_to) > strtotime("Today")))) {
                         $current_price = $special_price;
                         $price_used = "special";
                     } else {

@@ -6,6 +6,7 @@ use Magento\Framework\App\Helper\Context;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManager;
 use Magento\Framework\App\Helper\AbstractHelper as MageAbstractHelper;
+use Magento\Framework\ObjectManagerInterface;
 use Sailthru\MageSail\Logger;
 use Sailthru\MageSail\Model\Template as TemplateModel;
 use Sailthru\MageSail\Model\Config\Template\Data as TemplateConfig;
@@ -24,18 +25,23 @@ class AbstractHelper extends MageAbstractHelper
     /** @var TemplateConfig */
     protected $templateConfig;
 
+    /** @var ObjectManager */
+    protected $objectManager;
+
     public function __construct(
         Context $context,
         StoreManager $storeManager,
         Logger $logger,
         TemplateModel $templateModel,
-        TemplateConfig $templateConfig
+        TemplateConfig $templateConfig,
+        ObjectManagerInterface $objectManager
     ) {
         parent::__construct($context);
         $this->storeManager = $storeManager;
         $this->logger = $logger;
         $this->templateModel = $templateModel;
         $this->templateConfig = $templateConfig;
+        $this->objectManager = $objectManager;
     }
 
     public function getSettingsVal($val, $storeId = null)

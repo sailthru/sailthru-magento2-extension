@@ -30,17 +30,17 @@ abstract class VariablesAbstractHelper extends MageAbstractHelper
      * @param  mixed $object
      * @param  array $data
      */
-    public abstract function getCustomVariables($object, $data = []);
+    abstract public function getCustomVariables($object, $data = []);
 
     /**
-     * @param  mixed $param
+     * @param  string|int $param
      */
-    public abstract function getObject($param);
+    abstract public function getObject($param);
 
     /**
      * To get formatted address information.
      * 
-     * @param  mixec  $address
+     * @param  mixed  $address
      * @param  bool   $useFullAddress
      * 
      * @return array

@@ -118,7 +118,7 @@ class Customer extends VariablesAbstractHelper
     /**
      * To get Customer model.
      * 
-     * @param  mixed                            $id
+     * @param  string|int                        $id
      * @return \Magento\Customer\Model\Customer
      */
     public function getObjectById($id)

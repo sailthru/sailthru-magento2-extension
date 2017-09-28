@@ -1,8 +1,5 @@
 <?php
-/**
- * Copyright © 2013-2017 Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
- */
+
 namespace Sailthru\MageSail\Mail;
 
 /**
@@ -67,12 +64,17 @@ class Filter extends \Magento\Email\Model\Template\Filter
             return '';
         }
 
-        # add params to template variable list
+        /**
+         * Add params to template variable list
+         * 
+         * @customization START
+         */
         if ($params) {
             foreach ($params as $paramKey => $paramValue) {
                 $this->templateVariables[$paramKey] = $paramValue;
             }
         }
+        /** @customization END */
 
         $text = __($text, $params)->render();
         return $this->applyModifiers($text, $modifiers);
@@ -95,7 +97,11 @@ class Filter extends \Magento\Email\Model\Template\Filter
 
         list($directive, $modifiers) = $this->explodeModifiers($construction[2], 'escape');
 
-        # add parsed directive value to template variable list
+        /**
+         * Add parsed directive value to template variable list
+         * 
+         * @customization START
+         */
         if ($this->templateDirectives) {
             foreach ($this->templateDirectives as $key => $value) {
                 if (strstr($directive, $value)) {
@@ -103,6 +109,7 @@ class Filter extends \Magento\Email\Model\Template\Filter
                 }
             }
         }
+        /** @customization END */
 
         return $this->applyModifiers($this->getVariable($directive, ''), $modifiers);
     }

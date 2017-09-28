@@ -50,9 +50,9 @@ class Template extends EmailTemplateModel
     /**
      * To get template_code by template_id.
      * 
-     * @param  string $id
+     * @param  string      $id
      * 
-     * @return mixed
+     * @return null|array
      */
     public function getTemplateDataById($id)
     {

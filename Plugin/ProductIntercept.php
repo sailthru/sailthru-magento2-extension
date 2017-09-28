@@ -162,16 +162,16 @@ class ProductIntercept
         $productType = $product->getTypeId();
         $isMaster = ($productType == 'configurable');
         $updateMaster = $this->sailthruProduct->canSyncMasterProducts($storeId);
-        if ($isMaster and !$updateMaster) {
+        if ($isMaster && !$updateMaster) {
             return false;
         }
 
         $isSimple = ($productType == 'simple');
         $parents = $this->cpModel->getParentIdsByChild($product->getId());
-        $isVariant = ($isSimple and $parents);
+        $isVariant = ($isSimple && $parents);
         $updateVariants = $this->sailthruProduct->canSyncVariantProducts($storeId);
         $this->clientManager->getClient()->logger($updateVariants);
-        if ($isVariant and !$updateVariants) {
+        if ($isVariant && !$updateVariants) {
             return false;
         }
         
@@ -233,7 +233,7 @@ class ProductIntercept
                     "url"=> $this->getBaseImageUrl($product)
                 ];
             }
-            if ($parents and count($parents) == 1) {
+            if ($parents && count($parents) == 1) {
                 $data['vars']['parentID'] = $parents[0];
             }
 
@@ -262,7 +262,6 @@ class ProductIntercept
      */
     public function getProductUrl(Product $product, $storeId, $useSID = false)
     {
-        # to get not empty request path
         $product->setStoreId($storeId)->getProductUrl($useSID);
 
         return $this->_storeManager->getStore()->getBaseUrl() . $product->getRequestPath();

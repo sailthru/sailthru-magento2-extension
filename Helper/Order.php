@@ -189,7 +189,7 @@ class Order extends VariablesAbstractHelper
      * 
      * @param  OrderModel $order
      * 
-     * @return mixed
+     * @return string|array
      */
     private function getOrderTenders(OrderModel $order)
     {

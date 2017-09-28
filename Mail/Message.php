@@ -1,10 +1,5 @@
 <?php
-/**
- * Mail Message
- *
- * Copyright © 2013-2017 Magento, Inc. All rights reserved.
- * See COPYING.txt for license details.
- */
+
 namespace Sailthru\MageSail\Mail;
 
 class Message extends \Magento\Framework\Mail\Message

@@ -36,7 +36,10 @@ class Settings extends AbstractHelper
     const XML_ORDER_ENABLED            = "magesail_send/transactionals/purchase_enabled";
     const XML_ORDER_TEMPLATE           = "magesail_send/transactionals/purchase_template";
 
-    /** Helper map for templates */
+    /** Path to the `transactionals` tab. */
+    const XML_TRANSACTIONALS_PATH = 'magesail_send/transactionals/';
+
+    /** Legacy variables template map. */
     const HELPERS_MAP = [
         'Sailthru\MageSail\Helper\Customer' => [
             'customer_create_account_email_template',
@@ -49,23 +52,6 @@ class Settings extends AbstractHelper
         'Sailthru\MageSail\Helper\Shipment' => [
             'sales_email_shipment_template',
         ],
-    ];
-
-    /** Templates list where Magento 1 legacy variables will be injected. */
-    const CUSTOMER_TEMPLATES_FOR_ADDITIONAL_VARS = [
-        'customer_create_account_email_template',
-        'customer_create_account_email_confirmation_template',
-        'customer_create_account_email_confirmed_template',
-    ];
-
-    /** Templates list where Magento 1 legacy variables will be injected. */
-    const ORDER_TEMPLATES_FOR_ADDITIONAL_VARS = [
-        'sales_email_order_template',
-    ];
-
-    /** Templates list where Magento 1 legacy variables will be injected. */
-    const SHIPMENT_TEMPLATES_FOR_ADDITIONAL_VARS = [
-        'sales_email_shipment_template',
     ];
 
     /** Templates list where Magento 1 legacy variables will be injected. */
@@ -201,7 +187,7 @@ class Settings extends AbstractHelper
         if ($templateData) {
             if ($templateData['orig_template_code']) {
                 $value = $this->getTemplateValue($templateData['orig_template_code'], $storeId);
-                $name = $value == '0' || $value == null
+                $name = empty($value)
                     ? self::MAGENTO_PREFIX . $templateData['template_code']
                     : $value;
                 $origCode = $templateData['orig_template_code'];
@@ -225,14 +211,14 @@ class Settings extends AbstractHelper
                 }
 
                 $value = $this->getTemplateValue($ids[0], $storeId);
-                $name = $value == '0' || $value == null
+                $name = empty($value)
                     ? self::MAGENTO_PREFIX . $templateData['template_code']
                     : $value;
                 $origCode = $ids[0];
             }
         } else {
             $value = $this->getTemplateValue($templateId, $storeId);
-            $name = $value == '0' || $value == null ? self::MAGENTO_PREFIX . $templateId : $value;
+            $name = empty($value) ? self::MAGENTO_PREFIX . $templateId : $value;
             $origCode = $templateId;
         }
 
@@ -252,7 +238,7 @@ class Settings extends AbstractHelper
      */
     public function getTemplateValue($id, $storeId = null)
     {
-        return $this->getSettingsVal('magesail_send/transactionals/' . $id, $storeId);
+        return $this->getSettingsVal(self::XML_TRANSACTIONALS_PATH . $id, $storeId);
     }
 
     /**
@@ -268,7 +254,7 @@ class Settings extends AbstractHelper
         $helper = $this->getHelperByTemplateId($id);
 
         # Magento 1 legacy variables mapping.
-        if (in_array($id, self::CUSTOMER_TEMPLATES_FOR_ADDITIONAL_VARS)) {
+        if (in_array($id, self::HELPERS_MAP['Sailthru\MageSail\Helper\Customer'])) {
             # Get customer id.
             if (isset($currentVars['reset_url']) && preg_match('/id=(.*?)\&/', $currentVars['reset_url'], $matches)) {
                 $customer = $helper->getObjectById($matches[1] ?? null);
@@ -278,7 +264,7 @@ class Settings extends AbstractHelper
             $currentVars += $helper->getCustomVariables($customer);
         }
 
-        if (in_array($id, self::ORDER_TEMPLATES_FOR_ADDITIONAL_VARS)) {
+        if (in_array($id, self::HELPERS_MAP['Sailthru\MageSail\Helper\Order'])) {
             $order = $helper->getObject($currentVars['increment_id']);
             $currentVars += $helper->getCustomVariables($order);
 
@@ -287,7 +273,7 @@ class Settings extends AbstractHelper
             }
         }
 
-        if (in_array($id, self::SHIPMENT_TEMPLATES_FOR_ADDITIONAL_VARS)) {
+        if (in_array($id, self::HELPERS_MAP['Sailthru\MageSail\Helper\Shipment'])) {
             $shipment = $helper->getObject($currentVars['shipment_id']);
             $currentVars += $helper->getCustomVariables($shipment);
 
@@ -310,7 +296,7 @@ class Settings extends AbstractHelper
     {
         foreach (self::HELPERS_MAP as $helper => $templates) {
             if (in_array($templateId, $templates)) {
-                return ObjectManager::getInstance()->create($helper);
+                return $this->objectManager->create($helper);
             }
         }
 

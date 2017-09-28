@@ -93,7 +93,9 @@ class Template extends \Magento\Email\Model\Template
 
         $templateId = $this->getId();
         if (is_numeric($templateId)) {
+            /** @customization START */
             $this->processTemplateVarDirectives($templateId);
+            /** @customization END */
             $this->load($templateId);
         } else {
             $this->loadDefault($templateId);
@@ -147,7 +149,11 @@ class Template extends \Magento\Email\Model\Template
             $this->setData('orig_template_variables', str_replace("\n", '', $matches[1]));
             $templateText = str_replace($matches[0], '', $templateText);
 
-            # add variable key => value directives to templateDirectives
+            /**
+             * Add variable key => value directives to templateDirectives
+             * 
+             * @customization START
+             */
             $parsedVars = explode('",', $matches[1]);
             if ($parsedVars &&
                 !strstr($templateId, 'header') &&
@@ -168,6 +174,7 @@ class Template extends \Magento\Email\Model\Template
                     );
                 }
             }
+            /** @customization END */
         }
 
         if (preg_match('/<!--@styles\s*(.*?)\s*@-->/s', $templateText, $matches)) {
@@ -215,13 +222,23 @@ class Template extends \Magento\Email\Model\Template
         // Populate the variables array with store, store info, logo, etc. variables
         $variables = $this->addEmailVariables($variables, $storeId);
         $processor->setVariables($variables);
-        # To set template directives.
+        /**
+         * Set template directives
+         * 
+         * @customization START
+         */
         $processor->setDirectives($this->templateDirectives);
+        /** @customization END */
 
         try {
             $result = $processor->filter($this->getTemplateText());
-            # To set template variables.
+            /**
+             * Set template variables
+             * 
+             * @customization START
+             */
             $templateVariables = $processor->getTemplateVariables();
+            /** @customization END */
             if ($templateVariables) {
                 $this->templateVariables = $templateVariables;
             }
@@ -245,31 +262,35 @@ class Template extends \Magento\Email\Model\Template
         $templateData = $this->templateModel->getTemplateDataById($templateId);
         $templateText = $templateData['template_text'] ?? '';
 
-        if (preg_match('/<!--@vars\s*((?:.)*?)\s*@-->/us', $templateText, $matches)) {
-            $templateText = str_replace($matches[0], '', $templateText);
-            # add variable key => value directives to templateDirectives
-            $parsedVars = explode('",', $matches[1]);
-            if ($parsedVars &&
-                !strstr($templateId, 'header') &&
-                !strstr($templateId, 'footer')
-            ) {
-                foreach ($parsedVars as $directiveString) {
-                    $directiveString = explode(
-                        '":"',
-                        trim(preg_replace('/(\s\s+|var|{|})/', '', $directiveString))
-                    );
+        if (!preg_match('/<!--@vars\s*((?:.)*?)\s*@-->/us', $templateText, $matches)) {
+            return false;
+        }
 
-                    $directiveString[0] = trim(preg_replace('/(]\)|")/', '', $directiveString[0]));
+        $templateText = str_replace($matches[0], '', $templateText);
+        # add variable key => value directives to templateDirectives
+        $parsedVars = explode('",', $matches[1]);
+        if (!$parsedVars &&
+            strstr($templateId, 'header') &&
+            strstr($templateId, 'footer')
+        ) {
+            return false;
+        }
 
-                    $this->templateDirectives[
-                        str_replace('"', '', strtolower(str_replace(' ', '_', $directiveString[1])))
-                    ] = str_replace(
-                        ' ',
-                        '',
-                        $directiveString[0]
-                    );
-                }
-            }
+        foreach ($parsedVars as $directiveString) {
+            $directiveString = explode(
+                '":"',
+                trim(preg_replace('/(\s\s+|var|{|})/', '', $directiveString))
+            );
+
+            $directiveString[0] = trim(preg_replace('/(]\)|")/', '', $directiveString[0]));
+
+            $this->templateDirectives[
+                str_replace('"', '', strtolower(str_replace(' ', '_', $directiveString[1])))
+            ] = str_replace(
+                ' ',
+                '',
+                $directiveString[0]
+            );
         }
     }
 }

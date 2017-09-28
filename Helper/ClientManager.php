@@ -4,6 +4,7 @@ namespace Sailthru\MageSail\Helper;
 
 use Magento\Store\Model\StoreManager;
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\ObjectManagerInterface;
 use Sailthru\MageSail\Logger;
 use Sailthru\MageSail\MageClient;
 use Sailthru\MageSail\Model\Template as TemplateModel;
@@ -24,14 +25,16 @@ class ClientManager extends AbstractHelper
         StoreManager $storeManager,
         Logger $logger,
         TemplateModel $templateModel,
-        TemplateConfig $templateConfig
+        TemplateConfig $templateConfig,
+        ObjectManagerInterface $objectManager
     ) {
         parent::__construct(
             $context,
             $storeManager,
             $logger,
             $templateModel,
-            $templateConfig
+            $templateConfig,
+            $objectManager
         );
         $this->initClient();
     }

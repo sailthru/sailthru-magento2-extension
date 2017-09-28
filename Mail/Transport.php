@@ -1,9 +1,5 @@
 <?php
-/**
- * Mail Transport
- * Copyright © 2016 Magento. All rights reserved.
- * See COPYING.txt for license details.
- */
+
 namespace Sailthru\MageSail\Mail;
 
 use Magento\Framework\Exception\MailException;
@@ -41,7 +37,7 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
      * @param Settings         $sailthruSettings
      * @param MessageInterface $message
      * @param Api              $apiHelper
-     * @param mixed
+     * @param null|array
      */
     public function __construct(
         ClientManager $clientManager,

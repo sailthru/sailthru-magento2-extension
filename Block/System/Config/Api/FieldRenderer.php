@@ -39,7 +39,7 @@ class FieldRenderer extends \Magento\Config\Block\System\Config\Form\Field
      *
      * @param \Magento\Framework\Data\Form\Element\AbstractElement $element
      * 
-     * @return mixed
+     * @return string
      */
     public function render(\Magento\Framework\Data\Form\Element\AbstractElement $element)
     {

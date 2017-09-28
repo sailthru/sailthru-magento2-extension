@@ -64,13 +64,14 @@ class SubscribeIntercept
         $status = $subscriber->getStatus();
         $isSubscribed = ($status == Subscriber::STATUS_SUBSCRIBED ? 1 : 0);
 
-        if (($status == Subscriber::STATUS_UNSUBSCRIBED or $status == Subscriber::STATUS_SUBSCRIBED)
-            and $this->sailthruSettings->newsletterListEnabled($storeId)) {
-
+        if (($status == Subscriber::STATUS_UNSUBSCRIBED ||
+            $status == Subscriber::STATUS_SUBSCRIBED) &&
+            $this->sailthruSettings->newsletterListEnabled($storeId)
+        ) {
             $data = [
-                    'id'     => $email,
-                    'key'    => 'email',
-                    'lists'  => [ $this->sailthruSettings->getNewsletterList($storeId) => $isSubscribed ],
+                'id'     => $email,
+                'key'    => 'email',
+                'lists'  => [ $this->sailthruSettings->getNewsletterList($storeId) => $isSubscribed ],
             ];
             if ($fullName = $subscriber->getSubscriberFullName()) {
                 $data['vars'] = [

@@ -15,7 +15,7 @@ class TemplateReader extends Filesystem
         Converter $converter,
         SchemaLocator $schemaLocator,
         ValidationStateInterface $validationState
-    ){
+    ) {
         parent::__construct(
             $fileResolver,
             $converter,

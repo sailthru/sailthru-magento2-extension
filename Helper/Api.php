@@ -221,7 +221,7 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
                 }
                 foreach ($attributes as $key => $value) {
                     if (!is_numeric($value)) {
-                        $attribute_str .= (($value == "Yes" or $value == "Enabled") ? $key : $value) . ",";
+                        $attribute_str .= (($value == "Yes" || $value == "Enabled") ? $key : $value) . ",";
                     }
                 }
                 $tags .= $attribute_str;
@@ -241,7 +241,7 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
             $label = $attribute->getName();
             if (!in_array($label, self::$unusedVarKeys)) {
                 $value = $attribute->getFrontend()->getValue($product);
-                if ($value and $label and $value != "No" and $value != " ") {
+                if ($value && $label && $value != "No" && $value != " ") {
                     $data[$label] = $value;
                 }
             }

@@ -71,7 +71,7 @@ class CustomerAccountEdit implements ObserverInterface
                 $data['vars'] += $address;
             }
 
-            if ($this->sailthruSettings->newsletterListEnabled($storeId) and
+            if ($this->sailthruSettings->newsletterListEnabled($storeId) &&
                 $customer->getCustomAttribute('is_subscribed')
             ) {
                 $data["lists"] = [ "Newsletter" => 1 ];
