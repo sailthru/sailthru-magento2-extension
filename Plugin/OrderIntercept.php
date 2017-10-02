@@ -12,6 +12,7 @@ use Magento\Catalog\Helper\Image;
 use Magento\Catalog\Helper\Product;
 use Magento\Catalog\Model\Product\Media\Config;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable as ConfigProduct;
+use Magento\Framework\Event\ObserverInterface;
 use Magento\Framework\Phrase;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order;
@@ -23,7 +24,7 @@ use Sailthru\MageSail\Helper\Settings as SailthruSettings;
 use Sailthru\MageSail\Helper\Product as SailthruProduct;
 use Sailthru\MageSail\Cookie\Hid as SailthruCookie;
 
-class OrderIntercept
+class SaveOrder implements ObserverInterface;
 {
     public function __construct(
         ClientManager $clientManager,
