@@ -55,6 +55,9 @@ class ProductIntercept
     /** @var Sailthru\MageSail\Helper\Settings */
     private $sailthruSettings;
 
+    /** @var Product */
+    private $productModel;
+
     public function __construct(
         ClientManager $clientManager,
         SailthruProduct $sailthruProduct,
@@ -63,7 +66,8 @@ class ProductIntercept
         ImageHelper $imageHelper,
         Configurable $cpModel,
         Context $context,
-        Settings $sailthruSettings
+        Settings $sailthruSettings,
+        Product $productModel
     ) {
         $this->clientManager    = $clientManager;
         $this->sailthruProduct  = $sailthruProduct;
@@ -74,6 +78,7 @@ class ProductIntercept
         $this->context          = $context;
         $this->request          = $context->getRequest();
         $this->sailthruSettings = $sailthruSettings;
+        $this->productModel     = $productModel;
     }
 
     public function afterAfterSave(Product $productModel, $productResult)
@@ -180,7 +185,7 @@ class ProductIntercept
 
         try {
             $data = [
-                'url'   => $isVariant ? $this->getProductFragmentedUrl($product, $parents[0]) :
+                'url'   => $isVariant ? $this->getProductFragmentedUrl($product, $parents[0], $storeId, true) :
                     $this->getProductUrl($product, $storeId, true),
                 'title' => htmlspecialchars($product->getName()),
                 'spider' => 0,
@@ -244,9 +249,10 @@ class ProductIntercept
         }
     }
 
-    public function getProductFragmentedUrl(Product $product, $parent)
+    public function getProductFragmentedUrl(Product $product, $parent, $storeId, $useSID = false)
     {
-        $parentUrl = $this->productHelper->getProductUrl($parent);
+        $parentProductModel = $this->productModel->load($parent);
+        $parentUrl = $this->getProductUrl($parentProductModel, $storeId, $useSID);
         $pSku = $product->getSku();
         return "{$parentUrl}#{$pSku}";
     }
