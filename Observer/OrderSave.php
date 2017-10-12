@@ -48,12 +48,16 @@ class OrderSave implements ObserverInterface {
     }
 
     public function execute(Observer $observer) {
-        /** @var Order $customer */
+        /** @var Order $order */
         $order = $observer->getOrder();
-        $storeId = $customer->getStoreId();
+        $storeId = $order->getStoreId();
         $this->sailthruClient = $this->sailthruClient->getClient(true, $storeId);
         $orderData = $this->_getData($order);
-        $this->logger->debug($orderData);
+        try {
+            $this->sailthruClient->apiPost("purchase", $orderData);
+        } catch (\Sailthru_Client_Exception $e) {
+            $this->logger->err("Error sync'ing purchase #{} - ({}) {}", $order->getIncrementId(), $e->getCode(), $e->getMessage());
+        }
     }
 
     protected function _getData(Order $order)
