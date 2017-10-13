@@ -103,8 +103,8 @@ class OrderSave implements ObserverInterface {
             }
             if ($_item['id']) {
                 $_item['qty'] = $item->getQtyOrdered();
-                $_item['url'] = $item->getProduct()->getProductUrl();
-                $_item['image']=$this->productHelper->getSmallImageUrl($product);
+                $_item['url'] = $this->sailthruProduct->getProductUrl($product);
+                $_item['image']=$this->sailthruProduct->getBaseImageUrl($product);
                 $_item['price'] = $item->getPrice() * 100;
                 if ($tags = $this->sailthruProduct->getTags($product)) {
                     $_item['tags'] = $tags;
