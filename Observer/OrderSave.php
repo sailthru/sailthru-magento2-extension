@@ -6,7 +6,7 @@ use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Sales\Model\Order;
 use Sailthru\MageSail\Helper\ClientManager;
-use Sailthru\MageSail\Helper\Product as SailthruProduct;
+use Sailthru\MageSail\Helper\ProductData as SailthruProduct;
 use Sailthru\MageSail\Helper\Settings as SailthruSettings;
 use Sailthru\MageSail\Cookie\Hid as SailthruCookie;
 use Sailthru\MageSail\Logger;
@@ -56,7 +56,7 @@ class OrderSave implements ObserverInterface {
         try {
             $this->sailthruClient->apiPost("purchase", $orderData);
         } catch (\Sailthru_Client_Exception $e) {
-            $this->logger->err("Error sync'ing purchase #{} - ({}) {}", $order->getIncrementId(), $e->getCode(), $e->getMessage());
+            $this->logger->err("Error sync'ing purchase #{} - ({}) {}", [$order->getIncrementId(), $e->getCode(), $e->getMessage()]);
         }
     }
 

@@ -21,7 +21,7 @@ use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\Email\Sender\OrderSender\Interceptor; // generated in var/generation. http://alanstorm.com/magento_2_object_manager_plugin_system
 use Sailthru\MageSail\Helper\ClientManager;
 use Sailthru\MageSail\Helper\Settings as SailthruSettings;
-use Sailthru\MageSail\Helper\Product as SailthruProduct;
+use Sailthru\MageSail\Helper\ProductData as SailthruProduct;
 use Sailthru\MageSail\Cookie\Hid as SailthruCookie;
 
 class SaveOrder implements ObserverInterface;
