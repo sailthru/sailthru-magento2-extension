@@ -2,6 +2,7 @@
 
 namespace Sailthru\MageSail\Helper;
 
+use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Model\Product;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable as ConfigurableProduct;
 use Magento\Framework\App\Helper\Context;
@@ -15,11 +16,11 @@ use Sailthru\MageSail\Model\Template as TemplateModel;
 class ProductData extends AbstractHelper
 {
 
-    /** @var Product */
-    private $product;
-
     /** @var ConfigurableProduct */
     private $configurableProduct;
+
+    /** @var ProductRepositoryInterface */
+    private $productRepo;
 
     const XML_CONTENT_INTERCEPT        = "magesail_content/intercept/enable_intercept";
     const XML_CONTENT_SEND_MASTER      = "magesail_content/intercept/send_master";
@@ -61,13 +62,12 @@ class ProductData extends AbstractHelper
     ];
 
     public function __construct(Context $context, StoreManager $storeManager, Logger $logger, TemplateModel $templateModel,
-                                TemplateConfig $templateConfig, ObjectManagerInterface $objectManager, Product $product,
-                                ConfigurableProduct $configurableProduct)
+                                TemplateConfig $templateConfig, ObjectManagerInterface $objectManager, ConfigurableProduct $configurableProduct,
+                                ProductRepositoryInterface $productRepo)
     {
         parent::__construct($context, $storeManager, $logger, $templateModel, $templateConfig, $objectManager);
-        $this->product = $product;
         $this->configurableProduct = $configurableProduct;
-
+        $this->productRepo = $productRepo;
     }
 
     /**
@@ -244,14 +244,15 @@ class ProductData extends AbstractHelper
             $product->setStoreId($storeId);
         }
 
-        return ($parents = $this->isVariant($product))
+        return ($parents = $this->isVariant($product, true))
             ? $this->_variantUrl($product, $parents[0])
             : $this->_safeUrl($product);
     }
 
-    private function _variantUrl(Product $product, $parent)
+    private function _variantUrl(Product $product, $parentId)
     {
-        $parent = $this->product->load($parent);
+
+        $parent = $this->productRepo->getById($parentId);
         $parent->setStoreId($product->getStoreId());
         $parentUrl = $this->_safeUrl($parent);
         $pSku = $product->getSku();
