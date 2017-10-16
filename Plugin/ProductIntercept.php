@@ -223,10 +223,13 @@ class ProductIntercept
             ];
 
             if ($isVariant) {
-                $data['inventory'] = $product->getStockData()["qty"];
                 if ($pIds = $this->cpModel->getParentIdsByChild($product->getId()) && count($pIds) == 1) {
                     $data['vars']['parentID'] = $pIds[0];
                 }
+            }
+
+            if ($inventory = $product->getStockData()["qty"]) {
+                $data['inventory'] = $inventory;
             }
 
             // Add product images
