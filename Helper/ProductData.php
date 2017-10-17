@@ -7,6 +7,7 @@ use Magento\Catalog\Model\Product;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable as ConfigurableProduct;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\ObjectManagerInterface;
+use Magento\Framework\UrlInterface;
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManager;
 use Sailthru\MageSail\Logger;
@@ -171,7 +172,7 @@ class ProductData extends AbstractHelper
                 $tags .= $attribute_str;
             }
         } catch (\Exception $e) {
-            $this->logger($e);
+            $this->logger->err($e);
         }
         return $tags;
     }
@@ -249,9 +250,16 @@ class ProductData extends AbstractHelper
             : $this->_safeUrl($product);
     }
 
+    public function getProductUrlBySku($sku, $storeId = null)
+    {
+        /** @var Product $product */
+        $product = $this->productRepo->get($sku);
+        return $this->getProductUrl($product, $storeId);
+    }
+
     private function _variantUrl(Product $product, $parentId)
     {
-
+        /** @var Product $parent */
         $parent = $this->productRepo->getById($parentId);
         $parent->setStoreId($product->getStoreId());
         $parentUrl = $this->_safeUrl($parent);
@@ -272,6 +280,6 @@ class ProductData extends AbstractHelper
     {
         /** @var Store $store */
         $store = $this->storeManager->getStore($product->getStoreId());
-        return $store->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA) . 'catalog/product' . $product->getImage();
+        return $store->getBaseUrl(UrlInterface::URL_TYPE_MEDIA) . 'catalog/product' . $product->getImage();
     }
 }
