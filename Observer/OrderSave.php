@@ -5,6 +5,7 @@ use Magento\Catalog\Helper\Product as ProductHelper;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Item;
 use Sailthru\MageSail\Helper\ClientManager;
 use Sailthru\MageSail\Helper\ProductData as SailthruProduct;
 use Sailthru\MageSail\Helper\Settings as SailthruSettings;
@@ -56,7 +57,7 @@ class OrderSave implements ObserverInterface {
         try {
             $this->sailthruClient->apiPost("purchase", $orderData);
         } catch (\Sailthru_Client_Exception $e) {
-            $this->logger->err("Error sync'ing purchase #{} - ({}) {}", [$order->getIncrementId(), $e->getCode(), $e->getMessage()]);
+            $this->logger->err("Error sync'ing purchase #{$order->getIncrementId()} - ({$e->getCode()}) {$e->getMessage()}");
         }
     }
 
@@ -82,8 +83,20 @@ class OrderSave implements ObserverInterface {
     {
         /** @var \Magento\Sales\Model\Order\Item[] $items */
         $items = $order->getAllVisibleItems();
+
+        $bundles = array_values(array_filter($items, function(Item $item) { return $item->getProductType() == 'bundle';}));
+        $bundleIds = array_map(
+            function(Item $item) { return $item->getProductId(); },
+            $bundles
+        );
+
+        $configurables = array_values(array_filter($items, function(Item $item) { return $item->getProductType() == "configurable"; }));
+        $configurableIds = array_map(
+            function(Item $item) { return $item->getProductId();},
+            $configurables
+        );
+
         $data = [];
-        $configurableSkus = [];
         foreach ($items as $item) {
             $product = $item->getProduct();
             $_item = [];
@@ -92,19 +105,26 @@ class OrderSave implements ObserverInterface {
                 $parentIds[] = $item->getParentItemId();
                 $options = $item->getProductOptions();
                 $_item['id'] = $options['simple_sku'];
-                $_item['title'] = $options['simple_name'];
-                $_item['vars'] = $this->getItemVars($options);
-                $configurableSkus[] = $options['simple_sku'];
-            } elseif (!in_array($item->getSku(), $configurableSkus) && $item->getProductType() != 'bundle') {
-                $_item['id'] = $item->getSku();
                 $_item['title'] = $item->getName();
+                $_item['vars'] = $this->getItemVars($options);
+                $_item['url'] = $this->sailthruProduct->getProductUrlBySku($_item['id'], $order->getStoreId());
+                $configurableSkus[] = $options['simple_sku'];
             } else {
-                $_item['id'] = null;
+                $parent = $item->getParentItem();
+                if (!$parent or !(in_array($parent->getProductId(), $configurableIds) or in_array($parent->getProductId(), $bundleIds))) {
+                    $_item['id'] = $item->getSku();
+                    $_item['title'] = $item->getName();
+                    $_item['url'] = $this->sailthruProduct->getProductUrl($product);
+                } else {
+                    $_item['id'] = null;
+                }
             }
+
             if ($_item['id']) {
                 $_item['qty'] = $item->getQtyOrdered();
-                $_item['url'] = $this->sailthruProduct->getProductUrl($product);
-                $_item['image']=$this->sailthruProduct->getBaseImageUrl($product);
+                $_item['images'] = [
+                    'full' =>   [ 'url' => $this->sailthruProduct->getBaseImageUrl($product) ],
+                ];
                 $_item['price'] = $item->getPrice() * 100;
                 if ($tags = $this->sailthruProduct->getTags($product)) {
                     $_item['tags'] = $tags;
@@ -114,6 +134,7 @@ class OrderSave implements ObserverInterface {
         }
         return $data;
     }
+
     /**
      * Get order adjustments
      * @param Order $order
@@ -194,7 +215,7 @@ class OrderSave implements ObserverInterface {
         foreach ($adjustments as $adj) {
             $vars[$adj['title']] =  $adj['price'];
         }
-        $vars['orderId'] = $order->getId();
+        $vars['orderId'] = "#".strval($order->getIncrementId());
         return $vars;
     }
 }
