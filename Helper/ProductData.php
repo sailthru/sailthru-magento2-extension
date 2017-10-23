@@ -62,10 +62,16 @@ class ProductData extends AbstractHelper
         'sku'
     ];
 
-    public function __construct(Context $context, StoreManager $storeManager, Logger $logger, TemplateModel $templateModel,
-                                TemplateConfig $templateConfig, ObjectManagerInterface $objectManager, ConfigurableProduct $configurableProduct,
-                                ProductRepositoryInterface $productRepo)
-    {
+    public function __construct(
+        Context $context,
+        StoreManager $storeManager,
+        Logger $logger,
+        TemplateModel $templateModel,
+        TemplateConfig $templateConfig,
+        ObjectManagerInterface $objectManager,
+        ConfigurableProduct $configurableProduct,
+        ProductRepositoryInterface $productRepo
+    ) {
         parent::__construct($context, $storeManager, $logger, $templateModel, $templateConfig, $objectManager);
         $this->configurableProduct = $configurableProduct;
         $this->productRepo = $productRepo;
