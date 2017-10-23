@@ -13,9 +13,6 @@
     <type name="Magento\Checkout\Model\Cart">
     	<plugin name="MageSail_CartInterceptor" type="Sailthru\MageSail\Plugin\CartIntercept" />
     </type>
-    <type name="Magento\Sales\Model\Order\Email\Sender\OrderSender">
-    	<plugin name="MageSail_OrderIntercept" type="Sailthru\MageSail\Plugin\OrderIntercept" />
-    </type>
     <type name="\Magento\Config\Model\Config\Structure\Element\Group">
         <plugin name="MageSail_Config_Fields" type="Sailthru\MageSail\Plugin\GroupIntercept"/>
     </type>

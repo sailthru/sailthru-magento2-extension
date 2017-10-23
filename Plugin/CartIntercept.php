@@ -45,8 +45,8 @@ class CartIntercept
     public function _gate(Cart $cart)
     {
         $storeId = $cart->getQuote()->getStoreId();
-        $this->client = $this->client->getClient(true, $storeId);
         if ($this->sailthruSettings->isAbandonedCartEnabled($storeId)) {
+            $this->client = $this->client->getClient(true, $storeId);
             return $this->sendCart($cart);
         } else {
             return $cart;

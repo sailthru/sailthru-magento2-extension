@@ -13,7 +13,7 @@ use Magento\Store\Model\StoreManagerInterface;
 use Magento\Framework\Url;
 use Sailthru\MageSail\Helper\Api;
 use Sailthru\MageSail\Helper\ClientManager;
-use Sailthru\MageSail\Helper\Product as SailthruProduct;
+use Sailthru\MageSail\Helper\ProductData as SailthruProduct;
 use Sailthru\MageSail\Helper\Settings;
 
 class ProductIntercept
@@ -52,7 +52,7 @@ class ProductIntercept
         'sku'
     ];
 
-    /** @var Sailthru\MageSail\Helper\Settings */
+    /** @var \Sailthru\MageSail\Helper\Settings */
     private $sailthruSettings;
 
     /** @var Product */
@@ -98,8 +98,8 @@ class ProductIntercept
     /**
      * To send multiple requests to API.
      * 
-     * @param  Product                        $product
-     * @param  Magento\Catalog\Model\Product  $productResult
+     * @param  Product  $product
+     * @param  Product  $productResult
      */
     private function sendMultipleRequests(Product $product, $productResult)
     {
@@ -114,7 +114,7 @@ class ProductIntercept
     /**
      * To send single request to API.
      * 
-     * @param  Magento\Catalog\Model\Product $productResult
+     * @param  Product $productResult
      * @param  string|null                   $storeId
      */
     private function sendRequest($productResult, $storeId = null)
@@ -150,6 +150,7 @@ class ProductIntercept
      * Create Product array for Content API
      *
      * @param Product $product
+     * @param int $storeId
      * @return array|false
      */
     public function getProductData(Product $product, $storeId = null)
@@ -171,11 +172,8 @@ class ProductIntercept
             return false;
         }
 
-        $isSimple = ($productType == 'simple');
-        $parents = $this->cpModel->getParentIdsByChild($product->getId());
-        $isVariant = ($isSimple && $parents);
+        $isVariant = $this->sailthruProduct->isVariant($product);
         $updateVariants = $this->sailthruProduct->canSyncVariantProducts($storeId);
-        $this->clientManager->getClient()->logger($updateVariants);
         if ($isVariant && !$updateVariants) {
             return false;
         }
@@ -185,8 +183,7 @@ class ProductIntercept
 
         try {
             $data = [
-                'url'   => $isVariant ? $this->getProductFragmentedUrl($product, $parents[0], $storeId, true) :
-                    $this->getProductUrl($product, $storeId, true),
+                'url'   => $this->sailthruProduct->getProductUrl($product, $storeId),
                 'title' => htmlspecialchars($product->getName()),
                 'spider' => 0,
                 'price' => $price = ($product->getPrice() ? $product->getPrice() :
@@ -226,7 +223,14 @@ class ProductIntercept
             ];
 
             if ($isVariant) {
-                $data['inventory'] = $product->getStockData()["qty"];
+                $pIds = $this->cpModel->getParentIdsByChild($product->getId());
+                if ($pIds && count($pIds) == 1) {
+                    $data['vars']['parentID'] = $pIds[0];
+                }
+            }
+
+            if ($inventory = $product->getStockData()["qty"]) {
+                $data['inventory'] = $inventory;
             }
 
             // Add product images
@@ -235,48 +239,16 @@ class ProductIntercept
                     "url" => $this->imageHelper->init($product, 'product_listing_thumbnail')->getUrl()
                 ];
                 $data['images']['full'] = [
-                    "url"=> $this->getBaseImageUrl($product)
+                    "url"=> $this->sailthruProduct->getBaseImageUrl($product)
                 ];
-            }
-            if ($parents && count($parents) == 1) {
-                $data['vars']['parentID'] = $parents[0];
             }
 
             return $data;
+
         } catch (\Exception $e) {
             $this->clientManager->getClient()->logger($e->getMessage());
             return false;
         }
     }
 
-    public function getProductFragmentedUrl(Product $product, $parent, $storeId, $useSID = false)
-    {
-        $parentProductModel = $this->productModel->load($parent);
-        $parentUrl = $this->getProductUrl($parentProductModel, $storeId, $useSID);
-        $pSku = $product->getSku();
-        return "{$parentUrl}#{$pSku}";
-    }
-
-    /**
-     * To get product url.
-     * 
-     * @param  Product $product
-     * @param  string  $storeId
-     * @param  bool    $useSID
-     * 
-     * @return string
-     */
-    public function getProductUrl(Product $product, $storeId, $useSID = false)
-    {
-        $product->setStoreId($storeId)->getProductUrl($useSID);
-
-        return $this->_storeManager->getStore()->getBaseUrl() . $product->getRequestPath();
-    }
-
-    // Magento 2 getImage seems to add a strange slash, therefore this.
-    public function getBaseImageUrl($product)
-    {
-        return $this->_storeManager->getStore()
-            ->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA) . 'catalog/product' . $product->getImage();
-    }
 }

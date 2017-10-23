@@ -5,7 +5,7 @@ namespace Sailthru\MageSail\Helper;
 use Sailthru\MageSail\Helper\VariablesAbstractHelper;
 use Magento\Sales\Model\Order as OrderModel;
 use Magento\Catalog\Helper\Product as MagentoProductHelper;
-use Sailthru\MageSail\Helper\Product as SailthruProductHelper;
+use Sailthru\MageSail\Helper\ProductData as SailthruProductHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Store\Model\StoreManager;
 use Magento\Directory\Api\CountryInformationAcquirerInterface;

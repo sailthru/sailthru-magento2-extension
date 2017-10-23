@@ -2,7 +2,19 @@
 
 namespace Sailthru\MageSail\Helper;
 
-class Product extends AbstractHelper
+use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Catalog\Model\Product;
+use Magento\ConfigurableProduct\Model\Product\Type\Configurable as ConfigurableProduct;
+use Magento\Framework\App\Helper\Context;
+use Magento\Framework\ObjectManagerInterface;
+use Magento\Framework\UrlInterface;
+use Magento\Store\Model\Store;
+use Magento\Store\Model\StoreManager;
+use Sailthru\MageSail\Logger;
+use Sailthru\MageSail\Model\Config\Template\Data as TemplateConfig;
+use Sailthru\MageSail\Model\Template as TemplateModel;
+
+class ProductData extends AbstractHelper
 {
 
     const XML_CONTENT_INTERCEPT        = "magesail_content/intercept/enable_intercept";
@@ -43,6 +55,27 @@ class Product extends AbstractHelper
         'quantity_and_stock_status',
         'sku'
     ];
+
+    /** @var ConfigurableProduct */
+    private $configurableProduct;
+
+    /** @var ProductRepositoryInterface */
+    private $productRepo;
+
+    public function __construct(
+        Context $context,
+        StoreManager $storeManager,
+        Logger $logger,
+        TemplateModel $templateModel,
+        TemplateConfig $templateConfig,
+        ObjectManagerInterface $objectManager,
+        ConfigurableProduct $configurableProduct,
+        ProductRepositoryInterface $productRepo
+    ) {
+        parent::__construct($context, $storeManager, $logger, $templateModel, $templateConfig, $objectManager);
+        $this->configurableProduct = $configurableProduct;
+        $this->productRepo = $productRepo;
+    }
 
     /**
      * Is the Product-saving interceptor enabled
@@ -112,13 +145,13 @@ class Product extends AbstractHelper
 
     /**
      * Get string-concatenated tags for a product
-     * @param \Magento\Catalog\Model\Product $product
+     * @param Product $product
      * @param array|null $attributes
      * @param string[]|null $categories
      *
      * @return string
      */
-    public function getTags($product, $attributes = null, $categories = null)
+    public function getTags(Product $product, $attributes = null, $categories = null)
     {
         $tags = '';
         if ($this->tagsUseKeywords()) {
@@ -145,18 +178,18 @@ class Product extends AbstractHelper
                 $tags .= $attribute_str;
             }
         } catch (\Exception $e) {
-            $this->logger($e);
+            $this->logger->err($e);
         }
         return $tags;
     }
 
     /**
      * Build product attributes for product vars and tags
-     * @param \Magento\Catalog\Model\Product $product
+     * @param Product $product
      *
      * @return array
      */
-    public function getProductAttributeValues(\Magento\Catalog\Model\Product $product)
+    public function getProductAttributeValues(Product $product)
     {
         $setId = $product->getAttributeSetId();
         $attributeSet = $product->getAttributes();
@@ -175,11 +208,11 @@ class Product extends AbstractHelper
 
     /**
      * Get all the categories for a given product
-     * @param \Magento\Catalog\Model\Product $product
+     * @param Product $product
      *
      * @return string[]
      */
-    public function getCategories(\Magento\Catalog\Model\Product $product)
+    public function getCategories(Product $product)
     {
         $collection = $product->getCategoryCollection();
         $items = $collection->addAttributeToSelect('name')->getItems();
@@ -188,5 +221,99 @@ class Product extends AbstractHelper
             $categories[] = $item->getName();
         }
         return $categories;
+    }
+
+    /**
+     * Checks whether a product is simple and has parents (a product "variant"). Can optionally return the parent IDs.
+     * @param Product $product
+     * @param bool    $returnParentIds
+     *
+     * @return int[]|bool
+     */
+    public function isVariant(Product $product, $returnParentIds = false)
+    {
+        $isSimple = $product->getTypeId() == 'simple';
+        $parents = $this->configurableProduct->getParentIdsByChild($product->getId());
+        if ($isSimple && $parents) {
+            return $returnParentIds
+                ? $parents
+                : true;
+        }
+        return false;
+    }
+
+    /**
+     * Generates interceptor-safe product url for correct store.
+     * For variants, will return the configurable product's url with
+     * #<variant_sku> anchored at the end.
+     *
+     * @param  Product $product
+     * @param  int $storeId
+     *
+     * @return string
+     */
+    public function getProductUrl(Product $product, $storeId = null)
+    {
+        if ($storeId) {
+            $product->setStoreId($storeId);
+        }
+
+        return ($parents = $this->isVariant($product, true))
+            ? $this->buildVariantUrl($product, $parents[0])
+            : $this->buildSafeUrl($product);
+    }
+
+    /**
+     * Generate a product URL by a SKU
+     * @param string   $sku
+     * @param int|null $storeId
+     *
+     * @return string
+     */
+    public function getProductUrlBySku($sku, $storeId = null)
+    {
+        /** @var Product $product */
+        $product = $this->productRepo->get($sku);
+        return $this->getProductUrl($product, $storeId);
+    }
+
+    /**
+     * Generates a Sailthru-safe URL for a variant product
+     * @param Product $product
+     * @param int     $parentId
+     *
+     * @return string
+     */
+    protected function buildVariantUrl(Product $product, $parentId)
+    {
+        /** @var Product $parent */
+        $parent = $this->productRepo->getById($parentId);
+        $parent->setStoreId($product->getStoreId());
+        $parentUrl = $this->buildSafeUrl($parent);
+        $pSku = $product->getSku();
+        return "{$parentUrl}#{$pSku}";
+    }
+
+    /**
+     * Generate a Sailthru-safe direct URL for a product
+     * Shouldn't be used for variants.
+     * @param Product $product
+     *
+     * @return string
+     */
+    protected function buildSafeUrl(Product $product)
+    {
+        $product->getProductUrl(false); // generates the URL key
+        /** @var Store $store */
+        $store = $this->storeManager->getStore($product->getStoreId());
+        return $store->getBaseUrl() . $product->getRequestPath();
+    }
+
+    // Magento 2 getImage seems to add a strange slash, therefore this.
+    public function getBaseImageUrl(Product $product)
+    {
+        /** @var Store $store */
+        $store = $this->storeManager->getStore($product->getStoreId());
+        return $store->getBaseUrl(UrlInterface::URL_TYPE_MEDIA) . 'catalog/product' . $product->getImage();
     }
 }
