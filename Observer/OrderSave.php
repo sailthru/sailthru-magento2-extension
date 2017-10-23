@@ -48,12 +48,13 @@ class OrderSave implements ObserverInterface {
         $this->logger = $logger;
     }
 
-    public function execute(Observer $observer) {
+    public function execute(Observer $observer)
+    {
         /** @var Order $order */
         $order = $observer->getOrder();
         $storeId = $order->getStoreId();
         $this->sailthruClient = $this->sailthruClient->getClient(true, $storeId);
-        $orderData = $this->_getData($order);
+        $orderData = $this->build($order);
         try {
             $this->sailthruClient->apiPost("purchase", $orderData);
         } catch (\Sailthru_Client_Exception $e) {
@@ -61,7 +62,7 @@ class OrderSave implements ObserverInterface {
         }
     }
 
-    protected function _getData(Order $order)
+    protected function build(Order $order)
     {
         return [
             'email'       => $email = $order->getCustomerEmail(),
@@ -83,18 +84,8 @@ class OrderSave implements ObserverInterface {
     {
         /** @var \Magento\Sales\Model\Order\Item[] $items */
         $items = $order->getAllVisibleItems();
-
-        $bundles = array_values(array_filter($items, function(Item $item) { return $item->getProductType() == 'bundle';}));
-        $bundleIds = array_map(
-            function(Item $item) { return $item->getProductId(); },
-            $bundles
-        );
-
-        $configurables = array_values(array_filter($items, function(Item $item) { return $item->getProductType() == "configurable"; }));
-        $configurableIds = array_map(
-            function(Item $item) { return $item->getProductId();},
-            $configurables
-        );
+        $bundleIds = $this->getIdsOfType($items, "bundle");
+        $configurableIds = $this->getIdsOfType($items, "configurable");
 
         $data = [];
         foreach ($items as $item) {
@@ -217,5 +208,18 @@ class OrderSave implements ObserverInterface {
         }
         $vars['orderId'] = "#".strval($order->getIncrementId());
         return $vars;
+    }
+
+    private function getIdsOfType($items, $productType) {
+        $items = array_values(array_filter(
+            $items, function(Item $item) use ($productType) { return $item->getProductType() == $productType;
+        }));
+        $itemIds = array_map(
+            function(Item $item) {
+                return $item->getProductId();
+            },
+            $items
+        );
+        return $itemIds;
     }
 }
