@@ -102,7 +102,7 @@ class OrderSave implements ObserverInterface {
                 $configurableSkus[] = $options['simple_sku'];
             } else {
                 $parent = $item->getParentItem();
-                if (!$parent or !(in_array($parent->getProductId(), $configurableIds) or in_array($parent->getProductId(), $bundleIds))) {
+                if (!$parent || !(in_array($parent->getProductId(), $configurableIds) || in_array($parent->getProductId(), $bundleIds))) {
                     $_item['id'] = $item->getSku();
                     $_item['title'] = $item->getName();
                     $_item['url'] = $this->sailthruProduct->getProductUrl($product);
@@ -154,6 +154,7 @@ class OrderSave implements ObserverInterface {
         }
         return $adjustments;
     }
+
     /**
      * Get payment information
      * @param  Order         $order
@@ -172,9 +173,8 @@ class OrderSave implements ObserverInterface {
                 return '';
             }
             return $tenders;
-        } else {
-            return '';
         }
+        return '';
     }
 
     /**
