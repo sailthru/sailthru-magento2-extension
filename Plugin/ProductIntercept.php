@@ -223,7 +223,8 @@ class ProductIntercept
             ];
 
             if ($isVariant) {
-                if ($pIds = $this->cpModel->getParentIdsByChild($product->getId()) and count($pIds) == 1) {
+                $pIds = $this->cpModel->getParentIdsByChild($product->getId());
+                if ($pIds && count($pIds) == 1) {
                     $data['vars']['parentID'] = $pIds[0];
                 }
             }
