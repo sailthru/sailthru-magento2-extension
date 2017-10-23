@@ -17,12 +17,6 @@ use Sailthru\MageSail\Model\Template as TemplateModel;
 class ProductData extends AbstractHelper
 {
 
-    /** @var ConfigurableProduct */
-    private $configurableProduct;
-
-    /** @var ProductRepositoryInterface */
-    private $productRepo;
-
     const XML_CONTENT_INTERCEPT        = "magesail_content/intercept/enable_intercept";
     const XML_CONTENT_SEND_MASTER      = "magesail_content/intercept/send_master";
     const XML_CONTENT_SEND_VARIANTS    = "magesail_content/intercept/send_variants";
@@ -61,6 +55,12 @@ class ProductData extends AbstractHelper
         'quantity_and_stock_status',
         'sku'
     ];
+
+    /** @var ConfigurableProduct */
+    private $configurableProduct;
+
+    /** @var ProductRepositoryInterface */
+    private $productRepo;
 
     public function __construct(
         Context $context,
@@ -223,12 +223,19 @@ class ProductData extends AbstractHelper
         return $categories;
     }
 
-    public function isVariant(Product $product, $returnParents = false)
+    /**
+     * Checks whether a product is simple and has parents (a product "variant"). Can optionally return the parent IDs.
+     * @param Product $product
+     * @param bool    $returnParentIds
+     *
+     * @return int[]|bool
+     */
+    public function isVariant(Product $product, $returnParentIds = false)
     {
         $isSimple = $product->getTypeId() == 'simple';
         $parents = $this->configurableProduct->getParentIdsByChild($product->getId());
         if ($isSimple && $parents) {
-            return $returnParents
+            return $returnParentIds
                 ? $parents
                 : true;
         }
@@ -252,10 +259,17 @@ class ProductData extends AbstractHelper
         }
 
         return ($parents = $this->isVariant($product, true))
-            ? $this->_variantUrl($product, $parents[0])
-            : $this->_safeUrl($product);
+            ? $this->buildVariantUrl($product, $parents[0])
+            : $this->buildSafeUrl($product);
     }
 
+    /**
+     * Generate a product URL by a SKU
+     * @param string   $sku
+     * @param int|null $storeId
+     *
+     * @return string
+     */
     public function getProductUrlBySku($sku, $storeId = null)
     {
         /** @var Product $product */
@@ -263,17 +277,31 @@ class ProductData extends AbstractHelper
         return $this->getProductUrl($product, $storeId);
     }
 
-    private function _variantUrl(Product $product, $parentId)
+    /**
+     * Generates a Sailthru-safe URL for a variant product
+     * @param Product $product
+     * @param int     $parentId
+     *
+     * @return string
+     */
+    protected function buildVariantUrl(Product $product, $parentId)
     {
         /** @var Product $parent */
         $parent = $this->productRepo->getById($parentId);
         $parent->setStoreId($product->getStoreId());
-        $parentUrl = $this->_safeUrl($parent);
+        $parentUrl = $this->buildSafeUrl($parent);
         $pSku = $product->getSku();
         return "{$parentUrl}#{$pSku}";
     }
 
-    private function _safeUrl(Product $product)
+    /**
+     * Generate a Sailthru-safe direct URL for a product
+     * Shouldn't be used for variants.
+     * @param Product $product
+     *
+     * @return string
+     */
+    protected function buildSafeUrl(Product $product)
     {
         $product->getProductUrl(false); // generates the URL key
         /** @var Store $store */
