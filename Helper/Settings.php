@@ -210,11 +210,11 @@ class Settings extends AbstractHelper
                     ];
                 }
 
-                $value = $this->getTemplateValue($ids[0], $storeId);
+                $value = empty($ids) ? null : $this->getTemplateValue($ids[0], $storeId);
                 $name = empty($value)
                     ? self::MAGENTO_PREFIX . $templateData['template_code']
                     : $value;
-                $origCode = $ids[0];
+                $origCode = empty($ids) ? '' : $ids[0];
             }
         } else {
             $value = $this->getTemplateValue($templateId, $storeId);
@@ -259,26 +259,35 @@ class Settings extends AbstractHelper
             if (isset($currentVars['reset_url']) && preg_match('/id=(.*?)\&/', $currentVars['reset_url'], $matches)) {
                 $customer = $helper->getObjectById($matches[1] ?? null);
             } else {
-                $customer = $helper->getObject($currentVars['customer_email']);
+                $customer = isset($currentVars['customer_email']) ?
+                    $helper->getObject($currentVars['customer_email'])
+                    : null;
             }
-            $currentVars += $helper->getCustomVariables($customer);
+
+            if ($customer) {
+                $currentVars += $helper->getCustomVariables($customer);
+            }
         }
 
         if (in_array($id, self::HELPERS_MAP['Sailthru\MageSail\Helper\Order'])) {
-            $order = $helper->getObject($currentVars['increment_id']);
-            $currentVars += $helper->getCustomVariables($order);
-
-            if (in_array($id, self::TEMPLATES_WITH_IS_GUEST_VAR)) {
-                $currentVars += $helper->getIsGuestVariable($order);
+            if (isset($currentVars['increment_id'])) {
+                $order = $helper->getObject($currentVars['increment_id']);
+                $currentVars += $helper->getCustomVariables($order);
+                
+                if (in_array($id, self::TEMPLATES_WITH_IS_GUEST_VAR)) {
+                    $currentVars += $helper->getIsGuestVariable($order);
+                }
             }
         }
 
         if (in_array($id, self::HELPERS_MAP['Sailthru\MageSail\Helper\Shipment'])) {
-            $shipment = $helper->getObject($currentVars['shipment_id']);
-            $currentVars += $helper->getCustomVariables($shipment);
+            if (isset($currentVars['shipment_id'])) {
+                $shipment = $helper->getObject();
+                $currentVars += $helper->getCustomVariables($shipment);
 
-            if (in_array($id, self::TEMPLATES_WITH_IS_GUEST_VAR)) {
-                $currentVars += $helper->getIsGuestVariable($shipment);
+                if (in_array($id, self::TEMPLATES_WITH_IS_GUEST_VAR)) {
+                    $currentVars += $helper->getIsGuestVariable($shipment);
+                }
             }
         }
 

@@ -126,7 +126,7 @@
                     <depends>
                         <field id="*/*/enabled">1</field>
                     </depends>
-                    <source_model>Sailthru\MageSail\Model\Config\Source\SailthruTemplates</source_model>
+                    <source_model>Sailthru\MageSail\Model\Config\Source\SailthruAbandonedCartTemplates</source_model>
                 </field>
                 <field id="delay_time" type="text" translate="label" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Abandoned Cart Send Time</label>

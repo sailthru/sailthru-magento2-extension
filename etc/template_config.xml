@@ -97,14 +97,14 @@ xsi:noNamespaceSchemaLocation="template_list.xsd">
         <template>
             <id>sales_email_shipment_comment_template</id>
             <name>Shipment Update</name>
-            <custom_template_source>sales_email/shipment/comment_template</custom_template_source>
+            <custom_template_source>sales_email/shipment_comment/template</custom_template_source>
             <sort_order>16</sort_order>
         </template>
         <!-- Magento_Sales(Shipment Update for Guest) -->
         <template>
             <id>sales_email_shipment_comment_guest_template</id>
             <name>Shipment Update for Guest</name>
-            <custom_template_source>sales_email/shipment/comment_guest_template</custom_template_source>
+            <custom_template_source>sales_email/shipment/comment/guest_template</custom_template_source>
             <sort_order>17</sort_order>
         </template>
     </template_list>
