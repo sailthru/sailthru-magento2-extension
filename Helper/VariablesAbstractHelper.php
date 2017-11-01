@@ -9,7 +9,7 @@ use Magento\Directory\Api\CountryInformationAcquirerInterface;
 
 abstract class VariablesAbstractHelper extends MageAbstractHelper
 {
-    /** @var Magento\Directory\Api\CountryInformationAcquirerInterface */
+    /** @var \Magento\Directory\Api\CountryInformationAcquirerInterface */
     protected $countryInformation;
     
     /** @var StoreManager  */

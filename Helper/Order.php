@@ -2,17 +2,16 @@
 
 namespace Sailthru\MageSail\Helper;
 
-use Sailthru\MageSail\Helper\VariablesAbstractHelper;
 use Magento\Sales\Model\Order as OrderModel;
 use Magento\Catalog\Helper\Product as MagentoProductHelper;
-use Sailthru\MageSail\Helper\ProductData as SailthruProductHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Store\Model\StoreManager;
 use Magento\Directory\Api\CountryInformationAcquirerInterface;
+use Sailthru\MageSail\Helper\ProductData as SailthruProductHelper;
 
 class Order extends VariablesAbstractHelper
 {
-    /** @var Magento\Sales\Model\Order */
+    /** @var \Magento\Sales\Model\Order */
     private $orderModel;
 
     /** @var MagentoProductHelper */
@@ -49,7 +48,7 @@ class Order extends VariablesAbstractHelper
         return [
             'order' => [
                 'id' => $object->getId(),
-                'items' => $this->getOrderItems($object),
+                'items' => $this->getOrderItemsForSend($object),
                 'adjustments' => $this->getOrderAdjustments($object),
                 'tenders' => $this->getOrderTenders($object),
                 'name' => $object->getCustomerName(),
@@ -99,7 +98,7 @@ class Order extends VariablesAbstractHelper
      * 
      * @return array
      */
-    private function getOrderItems(OrderModel $order)
+    private function getOrderItemsForSend(OrderModel $order)
     {
         /** @var \Magento\Sales\Model\Order\Item[] $items */
         $items = $order->getAllVisibleItems();
@@ -109,19 +108,14 @@ class Order extends VariablesAbstractHelper
         foreach ($items as $item) {
             $product = $item->getProduct();
             $_item = [];
-            $_item['vars'] = [];
-
             if ($item->getProduct()->getTypeId() == 'configurable') {
                 $options = $item->getProductOptions();
-                $_item += [
-                    'id' => $options['simple_sku'],
-                    'title' => $options['simple_name'],
-                    'vars' => $this->getItemOptions($item),
-                ];
+                $_item['id'] = $options['simple_sku'];
+                $_item['title'] = $item->getName();
+                $_item['options'] = $this->getItemOptions($item, true);
                 $configurableSkus[] = $options['simple_sku'];
             } elseif (!in_array($item->getSku(), $configurableSkus) &&
-                $item->getProductType() != 'bundle'
-            ) {
+                      $item->getProductType() != 'bundle') {
                 $_item += [
                     'id' => $item->getSku(),
                     'title' => $item->getName(),
@@ -132,10 +126,10 @@ class Order extends VariablesAbstractHelper
 
             if ($_item['id']) {
                 $_item += [
-                    'qty' => $item->getQtyOrdered(),
+                    'qty' => intval($item->getQtyOrdered()),
                     'url' => $item->getProduct()->getProductUrl(),
                     'image' => $this->magentoProductHelper->getSmallImageUrl($product),
-                    'price' => $item->getPrice() * 100,
+                    'price' => $item->getPrice(),
                 ];
 
                 if ($tags = $this->sailthruProductHelper->getTags($product)) {
@@ -213,17 +207,27 @@ class Order extends VariablesAbstractHelper
 
     /**
      * Get Sailthru item object vars
+     *
      * @param OrderModel\Item $item
+     * @param boolean         $keepLabelValue
+     *
      * @return array
      */
-    public function getItemOptions(OrderModel\Item $item)
+    public function getItemOptions(OrderModel\Item $item, $keepLabelValue=false)
     {
-        $options = $item->getProductOptions();
+        $productOptions = $item->getProductOptions();
+        if (!$productOptions or !array_key_exists('attributes_info', $productOptions)) {
+            return null;
+        }
+        $options = $productOptions['attributes_info'];
+
+        if ($keepLabelValue) {
+            return $options;
+        }
+
         $vars = [];
-        if (array_key_exists('attributes_info', $options)) {
-            foreach ($options['attributes_info'] as $attribute) {
-                $vars[$attribute['label']] = $attribute['value'];
-            }
+        foreach($options as $attribute) {
+            $vars[$attribute['label']] = $attribute['value'];
         }
         return $vars;
     }
