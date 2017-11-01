@@ -6,10 +6,11 @@ use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Item;
+use Sailthru\MageSail\Cookie\Hid as SailthruCookie;
 use Sailthru\MageSail\Helper\ClientManager;
+use Sailthru\MageSail\Helper\Order as SailthruOrder;
 use Sailthru\MageSail\Helper\ProductData as SailthruProduct;
 use Sailthru\MageSail\Helper\Settings as SailthruSettings;
-use Sailthru\MageSail\Cookie\Hid as SailthruCookie;
 use Sailthru\MageSail\Logger;
 
 class OrderSave implements ObserverInterface {
@@ -29,6 +30,9 @@ class OrderSave implements ObserverInterface {
     /** @var SailthruProduct  */
     private $sailthruProduct;
 
+    /** @var SailthruOrder */
+    private $sailthruOrder;
+
     /** @var  Logger */
     private $logger;
 
@@ -38,6 +42,7 @@ class OrderSave implements ObserverInterface {
         SailthruSettings $sailthruSettings,
         SailthruCookie $sailthruCookie,
         SailthruProduct $sailthruProduct,
+        SailthruOrder $sailthruOrder,
         Logger $logger
     ) {
         $this->productHelper = $productHelper;
@@ -45,6 +50,7 @@ class OrderSave implements ObserverInterface {
         $this->sailthruSettings = $sailthruSettings;
         $this->sailthruCookie = $sailthruCookie;
         $this->sailthruProduct = $sailthruProduct;
+        $this->sailthruOrder = $sailthruOrder;
         $this->logger = $logger;
     }
 
@@ -80,7 +86,7 @@ class OrderSave implements ObserverInterface {
      * @param Order $order
      * @return array
      */
-    public function processItems(Order $order)
+    protected function processItems(Order $order)
     {
         /** @var \Magento\Sales\Model\Order\Item[] $items */
         $items = $order->getAllVisibleItems();
@@ -97,7 +103,7 @@ class OrderSave implements ObserverInterface {
                 $options = $item->getProductOptions();
                 $_item['id'] = $options['simple_sku'];
                 $_item['title'] = $item->getName();
-                $_item['vars'] = $this->getItemVars($options);
+                $_item['vars'] = $this->sailthruOrder->getItemOptions($item);
                 $_item['url'] = $this->sailthruProduct->getProductUrlBySku($_item['id'], $order->getStoreId());
                 $configurableSkus[] = $options['simple_sku'];
             } else {
@@ -123,6 +129,7 @@ class OrderSave implements ObserverInterface {
                 $data[] = $_item;
             }
         }
+
         return $data;
     }
 
@@ -178,22 +185,6 @@ class OrderSave implements ObserverInterface {
     }
 
     /**
-     * Get Sailthru item object vars
-     * @param array $options
-     * @return array
-     */
-    public function getItemVars($options)
-    {
-        $vars = [];
-        if (array_key_exists('attributes_info', $options)) {
-            foreach ($options['attributes_info'] as $attribute) {
-                $vars[$attribute['label']] = $attribute['value'];
-            }
-        }
-        return $vars;
-    }
-
-    /**
      * Get Sailthru order object vars
      * @param Order $order
      * @param array $adjustments
@@ -210,6 +201,12 @@ class OrderSave implements ObserverInterface {
         return $vars;
     }
 
+    /**
+     * @param Item[] $items
+     * @param string $productType
+     *
+     * @return array
+     */
     private function getIdsOfType($items, $productType) {
         $items = array_values(array_filter(
             $items, function(Item $item) use ($productType) { return $item->getProductType() == $productType;

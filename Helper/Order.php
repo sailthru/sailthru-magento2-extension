@@ -116,7 +116,7 @@ class Order extends VariablesAbstractHelper
                 $_item += [
                     'id' => $options['simple_sku'],
                     'title' => $options['simple_name'],
-                    'vars' => $this->getItemVars($options),
+                    'vars' => $this->getItemOptions($item),
                 ];
                 $configurableSkus[] = $options['simple_sku'];
             } elseif (!in_array($item->getSku(), $configurableSkus) &&
@@ -209,5 +209,22 @@ class Order extends VariablesAbstractHelper
         }
 
         return $tenders;
+    }
+
+    /**
+     * Get Sailthru item object vars
+     * @param OrderModel\Item $item
+     * @return array
+     */
+    public function getItemOptions(OrderModel\Item $item)
+    {
+        $options = $item->getProductOptions();
+        $vars = [];
+        if (array_key_exists('attributes_info', $options)) {
+            foreach ($options['attributes_info'] as $attribute) {
+                $vars[$attribute['label']] = $attribute['value'];
+            }
+        }
+        return $vars;
     }
 }
