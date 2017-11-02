@@ -107,5 +107,17 @@ xsi:noNamespaceSchemaLocation="template_list.xsd">
             <custom_template_source>sales_email/shipment/comment/guest_template</custom_template_source>
             <sort_order>17</sort_order>
         </template>
+        <template>
+            <id>sales_email_creditmemo_comment_template</id>
+            <name>Credit Memo Update</name>
+            <custom_template_source>sales_email/creditmemo/comment/template</custom_template_source>
+            <sort_order>18</sort_order>
+        </template>
+        <template>
+            <id>sales_email_creditmemo_comment_guest_template</id>
+            <name>Credit Memo Update (Guest)</name>
+            <custom_template_source>sales_email/creditmemo/comment/guest_template</custom_template_source>
+            <sort_order>19</sort_order>
+        </template>
     </template_list>
 </config>
