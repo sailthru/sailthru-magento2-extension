@@ -114,8 +114,7 @@ class Order extends VariablesAbstractHelper
                 $_item['title'] = $item->getName();
                 $_item['options'] = $this->getItemOptions($item, true);
                 $configurableSkus[] = $options['simple_sku'];
-            } elseif (!in_array($item->getSku(), $configurableSkus) &&
-                      $item->getProductType() != 'bundle') {
+            } elseif (!in_array($item->getSku(), $configurableSkus)) {
                 $_item += [
                     'id' => $item->getSku(),
                     'title' => $item->getName(),
