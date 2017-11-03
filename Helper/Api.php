@@ -85,7 +85,7 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
                 $this->_apiKey,
                 $this->_apiSecret,
                 $this->logger,
-                $this->storeManager
+                $this->storeManager,
                 $this->moduleList
             );
         } catch (\Sailthru_Client_Exception $e) {
