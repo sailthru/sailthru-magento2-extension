@@ -50,6 +50,8 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
     const UNKNOWN_TEMPLATE_ERROR_CODE = 14;
 
     public static $unusedVarKeys = [
+        'status',
+        'row_id',
         'type_id',
         'attribute_set_id',
         'media_gallery',
@@ -59,7 +61,6 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
         'price_view',
         'msrp_display_actual_price_type',
         'page_layout',
-        'meta_keyword',
         'options_container',
         'custom_design',
         'custom_layout',
@@ -71,14 +72,13 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
         'relatedProductIds',
         'upSellProductIds',
         'description',
+        'meta_keyword',
         'name',
         'created_at',
         'updated_at',
         'tax_class_id',
         'quantity_and_stock_status',
-        'sku',
-        'status',
-        'row_id',
+        'sku'
     ];
 
     public $client;
