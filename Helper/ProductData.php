@@ -23,6 +23,7 @@ class ProductData extends AbstractHelper
     const XML_CONTENT_USE_KEYWORDS     = "magesail_content/tags/use_seo";
     const XML_CONTENT_USE_CATEGORIES   = "magesail_content/tags/use_categories";
     const XML_CONTENT_USE_ATTRIBUTES   = "magesail_content/tags/use_attributes";
+    const XML_CONTENT_ATTRIBUTES_LIST  = "magesail_content/tags/usable_attributes";
 
     public static $unusedVarKeys = [
         'status',
@@ -132,6 +133,11 @@ class ProductData extends AbstractHelper
         return boolval($this->getSettingsVal(self::XML_CONTENT_USE_ATTRIBUTES, $storeId));
     }
 
+    public function getUsableAttributes($storeId = null)
+    {
+        return explode(",", $this->getSettingsVal(self::XML_CONTENT_ATTRIBUTES_LIST, $storeId));
+    }
+
     /**
      * Is Sailthru building tags from product categories
      * @param string|null $storeId
@@ -175,6 +181,10 @@ class ProductData extends AbstractHelper
                         $attribute_str .= (($value == "Yes" || $value == "Enabled") ? $key : $value) . ",";
                     }
                 }
+
+                if ($attribute_str && $tags) {
+                    $tags .= ",";
+                }
                 $tags .= $attribute_str;
             }
         } catch (\Exception $e) {
@@ -191,12 +201,13 @@ class ProductData extends AbstractHelper
      */
     public function getProductAttributeValues(Product $product)
     {
-        $setId = $product->getAttributeSetId();
+        $usableAttributes = $this->getUsableAttributes();
         $attributeSet = $product->getAttributes();
         $data = [];
         foreach ($attributeSet as $attribute) {
+            $code = $attribute->getAttributeCode();
             $label = $attribute->getName();
-            if (!in_array($label, self::$unusedVarKeys)) {
+            if (in_array($code, $usableAttributes)) {
                 $value = $attribute->getFrontend()->getValue($product);
                 if ($value && $label && $value != "No" && $value != " ") {
                     $data[$label] = $value;
