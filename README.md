@@ -26,6 +26,20 @@ The Sailthru MageSail module comes ready to use Sailthru's new PersonalizeJs jav
 
 **Please contact Sailthru to learn more about and enable Site Personalization Manager.**
 
+## To define transactional template to be overriden by Sailthru
+
+Declare new transactional email template in `./etc/template_config.xml` file that can be created within any module.
+Each template definition in `./etc/template_config.xml` has four required parameters that are defined in `./etc/template_list.xsd` file.
+Required parameters are:
+1. id - transactional email template identifier in Magento 2
+2. name - template title which will be displayed in `Admin Panel -> Stores -> Configuration -> Sailthru -> Transactionals -> General Transactionals` dropdown list
+3. custom_template_source - `Core Config Path` to native Magento 2 transactional email template ID value. Is utilized when custom email template overrides default Magento 2 email template
+4. sort_order - template sort order
+
+
+After updating the `./etc/template_config.xml` file run `php bin/magento cache:clean config` to clean Config cache.
+To extend or change structure of a transactional email templates override config file use `./etc/template_list.xsd` file.
+
 
 [1]: https://getstarted.sailthru.com/integrations/overview/
 [2]: https://my.sailthru.com/settings/spider

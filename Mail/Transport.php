@@ -1,90 +1,58 @@
 <?php
-/**
- * Mail Transport
- * Copyright © 2016 Magento. All rights reserved.
- * See COPYING.txt for license details.
- */
+
 namespace Sailthru\MageSail\Mail;
 
-use Sailthru\MageSail\Helper\Api;
 use Magento\Framework\Exception\MailException;
+use Magento\Framework\Mail\MessageInterface;
+use Magento\Store\Model\StoreManagerInterface;
+use Sailthru\MageSail\Helper\ClientManager;
+use Sailthru\MageSail\Helper\Settings;
+use Sailthru\MageSail\Helper\Api;
+use Sailthru\MageSail\MageClient;
 
 class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Framework\Mail\TransportInterface
 {
-    
-    const MAGENTO_GENERIC_TEMPLATE = "Magento Generic";
-
-    /**
-     * @var \Magento\Framework\Mail\MessageInterface
-     */
+    /** @var Magento\Framework\Mail\MessageInterface */
     protected $_message;
 
-    /**
-     * @var \Sailthru\MageSail\Helper\Api
-     */
-    protected $sailthru;
+    /** @var ClientManager */
+    protected $clientManager;
 
+    /** @var MageClient */
+    protected $client;
+
+    /** @var Settings */
+    protected $sailthruSettings;
+
+    /** @var Api */
+    protected $apiHelper;
+
+    /** @var StoreManagerInterface */
+    protected $storeManager;
+    
     /**
-     * @param \Magento\Framework\Mail\MessageInterface $message
-     * @param null $parameters
-     * @throws \InvalidArgumentException
+     * Transport constructor.
+     * 
+     * @param ClientManager    $clientManager
+     * @param Settings         $sailthruSettings
+     * @param MessageInterface $message
+     * @param Api              $apiHelper
+     * @param null|array
      */
     public function __construct(
-        Api $sailthru,
-        \Magento\Framework\Mail\MessageInterface $message,
+        ClientManager $clientManager,
+        Settings $sailthruSettings,
+        MessageInterface $message,
+        Api $apiHelper,
+        StoreManagerInterface $storeManager,
         $parameters = null
     ) {
-        $this->sailthru = $sailthru;
+        $this->clientManager = $clientManager;
+        $this->client = $clientManager;
+        $this->sailthruSettings = $sailthruSettings;
+        $this->apiHelper = $apiHelper;
+        $this->storeManager = $storeManager;
         parent::__construct($message, $parameters);
-    }
-
-    public function checkAndSetGenericTemplate()
-    {
-        $response = $this->sailthru->client->getTemplate(self::MAGENTO_GENERIC_TEMPLATE);
-        if (isset($response["error"]) && $response['error'] == 14) {
-            $options = [
-                "content_html" => "{content} {beacon}",
-                "subject" => "{subj}",
-                "from_email" => $this->sailthru->getSender(),
-                "is_link_tracking" => 1
-            ];
-            $response = $this->sailthru->client->saveTemplate(self::MAGENTO_GENERIC_TEMPLATE, $options);
-            if (isset($response["error"])) {
-                if ($response['error'] == 14) {
-                    $this->checkAndSetGenericTemplate();
-                }
-                if ($response['error'] != 14) {
-                    $this->sailthru->logger($response['errormsg']);
-                    throw new MailException(__($response['errormsg']));
-                }
-            }
-        }
-    }
-
-    public function _sendMail()
-    {
-        if ($this->sailthru->getTransactionalsEnabled()) {
-            try {
-                $this->checkAndSetGenericTemplate();
-                $message = [
-                    "template" => self::MAGENTO_GENERIC_TEMPLATE,
-                    "email"  => $this->cleanEmails($this->recipients),
-                    "vars"     => [
-                        "subj"    => $this->_message->getSubject(),
-                        "content" => $this->_message->getBody()->getRawContent(),
-                    ],
-                ];
-                $response = $this->sailthru->client->apiPost('send', $message);
-                if (isset($response["error"])) {
-                    $this->sailthru->logger($response['errormsg']);
-                    throw new MailException(__($response['errormsg']));
-                }
-            } catch (\Exception $e) {
-                throw new MailException(__("Couldn't send the mail {$e}"));
-            }
-        } else {
-            parent::_sendMail();
-        }
     }
 
     public function cleanEmail($str)
@@ -101,5 +69,58 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
     public function cleanEmails($emailStr)
     {
         return implode(",", array_map([ $this, 'cleanEmail' ], explode(",", $emailStr)));
+    }
+
+    public function _sendMail()
+    {
+        # To get array with template variables and template identifier
+        # use $this->_message->getTemplateInfo();
+        $templateData = $this->_message->getTemplateInfo();
+        if ($this->sailthruSettings->getTransactionalsEnabled()) {
+            $this->sendViaAPI($templateData);
+        } else {
+            parent::_sendMail();
+        }
+    }
+
+    /**
+     * To send `Magento Generic` or `Magento Specific` template.
+     * 
+     * @param  array $templateData
+     */
+    public function sendViaAPI($templateData)
+    {
+        try {
+            $storeId = $this->storeManager->getStore()->getId();
+            $this->client = $this->client->getClient(true, $storeId);
+            $vars = [
+                "subj" => $this->_message->getSubject(),
+                "content" => $this->_message->getBody()->getRawContent(),
+            ];
+
+            # Get template name
+            $template = $this->sailthruSettings->getTemplateName($templateData['identifier'], $storeId);
+            # Vars used in Sailthru Magento 1 extension and template file.
+            $vars += $this->sailthruSettings->getTemplateAdditionalVariables(
+                $template['orig_template_code'],
+                $templateData['variables']
+            );
+            # Create\Update template
+            $this->apiHelper->saveTemplate($template['name'], $this->sailthruSettings->getSender($storeId));
+
+            $message = [
+                "template" => $template['name'],
+                "email" => $this->cleanEmails($this->recipients),
+                "vars" => $vars,
+            ];
+
+            $response = $this->client->apiPost('send', $message);
+            if (isset($response["error"])) {
+                $this->client->logger($response['errormsg']);
+                throw new MailException(__($response['errormsg']));
+            }
+        } catch (\Exception $e) {
+            throw new MailException(__("Couldn't send the mail {$e}"));
+        }
     }
 }
