@@ -30,7 +30,7 @@ class CartIntercept
         Configurable $configProduct,
         SwatchModel $swatchModel
     ) {
-        $this->client = $clientManager->getClient();
+        $this->client = $clientManager;
         $this->sailthruSettings = $sailthruSettings;
         $this->sailthruCookie = $sailthruCookie;
         $this->productRepo = $productRepo;
@@ -44,7 +44,9 @@ class CartIntercept
 
     public function _gate(Cart $cart)
     {
-        if ($this->sailthruSettings->isAbandonedCartEnabled()) {
+        $storeId = $cart->getQuote()->getStoreId();
+        if ($this->sailthruSettings->isAbandonedCartEnabled($storeId)) {
+            $this->client = $this->client->getClient(true, $storeId);
             return $this->sendCart($cart);
         } else {
             return $cart;
@@ -54,8 +56,9 @@ class CartIntercept
     public function sendCart(Cart $cart)
     {
         $customer = $cart->getCustomerSession()->getCustomer();
+        $storeId = $cart->getQuote()->getStoreId();
         $email = $customer->getEmail();
-        if ($email or $anonymousEmail = $this->isAnonymousReady()) {
+        if ($email || $anonymousEmail = $this->isAnonymousReady($storeId)) {
             $email = $email ? $email : $anonymousEmail;
             try {
                 $this->client->_eventType = "CartUpdate";
@@ -64,8 +67,8 @@ class CartIntercept
                     'email'             => $email,
                     'items'             => $items,
                     'incomplete'        => 1,
-                    'reminder_time'     => $this->sailthruSettings->getAbandonedTime(),
-                    'reminder_template' => $this->sailthruSettings->getAbandonedTemplate(),
+                    'reminder_time'     => $this->sailthruSettings->getAbandonedTime($storeId),
+                    'reminder_template' => $this->sailthruSettings->getAbandonedTemplate($storeId),
                     'message_id'        => $this->sailthruCookie->getBid(),
                 ];
                 $this->client->apiPost("purchase", $data);
@@ -106,9 +109,9 @@ class CartIntercept
         return $this->_gate($cart);
     }
 
-    public function isAnonymousReady()
+    public function isAnonymousReady($storeId = null)
     {
-        if ($this->sailthruSettings->canAbandonAnonymous() and $hid = $this->sailthruCookie->get()) {
+        if ($this->sailthruSettings->canAbandonAnonymous($storeId) && $hid = $this->sailthruCookie->get()) {
             $response = $this->client->getUserByKey($hid, 'cookie', ['keys' => 1]);
             if (array_key_exists("keys", $response)) {
                 $email = $response["keys"]["email"];
@@ -121,6 +124,8 @@ class CartIntercept
     /**
      * Prepare data on items in cart or order.
      *
+     * @param  Cart $cart
+     * 
      * @return array|false
      */
     public function _getItems(Cart $cart)
@@ -157,9 +162,9 @@ class CartIntercept
                     $special_price = $product->getSpecialPrice();
                     $special_from = $product->getSpecialFromDate();
                     $special_to = $product->getSpecialToDate();
-                    if ($special_price and
-                        ($special_from === null or (strtotime($special_from) < strtotime("Today"))) and
-                        ($special_to === null or (strtotime($special_to) > strtotime("Today")))) {
+                    if ($special_price &&
+                        ($special_from === null || (strtotime($special_from) < strtotime("Today"))) &&
+                        ($special_to === null || (strtotime($special_to) > strtotime("Today")))) {
                         $current_price = $special_price;
                         $price_used = "special";
                     } else {

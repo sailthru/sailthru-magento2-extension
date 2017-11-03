@@ -7,19 +7,14 @@
 namespace Sailthru\MageSail\Helper;
 
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\Module\ModuleListInterface;
 use Magento\Store\Model\ScopeInterface;
-use Magento\Framework\App\Helper\AbstractHelper;
-
+use Magento\Store\Model\StoreManager;
 use Sailthru\MageSail\Cookie\Hid;
+use Sailthru\MageSail\Logger;
 
-class Api extends AbstractHelper
+class Api extends \Magento\Framework\App\Helper\AbstractHelper
 {
-
-    protected $_apiKey;
-    protected $_apiSecret;
-    public $client;
-    public $hid;
-
     // Source models
     const SOURCE_MODEL_VALIDATION_MSG  = "Please Enter Valid Sailthru Credentials";
 
@@ -51,6 +46,8 @@ class Api extends AbstractHelper
     const XML_CONTENT_USE_KEYWORDS     = "magesail_content/tags/use_seo";
     const XML_CONTENT_USE_CATEGORIES   = "magesail_content/tags/use_categories";
     const XML_CONTENT_USE_ATTRIBUTES   = "magesail_content/tags/use_attributes";
+
+    const UNKNOWN_TEMPLATE_ERROR_CODE = 14;
 
     public static $unusedVarKeys = [
         'status',
@@ -84,30 +81,33 @@ class Api extends AbstractHelper
         'sku'
     ];
 
-    /**
-     * @var \Magento\Framework\App\Request\Http
-     */
+    public $client;
+    public $hid;
+    public $logger;
+    public $storeManager;
+    protected $_apiKey;
+    protected $_apiSecret;
+    private $moduleList;
+    private $sailthruTemplates = [];
+
+    /** @var \Magento\Framework\App\Request\Http */
     protected $request;
 
     public function __construct(
         Context $context,
-        Hid $hid
+        Hid $hid,
+        Logger $logger,
+        StoreManager $storeManager,
+        ModuleListInterface $moduleList
     ) {
         parent::__construct($context);
         $this->hid = $hid;
-        $this->_apiKey = $this->getApiKey();
-        $this->_apiSecret = $this->getApiSecret();
+        $this->_apiKey = $this->getApiKey($storeManager->getStore()->getId());
+        $this->_apiSecret = $this->getApiSecret($storeManager->getStore()->getId());
+        $this->logger = $logger;
+        $this->storeManager = $storeManager;
+        $this->moduleList = $moduleList;
         $this->getClient();
-    }
-
-    private function getApiKey()
-    {
-        return $this->getSettingsVal(self::XML_API_KEY);
-    }
-
-    private function getApiSecret()
-    {
-        return $this->getSettingsVal(self::XML_API_SECRET);
     }
 
     public function getClient()
@@ -116,7 +116,9 @@ class Api extends AbstractHelper
             $this->client = new \Sailthru\MageSail\MageClient(
                 $this->_apiKey,
                 $this->_apiSecret,
-                '/var/log/sailthru.log'
+                $this->logger,
+                $this->storeManager,
+                $this->moduleList
             );
         } catch (\Sailthru_Client_Exception $e) {
             $this->client = $e->getMessage();
@@ -225,7 +227,7 @@ class Api extends AbstractHelper
                 }
                 foreach ($attributes as $key => $value) {
                     if (!is_numeric($value)) {
-                        $attribute_str .= (($value == "Yes" or $value == "Enabled") ? $key : $value) . ",";
+                        $attribute_str .= (($value == "Yes" || $value == "Enabled") ? $key : $value) . ",";
                     }
                 }
                 $tags .= $attribute_str;
@@ -245,7 +247,7 @@ class Api extends AbstractHelper
             $label = $attribute->getName();
             if (!in_array($label, self::$unusedVarKeys)) {
                 $value = $attribute->getFrontend()->getValue($product);
-                if ($value and $label and $value != "No" and $value != " ") {
+                if ($value && $label && $value != "No" && $value != " ") {
                     $data[$label] = $value;
                 }
             }
@@ -342,5 +344,65 @@ class Api extends AbstractHelper
     {
         $address = $customer->getPrimaryBillingAddress();
         return $this->getAddressVars($address);
+    }
+
+    /**
+     * To set Sailthru templates.
+     */
+    public function getSailthruTemplates()
+    {
+        if (empty($this->sailthruTemplates)) {
+            $this->sailthruTemplates = $this->client->getTemplates();
+        }
+
+        return $this->sailthruTemplates;
+    }
+
+    /**
+     * To create\update template in Sailthru.
+     * 
+     * @param  string $templateIdentifier
+     * @param  string $sender
+     */
+    public function saveTemplate($templateIdentifier, $sender)
+    {
+        try {
+            $templates = $this->getSailthruTemplates();
+            $templates = isset($templates['templates'])
+            ? array_column($templates['templates'], 'name')
+            : [];
+
+            if (!in_array($templateIdentifier, $templates)) {
+                # Add template
+                $data = [
+                    "content_html" => "{content} {beacon}",
+                    "subject" => "{subj}",
+                    "from_email" => $sender,
+                    "is_link_tracking" => 1
+                ];
+            } else {
+                # Update template
+                $data = [
+                    "from_email" => $sender,
+                ];
+            }
+
+            $response = $this->client->saveTemplate($templateIdentifier, $data);
+
+            if (isset($response['error']))
+                $this->client->logger($response['errormsg']);
+        } catch (\Exception $e) {
+            $this->client->logger($e->getMessage());
+        }
+    }
+
+    private function getApiKey($storeId = null)
+    {
+        return $this->getSettingsVal(self::XML_API_KEY, $storeId);
+    }
+
+    private function getApiSecret($storeId = null)
+    {
+        return $this->getSettingsVal(self::XML_API_SECRET, $storeId);
     }
 }

@@ -14,7 +14,7 @@ class Logger extends ZendLogger
     /** @var StoreManager  */
     private $storeManager;
 
-    public function __construct(ZendLogger $logger, StoreManager $storeManager)
+    public function __construct(StoreManager $storeManager)
     {
         parent::__construct();
         $streamWriter = new Stream(BP . self::SAILTHRU_PATH);

@@ -1,0 +1,123 @@
+<?xml version="1.0" ?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+xsi:noNamespaceSchemaLocation="template_list.xsd">
+    <template_list>
+        <!-- Magento_Checkout -->
+        <template>
+            <id>checkout_payment_failed_template</id>
+            <name>Payment Failed</name>
+            <custom_template_source>checkout/payment_failed/template</custom_template_source>
+            <sort_order>3</sort_order>
+        </template>
+        <!-- Magento_Customer(New Account) -->
+        <template>
+            <id>customer_create_account_email_template</id>
+            <name>New Account</name>
+            <custom_template_source>customer/create_account/email_template</custom_template_source>
+            <sort_order>4</sort_order>
+        </template>
+        <!-- Magento_Customer(New Account Confirmation Key) -->
+        <template>
+            <id>customer_create_account_email_confirmation_template</id>
+            <name>New Account Confirmation Key</name>
+            <custom_template_source>customer/create_account/email_confirmation_template</custom_template_source>
+            <sort_order>5</sort_order>
+        </template>
+        <!-- Magento_Customer(New Account Confirmed) -->
+        <template>
+            <id>customer_create_account_email_confirmed_template</id>
+            <name>New Account Confirmed</name>
+            <custom_template_source>customer/create_account/email_confirmed_template</custom_template_source>
+            <sort_order>6</sort_order>
+        </template>
+        <!-- Magento_Customer(Forgot Password) -->
+        <template>
+            <id>customer_password_forgot_email_template</id>
+            <name>Forgot Password</name>
+            <custom_template_source>customer/password/forgot_email_template</custom_template_source>
+            <sort_order>7</sort_order>
+        </template>
+        <!-- Magento_Customer(Remind Password) -->
+        <template>
+            <id>customer_password_remind_email_template</id>
+            <name>Remind Password</name>
+            <custom_template_source>customer/password/remind_email_template</custom_template_source>
+            <sort_order>8</sort_order>
+        </template>
+        <!-- Magento_Customer(Reset Password) -->
+        <template>
+            <id>customer_password_reset_password_template</id>
+            <name>Reset Password</name>
+            <custom_template_source>customer/password/reset_password_template</custom_template_source>
+            <sort_order>9</sort_order>
+        </template>
+        <!-- Magento_Newsletter(Subscription Confirmation) -->
+        <template>
+            <id>newsletter_subscription_confirm_email_template</id>
+            <name>Subscription Confirmation</name>
+            <custom_template_source>newsletter/subscription/confirm_email_template</custom_template_source>
+            <sort_order>10</sort_order>
+        </template>
+        <!-- Magento_Newsletter(Unsubscription Success) -->
+        <template>
+            <id>newsletter_subscription_un_email_template</id>
+            <name>Unsubscription Success</name>
+            <custom_template_source>newsletter/subscription/un_email_template</custom_template_source>
+            <sort_order>11</sort_order>
+        </template>
+        <!-- Magento_Sales(New Order) -->
+        <template>
+            <id>sales_email_order_template</id>
+            <name>New Order</name>
+            <custom_template_source>sales_email/order/template</custom_template_source>
+            <sort_order>12</sort_order>
+        </template>
+        <!-- Magento_Sales(New Shipment) -->
+        <template>
+            <id>sales_email_shipment_template</id>
+            <name>New Shipment</name>
+            <custom_template_source>sales_email/shipment/template</custom_template_source>
+            <sort_order>13</sort_order>
+        </template>
+        <!-- Magento_Sales(Order Update) -->
+        <template>
+            <id>sales_email_order_comment_template</id>
+            <name>Order Update</name>
+            <custom_template_source>sales_email/order/comment_template</custom_template_source>
+            <sort_order>14</sort_order>
+        </template>
+        <!-- Magento_Sales(Order Update for Guest) -->
+        <template>
+            <id>sales_email_order_comment_guest_template</id>
+            <name>Order Update for Guest</name>
+            <custom_template_source>sales_email/order/comment_guest_template</custom_template_source>
+            <sort_order>15</sort_order>
+        </template>
+        <!-- Magento_Sales(Shipment Update) -->
+        <template>
+            <id>sales_email_shipment_comment_template</id>
+            <name>Shipment Update</name>
+            <custom_template_source>sales_email/shipment_comment/template</custom_template_source>
+            <sort_order>16</sort_order>
+        </template>
+        <!-- Magento_Sales(Shipment Update for Guest) -->
+        <template>
+            <id>sales_email_shipment_comment_guest_template</id>
+            <name>Shipment Update for Guest</name>
+            <custom_template_source>sales_email/shipment/comment/guest_template</custom_template_source>
+            <sort_order>17</sort_order>
+        </template>
+        <template>
+            <id>sales_email_creditmemo_comment_template</id>
+            <name>Credit Memo Update</name>
+            <custom_template_source>sales_email/creditmemo/comment/template</custom_template_source>
+            <sort_order>18</sort_order>
+        </template>
+        <template>
+            <id>sales_email_creditmemo_comment_guest_template</id>
+            <name>Credit Memo Update (Guest)</name>
+            <custom_template_source>sales_email/creditmemo/comment/guest_template</custom_template_source>
+            <sort_order>19</sort_order>
+        </template>
+    </template_list>
+</config>

@@ -4,15 +4,22 @@ namespace Sailthru\MageSail\Plugin;
 
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Newsletter\Model\Subscriber;
+use Magento\Store\Model\StoreManagerInterface;
 use Sailthru\MageSail\Helper\ClientManager;
 use Sailthru\MageSail\Helper\Settings as SailthruSettings;
 
 class SubscribeIntercept
 {
+    /** @var StoreManagerInterface */
+    private $storeManager;
 
-    public function __construct(ClientManager $clientManager, SailthruSettings $sailthruSettings)
-    {
-        $this->client = $clientManager->getClient();
+    public function __construct(
+        ClientManager $clientManager,
+        SailthruSettings $sailthruSettings,
+        StoreManagerInterface $storeManager
+    ) {
+        $this->storeManager = $storeManager;
+        $this->client = $clientManager->getClient($storeManager->getStore()->getId());
         $this->sailthruSettings = $sailthruSettings;
     }
 
@@ -52,17 +59,19 @@ class SubscribeIntercept
 
     public function updateSailthruSubscription(Subscriber $subscriber)
     {
+        $storeId = $this->storeManager->getStore()->getId();
         $email = $subscriber->getEmail();
         $status = $subscriber->getStatus();
         $isSubscribed = ($status == Subscriber::STATUS_SUBSCRIBED ? 1 : 0);
 
-        if (($status == Subscriber::STATUS_UNSUBSCRIBED or $status == Subscriber::STATUS_SUBSCRIBED)
-            and $this->sailthruSettings->newsletterListEnabled()) {
-
+        if (($status == Subscriber::STATUS_UNSUBSCRIBED ||
+            $status == Subscriber::STATUS_SUBSCRIBED) &&
+            $this->sailthruSettings->newsletterListEnabled($storeId)
+        ) {
             $data = [
-                    'id'     => $email,
-                    'key'    => 'email',
-                    'lists'  => [ $this->sailthruSettings->getNewsletterList() => $isSubscribed ],
+                'id'     => $email,
+                'key'    => 'email',
+                'lists'  => [ $this->sailthruSettings->getNewsletterList($storeId) => $isSubscribed ],
             ];
             if ($fullName = $subscriber->getSubscriberFullName()) {
                 $data['vars'] = [

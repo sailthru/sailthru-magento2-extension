@@ -35,7 +35,7 @@ class CustomerAccountEdit implements ObserverInterface
         $this->moduleManager = $moduleManager;
         $this->customerModel = $customerModel;
         $this->storeManager = $storeManager;
-        $this->sailthruClient = $clientManager->getClient();
+        $this->sailthruClient = $clientManager;
         $this->sailthruSettings = $sailthruSettings;
         $this->sailthruCookie = $sailthruCookie;
         $this->sailthruCustomer = $sailthruCustomer;
@@ -46,6 +46,8 @@ class CustomerAccountEdit implements ObserverInterface
         $this->customerModel->setWebsiteId($websiteId);
         $email = $observer->getData('email');
         $customer = $this->customerModel->loadByEmail($email);
+        $storeId = $customer->getStore()->getId();
+        $this->sailthruClient = $this->sailthruClient->getClient(true, $storeId);
         $sid = $customer->getData('sailthru_id');
 
         try {
@@ -69,7 +71,7 @@ class CustomerAccountEdit implements ObserverInterface
                 $data['vars'] += $address;
             }
 
-            if ($this->sailthruSettings->newsletterListEnabled() and
+            if ($this->sailthruSettings->newsletterListEnabled($storeId) &&
                 $customer->getCustomAttribute('is_subscribed')
             ) {
                 $data["lists"] = [ "Newsletter" => 1 ];

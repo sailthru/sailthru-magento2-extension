@@ -4,14 +4,21 @@ namespace Sailthru\MageSail\Helper;
 
 use Magento\Store\Model\StoreManager;
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\Module\ModuleListInterface;
+use Magento\Framework\ObjectManagerInterface;
 use Sailthru\MageSail\Logger;
 use Sailthru\MageSail\MageClient;
+use Sailthru\MageSail\Model\Template as TemplateModel;
+use Sailthru\MageSail\Model\Config\Template\Data as TemplateConfig;
 
 class ClientManager extends AbstractHelper
 {
 
     /** @var  MageClient */
     protected $client;
+
+    /** @var ModuleListInterface */
+    private $moduleList;
 
     const XML_API_KEY         = "magesail_config/service/api_key";
     const XML_API_SECRET      = "magesail_config/service/secret_key";
@@ -20,23 +27,35 @@ class ClientManager extends AbstractHelper
     public function __construct(
         Context $context,
         StoreManager $storeManager,
-        Logger $logger
+        Logger $logger,
+        TemplateModel $templateModel,
+        TemplateConfig $templateConfig,
+        ObjectManagerInterface $objectManager,
+        ModuleListInterface $moduleList
     ) {
-        parent::__construct($context, $storeManager, $logger);
+        parent::__construct(
+            $context,
+            $storeManager,
+            $logger,
+            $templateModel,
+            $templateConfig,
+            $objectManager
+        );
+        $this->moduleList = $moduleList;
         $this->initClient();
     }
 
-    public function initClient()
+    public function initClient($storeId = null)
     {
-        $apiKey = $this->getSettingsVal(self::XML_API_KEY);
-        $apiSecret = $this->getSettingsVal(self::XML_API_SECRET);
-        $this->client = new MageClient($apiKey, $apiSecret, $this->logger, $this->storeManager);
+        $apiKey = $this->getSettingsVal(self::XML_API_KEY, $storeId);
+        $apiSecret = $this->getSettingsVal(self::XML_API_SECRET, $storeId);
+        $this->client = new MageClient($apiKey, $apiSecret, $this->logger, $this->storeManager, $this->moduleList);
     }
 
-    public function getClient($update=false)
+    public function getClient($update=false, $storeId = null)
     {
         if ($update) {
-            $this->initClient();
+            $this->initClient($storeId);
         }
         return $this->client;
     }

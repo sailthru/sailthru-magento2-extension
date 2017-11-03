@@ -10,9 +10,11 @@ use Magento\ConfigurableProduct\Model\Product\Type\Configurable as Configurable;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Filesystem;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Framework\Url;
 use Sailthru\MageSail\Helper\Api;
 use Sailthru\MageSail\Helper\ClientManager;
-use Sailthru\MageSail\Helper\Product as SailthruProduct;
+use Sailthru\MageSail\Helper\ProductData as SailthruProduct;
+use Sailthru\MageSail\Helper\Settings;
 
 class ProductIntercept
 {
@@ -50,6 +52,12 @@ class ProductIntercept
         'sku'
     ];
 
+    /** @var \Sailthru\MageSail\Helper\Settings */
+    private $sailthruSettings;
+
+    /** @var Product */
+    private $productModel;
+
     public function __construct(
         ClientManager $clientManager,
         SailthruProduct $sailthruProduct,
@@ -57,7 +65,9 @@ class ProductIntercept
         ProductHelper $productHelper,
         ImageHelper $imageHelper,
         Configurable $cpModel,
-        Context $context
+        Context $context,
+        Settings $sailthruSettings,
+        Product $productModel
     ) {
         $this->clientManager    = $clientManager;
         $this->sailthruProduct  = $sailthruProduct;
@@ -67,63 +77,113 @@ class ProductIntercept
         $this->cpModel          = $cpModel;
         $this->context          = $context;
         $this->request          = $context->getRequest();
+        $this->sailthruSettings = $sailthruSettings;
+        $this->productModel     = $productModel;
     }
 
     public function afterAfterSave(Product $productModel, $productResult)
     {
-        if ($this->sailthruProduct->isProductInterceptOn()) {
-            if ($data = $this->getProductData($productResult)) {
-                try {
-                    $this->clientManager->getClient()->_eventType = 'SaveProduct';
-                    $this->clientManager->getClient()->apiPost('content', $data);
-                } catch (\Sailthru_Client_Exception $e) {
-                    $this->clientManager->getClient()->logger('ProductData Error');
-                    $this->clientManager->getClient()->logger($e->getMessage());
-                }
+        if ($this->isAllStoreViews($productModel)) {
+            $this->sendMultipleRequests($productModel, $productResult);
+        } else {
+            $storeId = $productModel->getStoreId();
+            if ($this->sailthruProduct->isProductInterceptOn($storeId)) {
+                $this->sendRequest($productModel, $storeId);
             }
         }
+
         return $productResult;
+    }
+
+    /**
+     * To send multiple requests to API.
+     * 
+     * @param  Product  $product
+     * @param  Product  $productResult
+     */
+    private function sendMultipleRequests(Product $product, $productResult)
+    {
+        $storeIds = $product->getStoreIds();
+        foreach ($storeIds as $storeId) {
+            if ($this->sailthruProduct->isProductInterceptOn($storeId)) {
+                $this->sendRequest($productResult, $storeId);
+            }
+        }
+    }
+
+    /**
+     * To send single request to API.
+     * 
+     * @param  Product $productResult
+     * @param  string|null                   $storeId
+     */
+    private function sendRequest($productResult, $storeId = null)
+    {
+        $client = $this->clientManager->getClient(true, $storeId);
+        $data = $this->getProductData($productResult, $storeId);
+        if ($data) {
+            try {
+                $client->_eventType = 'SaveProduct';
+                $client->apiPost('content', $data);
+            } catch (\Sailthru_Client_Exception $e) {
+                $client->logger(__('ProductData Error'));
+                $client->logger($e->getMessage());
+            }
+        }
+    }
+
+    /**
+     * To check if product is in "All Store Views" scope.
+     * 
+     * @param  Product $product
+     * 
+     * @return bool
+     */
+    private function isAllStoreViews(Product $product)
+    {
+        return $this->_storeManager->getStore($product->getStoreId())->getCode() == 'admin'
+            ? true
+            : false;
     }
 
     /**
      * Create Product array for Content API
      *
      * @param Product $product
+     * @param int $storeId
      * @return array|false
      */
-    public function getProductData(Product $product)
+    public function getProductData(Product $product, $storeId = null)
     {
-        $productType = $product->getTypeId();
-        $isMaster = ($productType == 'configurable');
-        $updateMaster = $this->sailthruProduct->canSyncMasterProducts();
-        if ($isMaster and !$updateMaster) {
-            return false;
-        }
-
-        $isSimple = ($productType == 'simple');
-        $parents = $this->cpModel->getParentIdsByChild($product->getId());
-        $isVariant = ($isSimple and $parents);
-        $updateVariants = $this->sailthruProduct->canSyncVariantProducts();
-        $this->clientManager->getClient()->logger($updateVariants);
-        if ($isVariant and !$updateVariants) {
-            return false;
-        }
-
         // scope fix for intercept launched from backoffice, which causes admin URLs for products
-        $storeScopes = $product->getStoreIds();
-        $storeId = $this->request->getParam('store') ?: $storeScopes[0];
-        if ($storeId) {
-            $product->setStoreId($storeId);
+        if (!$storeId) {
+            $storeScopes = $product->getStoreIds();
+            $storeId = $this->request->getParam('store') ?: $storeScopes[0];
+            if ($storeId) {
+                $product->setStoreId($storeId);
+            }
         }
         $this->_storeManager->setCurrentStore($storeId);
 
+        $productType = $product->getTypeId();
+        $isMaster = ($productType == 'configurable');
+        $updateMaster = $this->sailthruProduct->canSyncMasterProducts($storeId);
+        if ($isMaster && !$updateMaster) {
+            return false;
+        }
+
+        $isVariant = $this->sailthruProduct->isVariant($product);
+        $updateVariants = $this->sailthruProduct->canSyncVariantProducts($storeId);
+        if ($isVariant && !$updateVariants) {
+            return false;
+        }
+        
         $attributes = $this->sailthruProduct->getProductAttributeValues($product);
         $categories = $this->sailthruProduct->getCategories($product);
 
         try {
             $data = [
-                'url'   => $isVariant ? $this->getProductFragmentedUrl($product, $parents[0]) :
-                    $product->setStoreId($storeId)->getProductUrl(true),
+                'url'   => $this->sailthruProduct->getProductUrl($product, $storeId),
                 'title' => htmlspecialchars($product->getName()),
                 'spider' => 0,
                 'price' => $price = ($product->getPrice() ? $product->getPrice() :
@@ -163,7 +223,14 @@ class ProductIntercept
             ];
 
             if ($isVariant) {
-                $data['inventory'] = $product->getStockData()["qty"];
+                $pIds = $this->cpModel->getParentIdsByChild($product->getId());
+                if ($pIds && count($pIds) == 1) {
+                    $data['vars']['parentID'] = $pIds[0];
+                }
+            }
+
+            if ($inventory = $product->getStockData()["qty"]) {
+                $data['inventory'] = $inventory;
             }
 
             // Add product images
@@ -172,31 +239,16 @@ class ProductIntercept
                     "url" => $this->imageHelper->init($product, 'product_listing_thumbnail')->getUrl()
                 ];
                 $data['images']['full'] = [
-                    "url"=> $this->getBaseImageUrl($product)
+                    "url"=> $this->sailthruProduct->getBaseImageUrl($product)
                 ];
-            }
-            if ($parents and count($parents) == 1) {
-                $data['vars']['parentID'] = $parents[0];
             }
 
             return $data;
+
         } catch (\Exception $e) {
             $this->clientManager->getClient()->logger($e->getMessage());
             return false;
         }
     }
 
-    public function getProductFragmentedUrl(Product $product, $parent)
-    {
-        $parentUrl = $this->productHelper->getProductUrl($parent);
-        $pSku = $product->getSku();
-        return "{$parentUrl}#{$pSku}";
-    }
-
-    // Magento 2 getImage seems to add a strange slash, therefore this.
-    public function getBaseImageUrl($product)
-    {
-        return $this->_storeManager->getStore()
-            ->getBaseUrl(\Magento\Framework\UrlInterface::URL_TYPE_MEDIA) . 'catalog/product' . $product->getImage();
-    }
 }

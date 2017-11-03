@@ -1,0 +1,26 @@
+<?xml version="1.0" ?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <!-- config -->
+    <xs:element name="config">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element minOccurs="1" maxOccurs="unbounded" name="template_list" type="templateList" />
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <!-- template list -->
+    <xs:complexType name="templateList">
+        <xs:sequence>
+            <xs:element minOccurs="1" maxOccurs="unbounded" name="template" type="template" />
+        </xs:sequence>
+    </xs:complexType>
+    <!-- template -->
+    <xs:complexType name="template">
+        <xs:sequence>
+            <xs:element name="id" />
+            <xs:element name="name" />
+            <xs:element name="custom_template_source" />
+            <xs:element name="sort_order" />
+        </xs:sequence>
+    </xs:complexType>
+</xs:schema>

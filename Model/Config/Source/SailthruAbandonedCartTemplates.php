@@ -2,15 +2,13 @@
  
 namespace Sailthru\MageSail\Model\Config\Source;
 
-class SailthruTemplates extends AbstractSource
+class SailthruAbandonedCartTemplates extends AbstractSource
 {
     /** @inheritdoc */
     protected function getDisplayData()
     {
         $data = $this->apiHelper->getSailthruTemplates();
-        $tpl_options = [
-            ['value'=> 0, 'label'=>'Use current Magento template']
-        ];
+        $tpl_options = [];
         
         if (!isset($data["templates"]))
             return $tpl_options;

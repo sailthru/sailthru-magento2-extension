@@ -8,17 +8,19 @@ class SailthruLists extends AbstractSource
     /** @inheritdoc */
     protected function getDisplayData()
     {
-        $data = $this->clientManager->getClient()->getLists();
-        $lists = $data["lists"];
+        $data = $this->apiHelper->client->getLists();
         $lists_options = [
             ['value'=> 0, 'label'=>' ']
         ];
-        foreach ($lists as $list) {
-            if ($list['type'] == 'normal') {
-                $lists_options[] = [
-                    'value' => $list['name'],
-                    'label' => __("{$list['name']} ({$list['email_count']} Emails)")
-                ];
+
+        if (isset($data['lists'])) {        
+            foreach ($data["lists"] as $list) {
+                if ($list['type'] == 'normal') {
+                    $lists_options[] = [
+                        'value' => $list['name'],
+                        'label' => __("{$list['name']} ({$list['email_count']} Emails)")
+                    ];
+                }
             }
         }
 
