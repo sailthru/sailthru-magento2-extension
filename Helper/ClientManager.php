@@ -4,6 +4,7 @@ namespace Sailthru\MageSail\Helper;
 
 use Magento\Store\Model\StoreManager;
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\ObjectManagerInterface;
 use Sailthru\MageSail\Logger;
 use Sailthru\MageSail\MageClient;
@@ -16,6 +17,9 @@ class ClientManager extends AbstractHelper
     /** @var  MageClient */
     protected $client;
 
+    /** @var ModuleListInterface */
+    private $moduleList;
+
     const XML_API_KEY         = "magesail_config/service/api_key";
     const XML_API_SECRET      = "magesail_config/service/secret_key";
     const API_SUCCESS_MESSAGE = "Successfully Validated!";
@@ -26,7 +30,8 @@ class ClientManager extends AbstractHelper
         Logger $logger,
         TemplateModel $templateModel,
         TemplateConfig $templateConfig,
-        ObjectManagerInterface $objectManager
+        ObjectManagerInterface $objectManager,
+        ModuleListInterface $moduleList
     ) {
         parent::__construct(
             $context,
@@ -36,6 +41,7 @@ class ClientManager extends AbstractHelper
             $templateConfig,
             $objectManager
         );
+        $this->moduleList = $moduleList;
         $this->initClient();
     }
 
@@ -43,7 +49,7 @@ class ClientManager extends AbstractHelper
     {
         $apiKey = $this->getSettingsVal(self::XML_API_KEY, $storeId);
         $apiSecret = $this->getSettingsVal(self::XML_API_SECRET, $storeId);
-        $this->client = new MageClient($apiKey, $apiSecret, $this->logger, $this->storeManager);
+        $this->client = new MageClient($apiKey, $apiSecret, $this->logger, $this->storeManager, $this->moduleList);
     }
 
     public function getClient($update=false, $storeId = null)

@@ -7,6 +7,7 @@
 namespace Sailthru\MageSail\Helper;
 
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\Module\ModuleListInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManager;
 use Sailthru\MageSail\Cookie\Hid;
@@ -48,43 +49,13 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
 
     const UNKNOWN_TEMPLATE_ERROR_CODE = 14;
 
-    public static $unusedVarKeys = [
-        'status',
-        'row_id',
-        'type_id',
-        'attribute_set_id',
-        'media_gallery',
-        'thumbnail',
-        'shipment_type',
-        'url_key',
-        'price_view',
-        'msrp_display_actual_price_type',
-        'page_layout',
-        'options_container',
-        'custom_design',
-        'custom_layout',
-        'gift_message_available',
-        'category_ids',
-        'image',
-        'small_image',
-        'visibility',
-        'relatedProductIds',
-        'upSellProductIds',
-        'description',
-        'meta_keyword',
-        'name',
-        'created_at',
-        'updated_at',
-        'tax_class_id',
-        'quantity_and_stock_status',
-        'sku'
-    ];
     public $client;
     public $hid;
     public $logger;
     public $storeManager;
     protected $_apiKey;
     protected $_apiSecret;
+    private $moduleList;
     private $sailthruTemplates = [];
 
     /** @var \Magento\Framework\App\Request\Http */
@@ -94,7 +65,8 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
         Context $context,
         Hid $hid,
         Logger $logger,
-        StoreManager $storeManager
+        StoreManager $storeManager,
+        ModuleListInterface $moduleList
     ) {
         parent::__construct($context);
         $this->hid = $hid;
@@ -102,6 +74,7 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
         $this->_apiSecret = $this->getApiSecret($storeManager->getStore()->getId());
         $this->logger = $logger;
         $this->storeManager = $storeManager;
+        $this->moduleList = $moduleList;
         $this->getClient();
     }
 
@@ -113,6 +86,7 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
                 $this->_apiSecret,
                 $this->logger,
                 $this->storeManager
+                $this->moduleList
             );
         } catch (\Sailthru_Client_Exception $e) {
             $this->client = $e->getMessage();
