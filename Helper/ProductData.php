@@ -26,8 +26,6 @@ class ProductData extends AbstractHelper
     const XML_CONTENT_ATTRIBUTES_LIST  = "magesail_content/tags/usable_attributes";
 
     public static $unusedVarKeys = [
-        'status',
-        'row_id',
         'type_id',
         'attribute_set_id',
         'media_gallery',
@@ -37,6 +35,7 @@ class ProductData extends AbstractHelper
         'price_view',
         'msrp_display_actual_price_type',
         'page_layout',
+        'meta_keyword',
         'options_container',
         'custom_design',
         'custom_layout',
@@ -48,15 +47,15 @@ class ProductData extends AbstractHelper
         'relatedProductIds',
         'upSellProductIds',
         'description',
-        'meta_keyword',
         'name',
         'created_at',
         'updated_at',
         'tax_class_id',
         'quantity_and_stock_status',
-        'sku'
+        'sku',
+        'status',
+        'row_id',
     ];
-
 
     /** @var ConfigurableProduct */
     private $configurableProduct;
