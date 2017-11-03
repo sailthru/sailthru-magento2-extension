@@ -7,6 +7,7 @@
 namespace Sailthru\MageSail\Helper;
 
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\Module\ModuleListInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManager;
 use Sailthru\MageSail\Cookie\Hid;
@@ -79,12 +80,14 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
         'quantity_and_stock_status',
         'sku'
     ];
+
     public $client;
     public $hid;
     public $logger;
     public $storeManager;
     protected $_apiKey;
     protected $_apiSecret;
+    private $moduleList;
     private $sailthruTemplates = [];
 
     /** @var \Magento\Framework\App\Request\Http */
@@ -94,7 +97,8 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
         Context $context,
         Hid $hid,
         Logger $logger,
-        StoreManager $storeManager
+        StoreManager $storeManager,
+        ModuleListInterface $moduleList
     ) {
         parent::__construct($context);
         $this->hid = $hid;
@@ -102,6 +106,7 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
         $this->_apiSecret = $this->getApiSecret($storeManager->getStore()->getId());
         $this->logger = $logger;
         $this->storeManager = $storeManager;
+        $this->moduleList = $moduleList;
         $this->getClient();
     }
 
@@ -112,7 +117,8 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
                 $this->_apiKey,
                 $this->_apiSecret,
                 $this->logger,
-                $this->storeManager
+                $this->storeManager,
+                $this->moduleList
             );
         } catch (\Sailthru_Client_Exception $e) {
             $this->client = $e->getMessage();

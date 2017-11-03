@@ -2,6 +2,7 @@
 
 namespace Sailthru\MageSail;
 
+use Magento\Framework\Module\ModuleListInterface;
 use Magento\Store\Model\StoreManager;
 
 class MageClient extends \Sailthru_Client
@@ -15,10 +16,14 @@ class MageClient extends \Sailthru_Client
     /** @var StoreManager  */
     private $storeManager;
 
-    public function __construct($api_key, $secret, Logger $logger, StoreManager $storeManager)
+    /** @var ModuleListInterface */
+    private $moduleList;
+
+    public function __construct($api_key, $secret, Logger $logger, StoreManager $storeManager, ModuleListInterface $moduleList)
     {
         $this->logger = $logger;
         $this->storeManager = $storeManager;
+        $this->moduleList = $moduleList;
         $options = [ "timeout" => 3000, "connection_timeout" => 3000];
         parent::__construct($api_key, $secret, false, $options);
     }
@@ -57,7 +62,8 @@ class MageClient extends \Sailthru_Client
 
     protected function prepareJsonPayload(array $data, array $binary_data = [])
     {
-        $data['integration'] = "Magento 2";
+        $versionString = $this->moduleList->getOne('Sailthru_MageSail')['setup_version'];
+        $data['integration'] = "Magento 2 - $versionString";
         return parent::prepareJsonPayload($data, $binary_data);
     }
 

@@ -56,7 +56,7 @@ class ProductData extends AbstractHelper
         'quantity_and_stock_status',
         'sku'
     ];
-
+    
     /** @var ConfigurableProduct */
     private $configurableProduct;
 
@@ -195,21 +195,20 @@ class ProductData extends AbstractHelper
 
     /**
      * Build product attributes for product vars and tags
-     * @param Product $product
+     * @param \Magento\Catalog\Model\Product $product
      *
      * @return array
      */
-    public function getProductAttributeValues(Product $product)
+    public function getProductAttributeValues(\Magento\Catalog\Model\Product $product)
     {
-        $usableAttributes = $this->getUsableAttributes();
+        $setId = $product->getAttributeSetId();
         $attributeSet = $product->getAttributes();
         $data = [];
         foreach ($attributeSet as $attribute) {
-            $code = $attribute->getAttributeCode();
             $label = $attribute->getName();
-            if (in_array($code, $usableAttributes)) {
+            if (!in_array($label, self::$unusedVarKeys)) {
                 $value = $attribute->getFrontend()->getValue($product);
-                if ($value && $label && $value != "No" && $value != " ") {
+                if ($value and $label and $value != "No" and $value != " ") {
                     $data[$label] = $value;
                 }
             }
