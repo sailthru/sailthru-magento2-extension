@@ -57,6 +57,7 @@ class ProductData extends AbstractHelper
         'sku'
     ];
 
+
     /** @var ConfigurableProduct */
     private $configurableProduct;
 
