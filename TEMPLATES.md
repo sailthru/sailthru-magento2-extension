@@ -147,7 +147,7 @@ No additional vars are available in this transaction. Use the `{content}` var to
 | shipping_description   | string |  Flat Rate - Fixed |
 | order   | object |  ` { "id" : "3" , "items" : [ { "id" : "MS05-L-Blue" , "title" : "Helios EverCool™ Tee" , "options" : [ { "label" : "Color" , "value" : "Blue"} , { "label" : "Size" , "value" : "L"}] , "qty" : 1 , "url" : "http://example.org/index.php/helios-evercool-trade-tee.html" , "image" : "http://example.org/media/catalog/product//m/s/ms05-blue_main.jpg" , "price" : "24.0000"}] , "adjustments" : [ { "title" : "Shipping" , "price" : 500} , { "title" : "Discount" , "price" : 0} , { "title" : "Tax" , "price" : 0}] , "tenders" : "" , "name" : "John Smith" , "status" : "pending" , "state" : "new" , "created_date" : "2017-11-02 03:30:36" , "total" : "29.0000" , "subtotal" : "24.0000" , "couponCode" : null , "discount" : "0.0000" , "shippingDescription" : "Flat Rate - Fixed" , "isGuest" : 0 , "billingAddress" : { "city" : "New York" , "state" : "New York" , "state_code" : "NY" , "country" : "United States" , "country_code" : "US" , "postal_code" : "11111" , "name" : "John Smith" , "company" : "" , "telephone" : "555-555-5555" , "street1" : "38 Foolhardy Avenue" , "street2" : ""} , "shippingAddress" : { "city" : "New York" , "state" : "New York" , "state_code" : "NY" , "country" : "United States" , "country_code" : "US" , "postal_code" : "11111" , "name" : "Alex Silverman" , "company" : "" , "telephone" : "555-555-5555" , "street1" : "38 Foolhardy Avenue" , "street2" : ""}` |
 | created_date   | string |  2017-10-24 |
-| isGuest   | string |  2017-10-24 |
+| isGuest   | boolean |  false |
 
 #### Magento Order Comment
 
