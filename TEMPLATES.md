@@ -1,222 +1,835 @@
-## Magento Templates:
+All email templates sent via Sailthru from Magento will contain two vars *subj* and *content. *The subj var should be used to populate the sailthru template with the subject line from Magento. The var content will contain the full HTML of the Magento default template. In addition to these vars each template will have a number of other vars depending on the transactional. This will allow you complete flexibility in how you design your Sailthru templates. 
 
-You can now configure the following emails to be sent via Sailthru with a Sailthru Template, a custom Magento template or the default Magento Template.
+To push email transactionals from Magento directly through Sailthru untouched you can use the "Use Current Magento Template". This option will send the HTML as configured in Magento, and will use the template configured in Magento. This means if you have overridden the default message in Magento we will use that version. 
 
-#### Customer Related Emails
+For other transactionals we have provided a list of available templates and their associated vars below. Please review carefully with your account manager. 
+
+#### **Customer Related Emails**
 
 * Create Account Confirmation Email
+
 * Create Account Email Confirmed
+
 * Create Account Email
+
 * Forgotten Password Email
+
 * Password Reminder Email
+
 * Reset Password Email
+
 * Newsletter Subscription Confirmed
+
 * Newsletter UnSubscribe Confirmed
 
-#### Sales Related Emails
+#### **Sales Related Emails**
 
 * Sales Order Template
+
 * Sales Shipment
+
 * Sales Order Comment Template (Registered User)
+
 * Sales Order Comment Template (Guest User)
+
 * Sales Email Shipment (Registered User)
+
 * Sales Email Shipment (Guest User)
-* Credit Memo Issued  (Registered User)
+
+* Credit Memo Issued (Registered User)
+
 * Credit Memo Issued (Guest User)
 
-Each template will always include the vars `subj` and `content`
+##### Create Account Confirmation Email
 
-`subj`
-Use as the Subject line in Sailthru templates when you wish to use the subject line passed from Magento.
+<table>
+  <tr>
+    <td>vars</td>
+    <td>type</td>
+    <td>example</td>
+  </tr>
+  <tr>
+    <td>name</td>
+    <td>string</td>
+    <td>John Smith</td>
+  </tr>
+  <tr>
+    <td>store_name</td>
+    <td>string</td>
+    <td>Default Store</td>
+  </tr>
+  <tr>
+    <td>customer_email</td>
+    <td>string</td>
+    <td>jsmith@example.com</td>
+  </tr>
+  <tr>
+    <td>customer_url</td>
+    <td>string</td>
+    <td>http://example.com/customer/account/</td>
+  </tr>
+  <tr>
+    <td>account_confirmation_url</td>
+    <td>string</td>
+    <td>http://example.com/</td>
+  </tr>
+  <tr>
+    <td>customer</td>
+    <td>object</td>
+    <td>{  
+   "Magento_id":"2",
+   "name":"John Smith",
+   "Suffix":"",
+   "prefix":"",
+   "firstName":"John",
+   "middleName":"Brendan",
+   "lastName":"Smith",
+   "store":"Default Store View",
+   "customerGroup":"General",
+   "created_date":"2017-11-02",
+   "created_time":1509618495,
+   "defaultBillingAddress":[  
 
-`content`
-this var will always contain the full HTML of the email that Magento would send.
-
-In addition each template may have include vars specific to the context of the email. This allows you to have complete control of the design of the email in Sailthru should you need it.
-
-Magento allows you to configure if a user needs to confirm their email address or not. We've provided template options to meet all registration options.
-
-#####  Create Account Confirmation Email
-| vars | type | example |
-|--- | --- | ---|
-| name | string | John Smith|
-| store_name | string |  Default Store|
-| customer_email | string | jsmith@example.com |
-| customer_url | string | http://example.com/customer/account/|
-| account_confirmation_url | string | http://example.com/ |
-| customer | object |  `{ "magento_id" : "2" , "name" : "John Smith" , "suffix" : "" , "prefix" : "" , "firstName" : "John" , "middleName" : "" , "lastName" : "Smith" , "store" : "Default Store View" , "customerGroup" : "General" , "created_date" : "2017-11-02" , "created_time" : 1509618495 , "defaultBillingAddress" : [ ] , "defaultShippingAddress" : [ ]}`|
-| magento_id | number | 1 |
-| firstName | string | John |
-| middleName | string | Brendan |
-| lastName | string | Smith |
-| store | string | English |
-| customerGroup | string | English |
-| created_date | date | 2017-10-24 |
-| created_date | datetime | 1508870913 |
-| created_date | object | ` { "name" : "John Smith"}` |
-
-#####  Create Account Email Confirmed
-
-| vars | type | example |
-|--- | --- | ---|
-| customer_account_url | string | http://example.com/ |
-| customer_email | string | jsmith@example.com |
-| customer_name | string | John Smith|
-| name | string | John Smith|
-| store_name | string |  Default Store|
-| customer_url | string | http://example.com/customer/account/|
-| reset_url | string | http://example.com/?12343HFYSHWAHASDKASKDJASHD |
-| customer | object |  `{ "magento_id" : "2" , "name" : "John Smith" , "suffix" : "" , "prefix" : "" , "firstName" : "John" , "middleName" : "" , "lastName" : "Smith" , "store" : "Default Store View" , "customerGroup" : "General" , "created_date" : "2017-11-02" , "created_time" : 1509618495 , "defaultBillingAddress" : [ ] , "defaultShippingAddress" : [ ]}`|
-| magento_id | number | 1 |
-| firstName | string | John |
-| middleName | string | Brendan |
-| lastName | string | Smith |
-| store | string | English |
-| customerGroup | string | English |
-| created_date | date | 2017-10-24 |
-| created_date | datetime | 1508870913 |
-| created_date | object | ` { "name" : "John Smith"}` |
-
-#####  Create Account Email
-
-| vars | type | example |
-|--- | --- | ---|
-| customer_account_url | string | http://example.com/ |
-| customer_email | string | jsmith@example.com |
-| customer_name | string | John Smith|
-| name | string | John Smith|
-| store_name | string |  Default Store|
-| customer_url | string | http://example.com/customer/account/|
-| reset_url | string | http://example.com/?12343HFY |
-| customer | object |  `{ "magento_id" : "2" , "name" : "John Smith" , "suffix" : "" , "prefix" : "" , "firstName" : "John" , "middleName" : "" , "lastName" : "Smith" , "store" : "Default Store View" , "customerGroup" : "General" , "created_date" : "2017-11-02" , "created_time" : 1509618495 , "defaultBillingAddress" : [ ] , "defaultShippingAddress" : [ ]}`|
-| magento_id | number | 1 |
-| firstName | string | John |
-| middleName | string | Brendan |
-| lastName | string | Smith |
-| store | string | English |
-| customerGroup | string | English |
-| created_date | date | 2017-10-24 |
-| created_date | datetime | 1508870913 |
-| created_date | object | ` { "name" : "John Smith"}` |
-
-#####  Forgotten Password Email
-
-| vars | type | example |
-|--- | --- | ---|
-| customer_name | string | John Smith|
-| reset_password_url | string | http://example.com/?12343HFY |
-
-
-#####  Password Reminder Email
-
-| vars | type | example |
-|--- | --- | ---|
-| customer_name | string | John Smith|
-| customer_account_url | string | http://example.com/customer/account/|
-
-
-#####  Reset Password Email
-
-| vars | type | example |
-|--- | --- | ---|
-| customer_name | string | John Smith|
-| store_name | string | Default Store |
-| store_email | string | store@example.org |
-| store_phone | string |1-800 111-1111 |
-
-#####  Newsletter Subscription
-
-| vars | type | example |
-|--- | --- | ---|
-| subscriber_confirmation_url | string | http://example.com/?12343H |
+   ],
+   "defaultShippingAddress":[  
+   ]
+}</td>
+  </tr>
+  <tr>
+    <td>magento_id</td>
+    <td>number</td>
+    <td>2</td>
+  </tr>
+  <tr>
+    <td>firstName</td>
+    <td>string</td>
+    <td>John</td>
+  </tr>
+  <tr>
+    <td>middleName</td>
+    <td>string</td>
+    <td>Brendan</td>
+  </tr>
+  <tr>
+    <td>lastName</td>
+    <td>string</td>
+    <td>Smith</td>
+  </tr>
+  <tr>
+    <td>store</td>
+    <td>string</td>
+    <td>English</td>
+  </tr>
+  <tr>
+    <td>created_date</td>
+    <td>date</td>
+    <td>2017-10-24</td>
+  </tr>
+  <tr>
+    <td>created_time</td>
+    <td>datetime</td>
+    <td>1509618495</td>
+  </tr>
+  <tr>
+    <td>registration</td>
+    <td>object</td>
+    <td>registration: { "name" : "John Smith"}</td>
+  </tr>
+</table>
 
 
-#####  Newsletter Subscription
+##### Create Account Email Confirmed
 
-No additional vars are available in this transaction. Use the `{content}` var to pass the HTML from Magento and you can use the `profile` var within the Sailthru template if you need to access the user profile data.
+<table>
+  <tr>
+    <td>vars</td>
+    <td>type</td>
+    <td>example</td>
+  </tr>
+  <tr>
+    <td>customer_account_url</td>
+    <td>string</td>
+    <td>http://example.com/</td>
+  </tr>
+  <tr>
+    <td>customer_email</td>
+    <td>string</td>
+    <td>jsmith@example.com</td>
+  </tr>
+  <tr>
+    <td>customer_name</td>
+    <td>string</td>
+    <td>John Smith</td>
+  </tr>
+  <tr>
+    <td>name</td>
+    <td>string</td>
+    <td>John Smith</td>
+  </tr>
+  <tr>
+    <td>store_name</td>
+    <td>string</td>
+    <td>Default Store</td>
+  </tr>
+  <tr>
+    <td>customer_url</td>
+    <td>string</td>
+    <td>http://example.com/customer/account/</td>
+  </tr>
+  <tr>
+    <td>reset_url</td>
+    <td>string</td>
+    <td>http://example.com/?12343HFYSHWAHASDKASKDJASHD</td>
+  </tr>
+  <tr>
+    <td>customer</td>
+    <td>object</td>
+    <td>{  
+   "magento_id":"2",
+   "name":"John Smith",
+   "suffix":"",
+   "prefix":"",
+   "firstName":"John",
+   "middleName":"Brendan",
+   "lastName":"Smith",
+   "store":"Default Store View",
+   "customerGroup":"General",
+   "created_date":"2017-11-02",
+   "created_time":1509618495,
+   "defaultBillingAddress":[],
+   "defaultShippingAddress":[ ]
+}</td>
+  </tr>
+  <tr>
+    <td>magento_id</td>
+    <td>number</td>
+    <td>2</td>
+  </tr>
+  <tr>
+    <td>firstName</td>
+    <td>string</td>
+    <td>John</td>
+  </tr>
+  <tr>
+    <td>middleName</td>
+    <td>string</td>
+    <td>Brendan</td>
+  </tr>
+  <tr>
+    <td>lastName</td>
+    <td>string</td>
+    <td>Smith</td>
+  </tr>
+  <tr>
+    <td>store</td>
+    <td>string</td>
+    <td>English</td>
+  </tr>
+  <tr>
+    <td>created_date</td>
+    <td>date</td>
+    <td>2017-10-24</td>
+  </tr>
+  <tr>
+    <td>created_time</td>
+    <td>datetime</td>
+    <td>1508870913</td>
+  </tr>
+  <tr>
+    <td>registration</td>
+    <td>object</td>
+    <td>{ "name" : "John Smith"}</td>
+  </tr>
+</table>
 
-#### Magento Sales Order Template
 
-| vars | type | example |
-|--- | --- | ---|
-| customer_name | string | John Smith|
-| store_name | string | Default Store |
-| store_email | string | store@example.org |
-| increment_id | number | 000000003 |
-| created_at   | string | November 1, 2017 at 8:30:36 PM PDT |
-| shipping_description   | string |  Flat Rate - Fixed |
-| order   | object |  ` { "id" : "3" , "items" : [ { "id" : "MS05-L-Blue" , "title" : "Helios EverCool™ Tee" , "options" : [ { "label" : "Color" , "value" : "Blue"} , { "label" : "Size" , "value" : "L"}] , "qty" : 1 , "url" : "http://example.org/index.php/helios-evercool-trade-tee.html" , "image" : "http://example.org/media/catalog/product//m/s/ms05-blue_main.jpg" , "price" : "24.0000"}] , "adjustments" : [ { "title" : "Shipping" , "price" : 500} , { "title" : "Discount" , "price" : 0} , { "title" : "Tax" , "price" : 0}] , "tenders" : "" , "name" : "John Smith" , "status" : "pending" , "state" : "new" , "created_date" : "2017-11-02 03:30:36" , "total" : "29.0000" , "subtotal" : "24.0000" , "couponCode" : null , "discount" : "0.0000" , "shippingDescription" : "Flat Rate - Fixed" , "isGuest" : 0 , "billingAddress" : { "city" : "New York" , "state" : "New York" , "state_code" : "NY" , "country" : "United States" , "country_code" : "US" , "postal_code" : "11111" , "name" : "John Smith" , "company" : "" , "telephone" : "555-555-5555" , "street1" : "38 Foolhardy Avenue" , "street2" : ""} , "shippingAddress" : { "city" : "New York" , "state" : "New York" , "state_code" : "NY" , "country" : "United States" , "country_code" : "US" , "postal_code" : "11111" , "name" : "Alex Silverman" , "company" : "" , "telephone" : "555-555-5555" , "street1" : "38 Foolhardy Avenue" , "street2" : ""}` |
-| created_date   | string |  2017-10-24 |
-| isGuest   | boolean |  false |
+##### Create Account Email
 
-#### Magento Order Comment
+<table>
+  <tr>
+    <td>vars</td>
+    <td>type</td>
+    <td>example</td>
+  </tr>
+  <tr>
+    <td>customer_account_url</td>
+    <td>string</td>
+    <td>http://example.com/</td>
+  </tr>
+  <tr>
+    <td>customer_email</td>
+    <td>string</td>
+    <td>jsmith@example.com</td>
+  </tr>
+  <tr>
+    <td>customer_name</td>
+    <td>string</td>
+    <td>John Smith</td>
+  </tr>
+  <tr>
+    <td>name</td>
+    <td>string</td>
+    <td>John Smith</td>
+  </tr>
+  <tr>
+    <td>store_name</td>
+    <td>string</td>
+    <td>Default Store</td>
+  </tr>
+  <tr>
+    <td>customer_url</td>
+    <td>string</td>
+    <td>http://example.com/customer/account/</td>
+  </tr>
+  <tr>
+    <td>reset_url</td>
+    <td>string</td>
+    <td>http://example.com/?12343HFY</td>
+  </tr>
+  <tr>
+    <td>customer</td>
+    <td>object</td>
+    <td>{  
+   "magento_id":"2",
+   "name":"John Smith",
+   "suffix":"",
+   "prefix":"",
+   "firstName":"John",
+   "middleName":"",
+   "lastName":"Smith",
+   "store":"Default Store View",
+   "customerGroup":"General",
+   "created_date":"2017-11-02",
+   "created_time":1509618495,
+   "defaultBillingAddress":[  
+   ],
+   "defaultShippingAddress":[  
 
-| vars | type | example |
-|--- | --- | ---|
-| name | string | John Smith|
-| increment_id | string | Default Store |
-| order_status | string | store@example.org |
-| increment_id | number | 000000003 |
-| account_url   | string | November 1, 2017 at 8:30:36 PM PDT |
-| store_email   | string |  store@example.com |
-| order_comment   | string |  This is a comment |
+   ]
+}</td>
+  </tr>
+  <tr>
+    <td>magento_id</td>
+    <td>number</td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>firstName</td>
+    <td>string</td>
+    <td>John</td>
+  </tr>
+  <tr>
+    <td>middleName</td>
+    <td>string</td>
+    <td>Brendan</td>
+  </tr>
+  <tr>
+    <td>lastName</td>
+    <td>string</td>
+    <td>Smith</td>
+  </tr>
+  <tr>
+    <td>store</td>
+    <td>string</td>
+    <td>English</td>
+  </tr>
+  <tr>
+    <td>created_date</td>
+    <td>date</td>
+    <td>2017-10-24</td>
+  </tr>
+  <tr>
+    <td>created_time</td>
+    <td>datetime</td>
+    <td>1508870913</td>
+  </tr>
+  <tr>
+    <td>registration</td>
+    <td>object</td>
+    <td>{ "name" : "John Smith"}</td>
+  </tr>
+</table>
 
 
-####  Order Comment
+##### Forgotten Password Email
 
-| vars | type | example |
-|--- | --- | ---|
-| name | string | John Smith|
-| increment_id | string | Default Store |
-| order_status | string | Shipped |
-| increment_id | number | 000000003 |
-| account_url   | string | http://example.com/customer/account |
-| store_email   | string |  Flat Rate - Fixed |
-| order_comment   | string |  2017-10-24 |
-
-####  Order Comment  (Guest)
-
-| vars | type | example |
-|--- | --- | ---|
-| name | string | John Smith|
-| increment_id | string | Default Store |
-| order_status | string | Shipped |
-| increment_id | number | 000000003 |
-| account_url   | string | http://example.com/customer/account |
-| store_email   | string |  Flat Rate - Fixed |
-| order_comment   | string |  2017-10-24 |
+<table>
+  <tr>
+    <td>vars</td>
+    <td>type</td>
+    <td>example</td>
+  </tr>
+  <tr>
+    <td>customer_name</td>
+    <td>string</td>
+    <td>John Smith</td>
+  </tr>
+  <tr>
+    <td>reset_password_url</td>
+    <td>string</td>
+    <td>http://example.com/?12343HFY</td>
+  </tr>
+</table>
 
 
-####  Shipment Email
+##### Password Reminder Email
 
-| vars | type | example |
-|--- | --- | ---|
-| name | string | John Smith|
-| order_status | string | Shipped |
-| increment_id | number | 000000003 |
-| account_url   | string | http://example.com/customer/account |
-| store_email   | string |  Flat Rate - Fixed |
-| order_comment   | string |  2017-10-24 |
+<table>
+  <tr>
+    <td>vars</td>
+    <td>type</td>
+    <td>example</td>
+  </tr>
+  <tr>
+    <td>customer_name</td>
+    <td>string</td>
+    <td>John Smith</td>
+  </tr>
+  <tr>
+    <td>customer_account_url</td>
+    <td>string</td>
+    <td>http://example.com/customer/account/</td>
+  </tr>
+</table>
 
-####  Shipment Email (Guest)
 
-| vars | type | example |
-|--- | --- | ---|
-| name | string | John Smith|
-| order_status | string | Shipped |
-| increment_id | number | 000000003 |
-| account_url   | string | http://example.com/customer/account |
-| store_email   | string |  Flat Rate - Fixed |
-| order_comment   | string |  2017-10-24 |
+##### Reset Password Email
 
-####  Credit Memos
+<table>
+  <tr>
+    <td>vars</td>
+    <td>type</td>
+    <td>example</td>
+  </tr>
+  <tr>
+    <td>customer_name</td>
+    <td>string</td>
+    <td>John Smith</td>
+  </tr>
+  <tr>
+    <td>store_name</td>
+    <td>string</td>
+    <td>Default Store</td>
+  </tr>
+  <tr>
+    <td>store_email</td>
+    <td>string</td>
+    <td>store@example.org</td>
+  </tr>
+  <tr>
+    <td>store_phone</td>
+    <td>string</td>
+    <td>1-800 111-1111</td>
+  </tr>
+</table>
 
-| vars | type | example |
-|--- | --- | ---|
-| name | string | John Smith|
-| order_status | string | Shipped |
-| increment_id | number | 000000003 |
-| store_name | string | Default Store |
-| account_url   | string | http://example.com/customer/account |
-| store_email   | string |  Flat Rate - Fixed |
-| order_comment   | string |  2017-10-24 |
+
+##### Newsletter Subscription
+
+<table>
+  <tr>
+    <td>vars</td>
+    <td>type</td>
+    <td>example</td>
+  </tr>
+  <tr>
+    <td>subscriber_confirmation_url</td>
+    <td>string</td>
+    <td>http://example.com/?12343H</td>
+  </tr>
+</table>
+
+
+#### **Magento Sales Order Template**
+
+<table>
+  <tr>
+    <td>vars</td>
+    <td>type</td>
+    <td>example</td>
+  </tr>
+  <tr>
+    <td>customer_name</td>
+    <td>string</td>
+    <td>John Smith</td>
+  </tr>
+  <tr>
+    <td>store_name</td>
+    <td>string</td>
+    <td>Default Store</td>
+  </tr>
+  <tr>
+    <td>store_email</td>
+    <td>string</td>
+    <td>store@example.org</td>
+  </tr>
+  <tr>
+    <td>increment_id</td>
+    <td>number</td>
+    <td>000000003</td>
+  </tr>
+  <tr>
+    <td>created_at</td>
+    <td>string</td>
+    <td>November 1, 2017 at 8:30:36 PM PDT</td>
+  </tr>
+  <tr>
+    <td>shipping_description</td>
+    <td>string</td>
+    <td>Flat Rate - Fixed</td>
+  </tr>
+  <tr>
+    <td>order</td>
+    <td>object</td>
+    <td>{  
+   "id":"3",
+   "items":[  
+      {  
+         "id":"MS05-L-Blue",
+         "title":"Helios EverCool™ Tee",
+         "options":[  
+            {  
+               "label":"Color",
+               "value":"Blue"
+            },
+            {  
+               "label":"Size",
+               "value":"L"
+            }
+         ],
+         "qty":1,
+         "url":"http://example.org/index.php/helios-evercool-trade-tee.html",
+         "image":"http://example.org/media/catalog/product//m/s/ms05-blue_main.jpg",
+         "price":"24.0000"
+      }
+   ],
+   "adjustments":[  
+      {  
+         "title":"Shipping",
+         "price":500
+      },
+      {  
+         "title":"Discount",
+         "price":0
+      },
+      {  
+         "title":"Tax",
+         "price":0
+      }
+   ],
+   "tenders":"",
+   "name":"John Smith",
+   "status":"pending",
+   "state":"new",
+   "created_date":"2017-11-02 03:30:36",
+   "total":"29.0000",
+   "subtotal":"24.0000",
+   "couponCode":null,
+   "discount":"0.0000",
+   "shippingDescription":"Flat Rate - Fixed",
+   "isGuest":0,
+   "billingAddress":{  
+      "city":"New York",
+      "state":"New York",
+      "state_code":"NY",
+      "country":"United States",
+      "country_code":"US",
+      "postal_code":"11111",
+      "name":"John Smith",
+      "company":"",
+      "telephone":"555-555-5555",
+      "street1":"38 New Avenue",
+      "street2":""
+   },
+   "shippingAddress":{  
+      "city":"New York",
+      "state":"New York",
+      "state_code":"NY",
+      "country":"United States",
+      "country_code":"US",
+      "postal_code":"11111",
+      "name":"Alex Silverman",
+      "company":"",
+      "telephone":"555-555-5555",
+      "street1":"38 New Avenue",
+      "street2":""
+   }
+}</td>
+  </tr>
+  <tr>
+    <td>created_date</td>
+    <td>string</td>
+    <td>2017-10-24</td>
+  </tr>
+  <tr>
+    <td>isGuest</td>
+    <td>boolean</td>
+    <td>false</td>
+  </tr>
+</table>
+
+
+#### **Magento Order Comment**
+
+<table>
+  <tr>
+    <td>vars</td>
+    <td>type</td>
+    <td>example</td>
+  </tr>
+  <tr>
+    <td>name</td>
+    <td>string</td>
+    <td>John Smith</td>
+  </tr>
+  <tr>
+    <td>increment_id</td>
+    <td>string</td>
+    <td>Default Store</td>
+  </tr>
+  <tr>
+    <td>order_status</td>
+    <td>string</td>
+    <td>store@example.org</td>
+  </tr>
+  <tr>
+    <td>increment_id</td>
+    <td>number</td>
+    <td>000000003</td>
+  </tr>
+  <tr>
+    <td>account_url</td>
+    <td>string</td>
+    <td>November 1, 2017 at 8:30:36 PM PDT</td>
+  </tr>
+  <tr>
+    <td>store_email</td>
+    <td>string</td>
+    <td>store@example.com</td>
+  </tr>
+  <tr>
+    <td>order_comment</td>
+    <td>string</td>
+    <td>This is a comment</td>
+  </tr>
+</table>
+
+
+#### **Order Comment**
+
+<table>
+  <tr>
+    <td>vars</td>
+    <td>type</td>
+    <td>example</td>
+  </tr>
+  <tr>
+    <td>name</td>
+    <td>string</td>
+    <td>John Smith</td>
+  </tr>
+  <tr>
+    <td>increment_id</td>
+    <td>string</td>
+    <td>Default Store</td>
+  </tr>
+  <tr>
+    <td>order_status</td>
+    <td>string</td>
+    <td>Shipped</td>
+  </tr>
+  <tr>
+    <td>increment_id</td>
+    <td>number</td>
+    <td>000000003</td>
+  </tr>
+  <tr>
+    <td>account_url</td>
+    <td>string</td>
+    <td>http://example.com/customer/account</td>
+  </tr>
+  <tr>
+    <td>store_email</td>
+    <td>string</td>
+    <td>help@example.com</td>
+  </tr>
+  <tr>
+    <td>order_comment</td>
+    <td>string</td>
+    <td>2017-10-24</td>
+  </tr>
+</table>
+
+
+#### **Order Comment (Guest)**
+
+<table>
+  <tr>
+    <td>vars</td>
+    <td>type</td>
+    <td>example</td>
+  </tr>
+  <tr>
+    <td>name</td>
+    <td>string</td>
+    <td>John Smith</td>
+  </tr>
+  <tr>
+    <td>increment_id</td>
+    <td>string</td>
+    <td>Default Store</td>
+  </tr>
+  <tr>
+    <td>order_status</td>
+    <td>string</td>
+    <td>Shipped</td>
+  </tr>
+  <tr>
+    <td>increment_id</td>
+    <td>number</td>
+    <td>000000003</td>
+  </tr>
+  <tr>
+    <td>account_url</td>
+    <td>string</td>
+    <td>http://example.com/customer/account</td>
+  </tr>
+  <tr>
+    <td>store_email</td>
+    <td>string</td>
+    <td>Flat Rate - Fixed</td>
+  </tr>
+  <tr>
+    <td>order_comment</td>
+    <td>string</td>
+    <td>This is a comment</td>
+  </tr>
+</table>
+
+
+#### Shipment Email
+
+<table>
+  <tr>
+    <td>vars</td>
+    <td>type</td>
+    <td>example</td>
+  </tr>
+  <tr>
+    <td>name</td>
+    <td>string</td>
+    <td>John Smith</td>
+  </tr>
+  <tr>
+    <td>order_status</td>
+    <td>string</td>
+    <td>Shipped</td>
+  </tr>
+  <tr>
+    <td>increment_id</td>
+    <td>number</td>
+    <td>000000003</td>
+  </tr>
+  <tr>
+    <td>account_url</td>
+    <td>string</td>
+    <td>http://example.com/customer/account</td>
+  </tr>
+  <tr>
+    <td>store_email</td>
+    <td>string</td>
+    <td>Flat Rate - Fixed</td>
+  </tr>
+  <tr>
+    <td>order_comment</td>
+    <td>string</td>
+    <td>This is a comment</td>
+  </tr>
+</table>
+
+
+#### **Shipment Email (Guest)**
+
+<table>
+  <tr>
+    <td>vars</td>
+    <td>type</td>
+    <td>example</td>
+  </tr>
+  <tr>
+    <td>name</td>
+    <td>string</td>
+    <td>John Smith</td>
+  </tr>
+  <tr>
+    <td>order_status</td>
+    <td>string</td>
+    <td>Shipped</td>
+  </tr>
+  <tr>
+    <td>increment_id</td>
+    <td>number</td>
+    <td>000000003</td>
+  </tr>
+  <tr>
+    <td>account_url</td>
+    <td>string</td>
+    <td>http://example.com/customer/account</td>
+  </tr>
+  <tr>
+    <td>store_email</td>
+    <td>string</td>
+    <td>Flat Rate - Fixed</td>
+  </tr>
+  <tr>
+    <td>order_comment</td>
+    <td>string</td>
+    <td>2017-10-24</td>
+  </tr>
+</table>
+
+
+#### **Credit Memos**
+
+<table>
+  <tr>
+    <td>vars</td>
+    <td>type</td>
+    <td>example</td>
+  </tr>
+  <tr>
+    <td>name</td>
+    <td>string</td>
+    <td>John Smith</td>
+  </tr>
+  <tr>
+    <td>store_name</td>
+    <td>string</td>
+    <td>Default Store</td>
+  </tr>
+  <tr>
+    <td>account_url</td>
+    <td>string</td>
+    <td>http://example.com/customer/account</td>
+  </tr>
+  <tr>
+    <td>store_email</td>
+    <td>string</td>
+    <td>help@example.com</td>
+  </tr>
+  <tr>
+    <td>creditmemo_id</td>
+    <td>string</td>
+    <td>000000002</td>
+  </tr>
+  <tr>
+    <td>order_id</td>
+    <td>string</td>
+    <td>000000006</td>
+  </tr>
+  <tr>
+    <td>shipping_description</td>
+    <td>string</td>
+    <td>Flat Rate - Fixed</td>
+  </tr>
+</table>
