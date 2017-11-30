@@ -13,6 +13,7 @@ use Magento\Store\Model\StoreManager;
 use Sailthru\MageSail\Logger;
 use Sailthru\MageSail\Model\Config\Template\Data as TemplateConfig;
 use Sailthru\MageSail\Model\Template as TemplateModel;
+use Zend\View\Helper\Url;
 
 class ProductData extends AbstractHelper
 {
@@ -316,7 +317,7 @@ class ProductData extends AbstractHelper
         $product->getProductUrl(false); // generates the URL key
         /** @var Store $store */
         $store = $this->storeManager->getStore($product->getStoreId());
-        return $store->getBaseUrl() . $product->getRequestPath();
+        return $store->getBaseUrl(UrlInterface::URL_TYPE_WEB, true) . $product->getRequestPath();
     }
 
     // Magento 2 getImage seems to add a strange slash, therefore this.
@@ -324,6 +325,6 @@ class ProductData extends AbstractHelper
     {
         /** @var Store $store */
         $store = $this->storeManager->getStore($product->getStoreId());
-        return $store->getBaseUrl(UrlInterface::URL_TYPE_MEDIA) . 'catalog/product' . $product->getImage();
+        return $store->getBaseUrl(UrlInterface::URL_TYPE_MEDIA, true) . 'catalog/product' . $product->getImage();
     }
 }
