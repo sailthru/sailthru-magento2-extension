@@ -229,7 +229,7 @@ class ProductIntercept
                 }
             }
 
-            if ($inventory = $product->getStockData()["qty"]) {
+            if ($inventory = $product->getStockData()["qty"] or $inventory = intval($product->getQty())) {
                 $data['inventory'] = $inventory;
             }
 

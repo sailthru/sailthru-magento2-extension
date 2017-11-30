@@ -3,9 +3,11 @@
 
 namespace Sailthru\MageSail\Console\Command;
 
+use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\Product\Attribute\Source\Status;
 use Magento\Catalog\Model\ResourceModel\Product\Collection;
+use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Framework\App\Area;
 use Magento\Framework\App\State;
 use Magento\Store\Model\App\Emulation;
@@ -42,13 +44,21 @@ class Import extends Command
     /** @var StoreManagerInterface  */
     private $storeManager;
 
+    /** @var ProductRepositoryInterface  */
+    private $productRepo;
+
+    /** @var SearchCriteriaBuilder  */
+    private $criteriaBuilder;
+
     public function __construct(
         ClientManager $clientManager,
         ProductIntercept $productIntercept,
         Collection $productCollection,
         Emulation $emulation,
         State $state,
-        StoreManagerInterface $storeManager
+        StoreManagerInterface $storeManager,
+        ProductRepositoryInterface $productRepo,
+        SearchCriteriaBuilder $criteriaBuilder
     ) {
         parent::__construct();
         $this->clientManager = $clientManager;
@@ -57,6 +67,8 @@ class Import extends Command
         $this->emulation = $emulation;
         $this->state = $state;
         $this->storeManager = $storeManager;
+        $this->productRepo = $productRepo;
+        $this->criteriaBuilder = $criteriaBuilder;
     }
 
     /**
@@ -71,6 +83,12 @@ class Import extends Command
         $this->productCollection
             ->addAttributeToSelect("*")
             ->addStoreFilter($storeId)
+            ->joinField('qty',
+                'cataloginventory_stock_item',
+                'qty',
+                'product_id=entity_id',
+                '{{table}}.stock_id=1',
+                'left')
             ->setPageSize(75)
             ->load();
 
@@ -78,6 +96,7 @@ class Import extends Command
         $output->writeln("Checking {$this->productCollection->getSize()} products to import for Store #$storeId $storeName");
 
         $this->state->setAreaCode(Area::AREA_FRONTEND);
+        $this->emulation->startEnvironmentEmulation($storeId, Area::AREA_FRONTEND);
         $sailClient = $this->clientManager->getClient(true, $storeId);
         $sailClient->_eventType = $this::EVENT_NAME;
 
@@ -93,7 +112,6 @@ class Import extends Command
             $this->productCollection->setCurPage($page++)->load();
             /** @var Product $product */
             foreach ($this->productCollection->getItems() as $product) {
-
                 if ($checkedProducts != 0 && $checkedProducts % 100 == 0) {
                     $output->writeln("\nChecked $checkedProducts products...");
                 }
@@ -124,6 +142,7 @@ class Import extends Command
 
         $endTime = microtime(true);
         $time = $endTime - $startTime;
+        $this->emulation->stopEnvironmentEmulation();
 
         if ($skippedProducts) {
             $productString = $this->printableProducts($skippedProducts);
