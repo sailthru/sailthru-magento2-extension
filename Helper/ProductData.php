@@ -3,6 +3,8 @@
 namespace Sailthru\MageSail\Helper;
 
 use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Catalog\Block\Product\AbstractProduct;
+use Magento\Catalog\Block\Product\ImageBuilder;
 use Magento\Catalog\Model\Product;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable as ConfigurableProduct;
 use Magento\Framework\App\Helper\Context;
@@ -64,6 +66,8 @@ class ProductData extends AbstractHelper
     /** @var ProductRepositoryInterface */
     private $productRepo;
 
+    private $imageBuilder;
+
     public function __construct(
         Context $context,
         StoreManager $storeManager,
@@ -72,11 +76,13 @@ class ProductData extends AbstractHelper
         TemplateConfig $templateConfig,
         ObjectManagerInterface $objectManager,
         ConfigurableProduct $configurableProduct,
-        ProductRepositoryInterface $productRepo
+        ProductRepositoryInterface $productRepo,
+        ImageBuilder $imageBuilder
     ) {
         parent::__construct($context, $storeManager, $logger, $templateModel, $templateConfig, $objectManager);
         $this->configurableProduct = $configurableProduct;
         $this->productRepo = $productRepo;
+        $this->imageBuilder = $imageBuilder;
     }
 
     /**
@@ -326,5 +332,17 @@ class ProductData extends AbstractHelper
         /** @var Store $store */
         $store = $this->storeManager->getStore($product->getStoreId());
         return $store->getBaseUrl(UrlInterface::URL_TYPE_MEDIA, true) . 'catalog/product' . $product->getImage();
+    }
+
+    public function retrieveThumbnail($product)
+    {
+        $imageWidth = 200;
+        $imageHeight = 200;
+
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        /** @var Image $imageHelper */
+        $imageHelper  = $objectManager->get('\Magento\Catalog\Helper\Image');
+        $image_url = $imageHelper->init($product, 'product_page_image_small')->setImageFile($product->getFile())->resize($imageWidth, $imageHeight)->getUrl();
+        return $image_url;
     }
 }

@@ -177,13 +177,20 @@ class ProductIntercept
         if ($isVariant && !$updateVariants) {
             return false;
         }
-        
+
+        if (!$isVariant && !$this->productHelper->canShow($product)) {
+            return false;
+        }
+
         $attributes = $this->sailthruProduct->getProductAttributeValues($product);
         $categories = $this->sailthruProduct->getCategories($product);
 
         try {
             $data = [
                 'url'   => $this->sailthruProduct->getProductUrl($product, $storeId),
+                'keys' => [
+                    'sku' => $product->getSku()
+                ],
                 'title' => htmlspecialchars($product->getName()),
                 'spider' => 0,
                 'price' => $price = ($product->getPrice() ? $product->getPrice() :
@@ -218,7 +225,6 @@ class ProductIntercept
                     'isAvailable'  => (int) $product->isAvailable(),
                     'isVirtual'  => (int) $product->isVirtual(),
                     'isInStock'  => (int) $product->isInStock(),
-                    'isVisible' => (int) $this->productHelper->canShow($product)
                 ] + $attributes,
             ];
 
@@ -236,7 +242,7 @@ class ProductIntercept
             // Add product images
             if ($image = $product->getImage()) {
                 $data['images']['thumb'] = [
-                    "url" => $this->imageHelper->init($product, 'product_listing_thumbnail')->getUrl()
+                    "url" => $this->imageHelper->init($product, 'sailthru_thumb')->getUrl()
                 ];
                 $data['images']['full'] = [
                     "url"=> $this->sailthruProduct->getBaseImageUrl($product)

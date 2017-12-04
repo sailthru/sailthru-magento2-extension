@@ -4,6 +4,8 @@
 namespace Sailthru\MageSail\Console\Command;
 
 use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Catalog\Block\Product\AbstractProduct;
+use Magento\Catalog\Helper\Image;
 use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\Product\Attribute\Source\Status;
 use Magento\Catalog\Model\ResourceModel\Product\Collection;
@@ -80,6 +82,8 @@ class Import extends Command
     ) {
         $storeId = $input->getArgument(self::STORE_ARGUMENT);
         $this->productCollection->setStoreId($storeId);
+        $this->state->setAreaCode(Area::AREA_FRONTEND);
+
         $this->productCollection
             ->addAttributeToSelect("*")
             ->addStoreFilter($storeId)
@@ -95,8 +99,6 @@ class Import extends Command
         $storeName = $this->storeManager->getStore($storeId)->getName();
         $output->writeln("Checking {$this->productCollection->getSize()} products to import for Store #$storeId $storeName");
 
-        $this->state->setAreaCode(Area::AREA_FRONTEND);
-        $this->emulation->startEnvironmentEmulation($storeId, Area::AREA_FRONTEND);
         $sailClient = $this->clientManager->getClient(true, $storeId);
         $sailClient->_eventType = $this::EVENT_NAME;
 
@@ -142,7 +144,6 @@ class Import extends Command
 
         $endTime = microtime(true);
         $time = $endTime - $startTime;
-        $this->emulation->stopEnvironmentEmulation();
 
         if ($skippedProducts) {
             $productString = $this->printableProducts($skippedProducts);
