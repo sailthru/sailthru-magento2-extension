@@ -119,5 +119,54 @@ xsi:noNamespaceSchemaLocation="template_list.xsd">
             <custom_template_source>sales_email/creditmemo/comment/guest_template</custom_template_source>
             <sort_order>19</sort_order>
         </template>
+        <!-- Magento RMA Emails -->
+        <template>
+            <id>sales_email_magento_rma_template</id>
+            <name>New RMA</name>
+            <custom_template_source>sales_email/magento/rma/template</custom_template_source>
+            <sort_order>20</sort_order>
+        </template>
+        <template>
+            <id>sales_email_magento_rma_guest_template</id>
+            <name>New RMA for Guest</name>
+            <custom_template_source>sales_email/magento/rma/guest_template</custom_template_source>
+            <sort_order>21</sort_order>
+        </template>
+        <template>
+            <id>sales_email_magento_rma_auth_template</id>
+            <name>RMA Authorization</name>
+            <custom_template_source>sales_email/magento/rma/auth/template</custom_template_source>
+            <sort_order>22</sort_order>
+        </template>
+        <template>
+            <id>sales_email_magento_rma_auth_guest_template</id>
+            <name>RMA Authorization for Guest</name>
+            <custom_template_source>sales_email/magento/rma/auth/guest_template</custom_template_source>
+            <sort_order>23</sort_order>
+        </template>
+        <template>
+            <id>sales_email_magento_rma_comment_template</id>
+            <name>RMA Admin Comments</name>
+            <custom_template_source>sales_email/magento/rma/comment/template</custom_template_source>
+            <sort_order>25</sort_order>
+        </template>
+        <template>
+            <id>sales_email_magento_rma_comment_template</id>
+            <name>RMA Admin Comments</name>
+            <custom_template_source>sales_email/magento/rma/comment/template</custom_template_source>
+            <sort_order>26</sort_order>
+        </template>
+        <template>
+            <id>sales_email_magento_rma_comment_guest_template</id>
+            <name>RMA Admin Comments for Guest</name>
+            <custom_template_source>sales_email/magento/rma/comment/guest_template</custom_template_source>
+            <sort_order>27</sort_order>
+        </template>
+        <template>
+            <id>sales_email_magento_rma_customer_comment_template</id>
+            <name>RMA Customer Comments</name>
+            <custom_template_source>sales_email/magento/rma/customer/template</custom_template_source>
+            <sort_order>28</sort_order>
+        </template>
     </template_list>
 </config>
