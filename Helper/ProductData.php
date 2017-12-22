@@ -3,6 +3,8 @@
 namespace Sailthru\MageSail\Helper;
 
 use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Catalog\Block\Product\AbstractProduct;
+use Magento\Catalog\Block\Product\ImageBuilder;
 use Magento\Catalog\Model\Product;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable as ConfigurableProduct;
 use Magento\Framework\App\Helper\Context;
@@ -13,6 +15,7 @@ use Magento\Store\Model\StoreManager;
 use Sailthru\MageSail\Logger;
 use Sailthru\MageSail\Model\Config\Template\Data as TemplateConfig;
 use Sailthru\MageSail\Model\Template as TemplateModel;
+use Zend\View\Helper\Url;
 
 class ProductData extends AbstractHelper
 {
@@ -63,6 +66,8 @@ class ProductData extends AbstractHelper
     /** @var ProductRepositoryInterface */
     private $productRepo;
 
+    private $imageBuilder;
+
     public function __construct(
         Context $context,
         StoreManager $storeManager,
@@ -71,11 +76,13 @@ class ProductData extends AbstractHelper
         TemplateConfig $templateConfig,
         ObjectManagerInterface $objectManager,
         ConfigurableProduct $configurableProduct,
-        ProductRepositoryInterface $productRepo
+        ProductRepositoryInterface $productRepo,
+        ImageBuilder $imageBuilder
     ) {
         parent::__construct($context, $storeManager, $logger, $templateModel, $templateConfig, $objectManager);
         $this->configurableProduct = $configurableProduct;
         $this->productRepo = $productRepo;
+        $this->imageBuilder = $imageBuilder;
     }
 
     /**
@@ -316,7 +323,7 @@ class ProductData extends AbstractHelper
         $product->getProductUrl(false); // generates the URL key
         /** @var Store $store */
         $store = $this->storeManager->getStore($product->getStoreId());
-        return $store->getBaseUrl() . $product->getRequestPath();
+        return $store->getBaseUrl(UrlInterface::URL_TYPE_WEB, true) . $product->getRequestPath();
     }
 
     // Magento 2 getImage seems to add a strange slash, therefore this.
@@ -324,6 +331,18 @@ class ProductData extends AbstractHelper
     {
         /** @var Store $store */
         $store = $this->storeManager->getStore($product->getStoreId());
-        return $store->getBaseUrl(UrlInterface::URL_TYPE_MEDIA) . 'catalog/product' . $product->getImage();
+        return $store->getBaseUrl(UrlInterface::URL_TYPE_MEDIA, true) . 'catalog/product' . $product->getImage();
+    }
+
+    public function retrieveThumbnail($product)
+    {
+        $imageWidth = 200;
+        $imageHeight = 200;
+
+        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+        /** @var Image $imageHelper */
+        $imageHelper  = $objectManager->get('\Magento\Catalog\Helper\Image');
+        $image_url = $imageHelper->init($product, 'product_page_image_small')->setImageFile($product->getFile())->resize($imageWidth, $imageHeight)->getUrl();
+        return $image_url;
     }
 }
