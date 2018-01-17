@@ -47,6 +47,7 @@ class Settings extends AbstractHelper
             'customer_create_account_email_confirmed_template',
         ],
         'Sailthru\MageSail\Helper\Order' => [
+            'sales_email_order_guest_template',
             'sales_email_order_template',
         ],
         'Sailthru\MageSail\Helper\Shipment' => [
