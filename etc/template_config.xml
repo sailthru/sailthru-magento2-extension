@@ -72,6 +72,7 @@ xsi:noNamespaceSchemaLocation="template_list.xsd">
             <custom_template_source>sales_email/order/template</custom_template_source>
             <sort_order>12</sort_order>
         </template>
+        <!-- Magento_Sales (New Order for Guest -->
         <template>
             <id>sales_email_order_guest_template</id>
             <name>New Guest Order</name>
