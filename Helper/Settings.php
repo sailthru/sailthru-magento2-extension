@@ -52,6 +52,7 @@ class Settings extends AbstractHelper
         ],
         'Sailthru\MageSail\Helper\Shipment' => [
             'sales_email_shipment_template',
+            'sales_email_shipment_guest_template',
         ],
     ];
 
@@ -61,6 +62,7 @@ class Settings extends AbstractHelper
         'sales_email_order_comment_template',
         'sales_email_order_comment_guest_template',
         'sales_email_shipment_template',
+        'sales_email_shipment_guest_template',
         'sales_email_shipment_comment_template',
         'sales_email_shipment_comment_guest_template',
     ];
@@ -283,7 +285,7 @@ class Settings extends AbstractHelper
 
         if (in_array($id, self::HELPERS_MAP['Sailthru\MageSail\Helper\Shipment'])) {
             if (isset($currentVars['shipment_id'])) {
-                $shipment = $helper->getObject();
+                $shipment = $helper->getObject($currentVars['shipment_id']);
                 $currentVars += $helper->getCustomVariables($shipment);
 
                 if (in_array($id, self::TEMPLATES_WITH_IS_GUEST_VAR)) {
