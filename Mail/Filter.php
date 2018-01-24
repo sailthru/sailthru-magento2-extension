@@ -105,7 +105,8 @@ class Filter extends \Magento\Email\Model\Template\Filter
         if ($this->templateDirectives) {
             foreach ($this->templateDirectives as $key => $value) {
                 if (strstr($directive, $value)) {
-                    $this->templateVariables[$key] = $this->getVariable($directive, '');
+                    $formattedKey = str_replace('"', "", $key);
+                    $this->templateVariables[$formattedKey] = $this->getVariable($directive, '');
                 }
             }
         }
