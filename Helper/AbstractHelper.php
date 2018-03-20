@@ -3,6 +3,7 @@
 namespace Sailthru\MageSail\Helper;
 
 use Magento\Framework\App\Helper\Context;
+use Magento\Sales\Model\ResourceModel\Order\CollectionFactoryInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManager;
 use Magento\Framework\App\Helper\AbstractHelper as MageAbstractHelper;
@@ -25,7 +26,7 @@ class AbstractHelper extends MageAbstractHelper
     /** @var TemplateConfig */
     protected $templateConfig;
 
-    /** @var ObjectManager */
+    /** @var ObjectManagerInterface */
     protected $objectManager;
 
     public function __construct(
@@ -46,24 +47,34 @@ class AbstractHelper extends MageAbstractHelper
 
     public function getSettingsVal($val, $storeId = null)
     {
-        $scopeType = ScopeInterface::SCOPE_STORES;
-        $scopeCode = null;
-
         if ($storeId) {
-            $scopeCode = $this->storeManager->getStore($storeId)->getCode();
-        } else {
-            $storeCode = $this->_request->getParam('store');
-            $websiteCode = $this->_request->getParam('website');
-            if ($storeCode) {
-                $scopeType = ScopeInterface::SCOPE_STORE;
-                $scopeCode = $storeCode;
-            } elseif ($websiteCode) {
-                $scopeType = ScopeInterface::SCOPE_WEBSITE;
-                $scopeCode = $websiteCode;
-            } else {
-                $scopeCode = $this->storeManager->getStore()->getCode();
-            }
+            return $this->scopeConfig->getValue($val, ScopeInterface::SCOPE_STORE, $this->storeManager->getStore($storeId)->getCode());
         }
-        return $this->scopeConfig->getValue($val, $scopeType, $scopeCode);
+        
+        if ($storeCode = $this->_request->getParam('store')) {
+            return $this->scopeConfig->getValue($val, ScopeInterface::SCOPE_STORE, $storeCode);
+        }
+
+        if ($orderId = $this->_request->getParam('order_id')) {
+            $storeCode = $this->getStoreCodeFromOrderId($orderId);
+            return $this->scopeConfig->getValue($val, ScopeInterface::SCOPE_STORE, $storeCode);
+        }
+
+        if ($websiteCode = $this->_request->getParam('website')) {
+            return $this->scopeConfig->getValue($val, ScopeInterface::SCOPE_WEBSITE, $websiteCode);
+        }
+
+        return $this->scopeConfig->getValue($val, ScopeInterface::SCOPE_STORE, $this->storeManager->getStore()->getCode());
+    }
+
+    private function getStoreCodeFromOrderId($orderId) {
+        /** @var CollectionFactoryInterface $orderFactory */
+        $orderFactory = $this->objectManager->create('\Magento\Sales\Model\ResourceModel\Order\CollectionFactoryInterface');
+        $order = $orderFactory->create()
+                              ->addAttributeToSelect("store_id")
+                              ->addFilter("entity_id", $orderId)
+                              ->getFirstItem();
+        $storeId = $order->getStoreId();
+        return $this->storeManager->getStore($storeId)->getCode();
     }
 }
