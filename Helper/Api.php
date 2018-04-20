@@ -12,6 +12,7 @@ use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManager;
 use Sailthru\MageSail\Cookie\Hid;
 use Sailthru\MageSail\Logger;
+use Sailthru\MageSail\MageClient;
 
 class Api extends \Magento\Framework\App\Helper\AbstractHelper
 {
@@ -81,7 +82,9 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
         'sku'
     ];
 
+    /** @var  MageClient */
     public $client;
+
     public $hid;
     public $logger;
     public $storeManager;
@@ -372,20 +375,16 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
             ? array_column($templates['templates'], 'name')
             : [];
 
-            if (!in_array($templateIdentifier, $templates)) {
-                # Add template
-                $data = [
-                    "content_html" => "{content} {beacon}",
-                    "subject" => "{subj}",
-                    "from_email" => $sender,
-                    "is_link_tracking" => 1
-                ];
-            } else {
-                # Update template
-                $data = [
-                    "from_email" => $sender,
-                ];
+            if (in_array($templateIdentifier, $templates)) {
+                return;
             }
+
+            $data = [
+                "content_html" => "{content} {beacon}",
+                "subject" => "{subj}",
+                "from_email" => $sender,
+                "is_link_tracking" => 1
+            ];
 
             $response = $this->client->saveTemplate($templateIdentifier, $data);
 
