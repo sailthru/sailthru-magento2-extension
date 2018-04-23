@@ -362,7 +362,7 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
     }
 
     /**
-     * To create\update template in Sailthru.
+     * To create template in Sailthru.
      * 
      * @param  string $templateIdentifier
      * @param  string $sender
@@ -370,29 +370,27 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
     public function saveTemplate($templateIdentifier, $sender)
     {
         try {
-            $templates = $this->getSailthruTemplates();
-            $templates = isset($templates['templates'])
-            ? array_column($templates['templates'], 'name')
-            : [];
-
-            if (in_array($templateIdentifier, $templates)) {
-                return;
-            }
-
             $data = [
                 "content_html" => "{content} {beacon}",
                 "subject" => "{subj}",
                 "from_email" => $sender,
                 "is_link_tracking" => 1
             ];
-
             $response = $this->client->saveTemplate($templateIdentifier, $data);
-
             if (isset($response['error']))
                 $this->client->logger($response['errormsg']);
         } catch (\Exception $e) {
             $this->client->logger($e->getMessage());
         }
+    }
+
+    public function templateExists($templateIdentifier) {
+        $templates = $this->getSailthruTemplates();
+        if (isset($templates['templates'])) {
+            $templates = array_column($templates['templates'], 'name');
+            return in_array($templateIdentifier, $templates);
+        }
+        return false;
     }
 
     private function getApiKey($storeId = null)
