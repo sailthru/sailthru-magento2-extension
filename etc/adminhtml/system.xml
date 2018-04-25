@@ -157,24 +157,25 @@
             <group id="transactionals" type="text" translate="label" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>General Transactionals</label>
                 <field id="send_through_sailthru" type="select" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="1">
-                    <label>Send all transactionals through Sailthru</label>
+                    <label>Send through Sailthru</label>
                     <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnableDisable</source_model>
-                    <tooltip>
-                        Allows you to send all Magento emails through Sailthru,
-                        and override templates for various Magento events.
-                    </tooltip>
                     <comment>
-                        NOTE: Will create generic Sailthru templates that will accept Magento
-                        templates for transactionals not specifically overriden.
+                        <![CDATA[
+                            Let Sailthru send all of your store's Magento transactional messaging.  Can use your Magento or Sailthru templates.
+                        ]]>
                     </comment>
                 </field>
                 <field id="from_sender" type="select" translate="label" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>From Email</label>
                     <source_model>Sailthru\MageSail\Model\Config\Source\VerifiedEmails</source_model>
                     <comment>
-                        All transactionals sent using Magento templates must be sent from a Sailthru-verified email.
+                        <![CDATA[
+                            When sending Magento templates, use this Sailthru-verified sender to deliver the email.<br/>
+                            <span style="font-size: 10px;">
+                                Add a new verified sender at <a style="font-size: 10px;" href="https://my.sailthru.com/verify">https://my.sailthru.com/verify</a>
+                            </span>
+                        ]]>
                     </comment>
-                    <tooltip>Don't see the right email? Add it at https://my.sailthru.com/verify</tooltip>
                     <depends>
                         <field id="*/*/send_through_sailthru">1</field>
                     </depends>
