@@ -69,7 +69,6 @@
                     <label>Send Configurable/Master Products to Sailthru</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment>Should Configurable products (masters) be sent to Sailthru</comment>
-                    <comment>Should Configurable products (masters) be sent to Sailthru</comment>
                     <depends>
                         <field id="*/*/enable_intercept">1</field>
                     </depends>
