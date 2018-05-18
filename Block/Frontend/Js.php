@@ -13,8 +13,6 @@ class Js extends Template
     protected $clientManager;
 
     /**
-     * Inject dependencies
-     *
      * @param Template\Context $context
      * @param ClientManager $clientManager
      * @param array $data
