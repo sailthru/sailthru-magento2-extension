@@ -1,0 +1,7 @@
+<?php /** @var \Sailthru\MageSail\Block\Frontend\Js $block */ ?>
+<script type="text/javascript">
+    require(["Sailthru"], function (Sailthru) {
+        var client_id = '<?php echo $block->getCustomerId() ?>';
+        Sailthru.init({ customerId: client_id});
+    });
+</script>

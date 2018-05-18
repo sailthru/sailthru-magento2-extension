@@ -10,7 +10,13 @@
             <tab>sailthru</tab>
             <resource>Sailthru_Magesail::config</resource>
             <group id="service" type="text" translate="label" sortOrder="0" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Sailthru API Setup</label>
+                <label>Sailthru API</label>
+                <comment>
+                    <![CDATA[
+                        Please enter your API credentials to sync users, orders, and products as well as send transactional emails with Sailthru.
+                        Find your API credentials <a href="https://my.sailthru.com/settings/api_postbacks" target="_blank">here</a>.
+                    ]]>
+                </comment>
                 <field id="api_key" type="text" translate="label" sortOrder="0" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>API Key</label>
                 </field>                
@@ -21,6 +27,29 @@
                     <label/>
                     <frontend_model>Sailthru\MageSail\Block\System\Config\Button\Check</frontend_model>
                     <comment><![CDATA[After saving valid credentials, other settings will be accessible.]]></comment>
+                </field>
+            </group>
+            <group id="js" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Sailthru JavaScript</label>
+                <comment>
+                    <![CDATA[
+                        Use the Sailthru Script Tag to improve personalization and leverage onsite tools like Site Personalization Manager, Overlays, and the Sailthru JavaScript API.
+                    ]]>
+                </comment>
+                <field id="enabled" type="select" translate="label comment" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Sailthru Script Tag</label>
+                    <comment><![CDATA[<em>Note: You must flush your full-page cache for changes to take affect.</em>]]></comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="customer_id" is_required="1" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Customer ID</label>
+                    <validate>required-entry</validate>
+                    <comment>
+                        <![CDATA[Click <a href="https://my.sailthru.com/settings/api_postbacks" target="_blank">here</a> to see your Customer ID]]>
+                    </comment>
+                    <depends>
+                        <field id="*/*/enabled">1</field>
+                    </depends>
                 </field>
             </group>
         </section>
@@ -39,6 +68,7 @@
                 <field id="send_master" type="select" translate="label comment" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Send Configurable/Master Products to Sailthru</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Should Configurable products (masters) be sent to Sailthru</comment>
                     <comment>Should Configurable products (masters) be sent to Sailthru</comment>
                     <depends>
                         <field id="*/*/enable_intercept">1</field>
