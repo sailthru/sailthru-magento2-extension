@@ -43,7 +43,6 @@
                 </field>
                 <field id="customer_id" is_required="1" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Customer ID</label>
-                    <validate>required-entry</validate>
                     <comment>
                         <![CDATA[Click <a href="https://my.sailthru.com/settings/api_postbacks" target="_blank">here</a> to see your Customer ID]]>
                     </comment>
