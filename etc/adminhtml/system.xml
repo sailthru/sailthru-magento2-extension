@@ -41,7 +41,7 @@
                     <comment><![CDATA[<em>Note: You must flush your full-page cache for changes to take affect.</em>]]></comment>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-                <field id="customer_id" is_required="1" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="customer_id" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Customer ID</label>
                     <validate>required-entry</validate>
                     <comment>
