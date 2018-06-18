@@ -80,8 +80,9 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
 
     /**
      * To send `Magento Generic` or `Magento Specific` template.
-     * 
+     *
      * @param  array $templateData
+     * @throws MailException
      */
     public function sendViaAPI($templateData)
     {
@@ -99,11 +100,14 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
                 $template['orig_template_code'],
                 $templateData['variables']
             );
-            # Create\Update template
-            $this->apiHelper->saveTemplate($template['name'], $this->sailthruSettings->getSender());
+
+            $templateName = $template['name'];
+            if (!$this->apiHelper->templateExists($templateName)) {
+                $this->apiHelper->saveTemplate($templateName, $this->sailthruSettings->getSender($storeId));
+            }
 
             $message = [
-                "template" => $template['name'],
+                "template" => $templateName,
                 "email" => $this->cleanEmails($this->recipients),
                 "vars" => $vars,
             ];

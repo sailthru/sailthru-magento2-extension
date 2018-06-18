@@ -10,7 +10,13 @@
             <tab>sailthru</tab>
             <resource>Sailthru_Magesail::config</resource>
             <group id="service" type="text" translate="label" sortOrder="0" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>Sailthru API Setup</label>
+                <label>Sailthru API</label>
+                <comment>
+                    <![CDATA[
+                        Please enter your API credentials to sync users, orders, and products as well as send transactional emails with Sailthru.
+                        Find your API credentials <a href="https://my.sailthru.com/settings/api_postbacks" target="_blank">here</a>.
+                    ]]>
+                </comment>
                 <field id="api_key" type="text" translate="label" sortOrder="0" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>API Key</label>
                 </field>                
@@ -21,6 +27,29 @@
                     <label/>
                     <frontend_model>Sailthru\MageSail\Block\System\Config\Button\Check</frontend_model>
                     <comment><![CDATA[After saving valid credentials, other settings will be accessible.]]></comment>
+                </field>
+            </group>
+            <group id="js" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Sailthru JavaScript</label>
+                <comment>
+                    <![CDATA[
+                        Use the Sailthru Script Tag to improve personalization and leverage onsite tools like Site Personalization Manager, Overlays, and the Sailthru JavaScript API.
+                    ]]>
+                </comment>
+                <field id="enabled" type="select" translate="label comment" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Enable Sailthru Script Tag</label>
+                    <comment><![CDATA[<em>Note: You must flush your full-page cache for changes to take affect.</em>]]></comment>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="customer_id" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Customer ID</label>
+                    <validate>required-entry</validate>
+                    <comment>
+                        <![CDATA[Click <a href="https://my.sailthru.com/settings/api_postbacks" target="_blank">here</a> to see your Customer ID]]>
+                    </comment>
+                    <depends>
+                        <field id="*/*/enabled">1</field>
+                    </depends>
                 </field>
             </group>
         </section>
@@ -157,24 +186,25 @@
             <group id="transactionals" type="text" translate="label" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>General Transactionals</label>
                 <field id="send_through_sailthru" type="select" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="1">
-                    <label>Send all transactionals through Sailthru</label>
+                    <label>Send through Sailthru</label>
                     <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnableDisable</source_model>
-                    <tooltip>
-                        Allows you to send all Magento emails through Sailthru,
-                        and override templates for various Magento events.
-                    </tooltip>
                     <comment>
-                        NOTE: Will create generic Sailthru templates that will accept Magento
-                        templates for transactionals not specifically overriden.
+                        <![CDATA[
+                            Let Sailthru send all of your store's Magento transactional messaging.  Can use your Magento or Sailthru templates.
+                        ]]>
                     </comment>
                 </field>
                 <field id="from_sender" type="select" translate="label" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>From Email</label>
                     <source_model>Sailthru\MageSail\Model\Config\Source\VerifiedEmails</source_model>
                     <comment>
-                        All transactionals sent using Magento templates must be sent from a Sailthru-verified email.
+                        <![CDATA[
+                            When sending Magento templates, use this Sailthru-verified sender to deliver the email.<br/>
+                            <span style="font-size: 10px;">
+                                Add a new verified sender at <a style="font-size: 10px;" href="https://my.sailthru.com/verify">https://my.sailthru.com/verify</a>
+                            </span>
+                        ]]>
                     </comment>
-                    <tooltip>Don't see the right email? Add it at https://my.sailthru.com/verify</tooltip>
                     <depends>
                         <field id="*/*/send_through_sailthru">1</field>
                     </depends>

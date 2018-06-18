@@ -14,15 +14,23 @@ use Sailthru\MageSail\Model\Config\Template\Data as TemplateConfig;
 class ClientManager extends AbstractHelper
 {
 
+    const XML_API_KEY         = "magesail_config/service/api_key";
+    const XML_API_SECRET      = "magesail_config/service/secret_key";
+    const XML_JS_ENABLED      = "magesail_config/js/enabled";
+    const XML_JS_CUSTOMER_ID  = "magesail_config/js/customer_id";
+    const API_SUCCESS_MESSAGE = "Successfully Validated!";
+
     /** @var  MageClient */
     protected $client;
 
     /** @var ModuleListInterface */
     private $moduleList;
 
-    const XML_API_KEY         = "magesail_config/service/api_key";
-    const XML_API_SECRET      = "magesail_config/service/secret_key";
-    const API_SUCCESS_MESSAGE = "Successfully Validated!";
+    /** @var  array */
+    private $settings;
+
+    /** @var  string */
+    private $customerId;
 
     public function __construct(
         Context $context,
@@ -60,10 +68,33 @@ class ClientManager extends AbstractHelper
         return $this->client;
     }
 
+    public function getSettings($update = false)
+    {
+        if ($update || empty($this->settings)) {
+            $this->settings = $this->getClient()->getSettings();
+        }
+        return $this->settings;
+    }
+
+    public function isJsEnabled()
+    {
+        return $this->getSettingsVal(self::XML_JS_ENABLED);
+    }
+
+    public function getCustomerId()
+    {
+        return $this->getSettingsVal(self::XML_JS_CUSTOMER_ID);
+    }
+
+    public function useJs()
+    {
+        return $this->isJsEnabled() && !empty($this->getCustomerId());
+    }
+
     public function apiValidate()
     {
         try {
-            $result = $this->client->getSettings();
+            $result = $this->getSettings(true);
             if (!array_key_exists("error", $result)) {
                 return [1, self::API_SUCCESS_MESSAGE];
             } else {
@@ -79,4 +110,5 @@ class ClientManager extends AbstractHelper
         $check = $this->apiValidate();
         return $check[0];
     }
+
 }
