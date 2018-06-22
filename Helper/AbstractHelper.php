@@ -67,15 +67,5 @@ class AbstractHelper extends MageAbstractHelper
 
         return null;
     }
-
-    private function getStoreCodeFromOrderId($orderId) {
-        /** @var CollectionFactoryInterface $orderFactory */
-        $orderFactory = $this->objectManager->create('\Magento\Sales\Model\ResourceModel\Order\CollectionFactoryInterface');
-        $order = $orderFactory->create()
-                              ->addAttributeToSelect("store_id")
-                              ->addFilter("entity_id", $orderId)
-                              ->getFirstItem();
-        $storeId = $order->getStoreId();
-        return $this->storeManager->getStore($storeId)->getCode();
-    }
+    
 }
