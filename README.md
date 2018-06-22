@@ -8,7 +8,7 @@
 	via composer  `composer require sailthru/sailthru-magento2-extension`
 
 2. Enable the module
-    `bin/magento module:enable Sailthru_Magesail`
+    `bin/magento module:enable Sailthru_MageSail`
 
 3. Upgrade the database
 	`bin/magento setup:upgrade`
