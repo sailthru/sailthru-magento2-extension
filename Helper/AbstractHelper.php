@@ -3,6 +3,7 @@
 namespace Sailthru\MageSail\Helper;
 
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\ResourceModel\Order\CollectionFactoryInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManager;
@@ -29,13 +30,17 @@ class AbstractHelper extends MageAbstractHelper
     /** @var ObjectManagerInterface */
     protected $objectManager;
 
+    /** @var ScopeResolver  */
+    protected $scopeResolver;
+
     public function __construct(
         Context $context,
         StoreManager $storeManager,
         Logger $logger,
         TemplateModel $templateModel,
         TemplateConfig $templateConfig,
-        ObjectManagerInterface $objectManager
+        ObjectManagerInterface $objectManager,
+        ScopeResolver $scopeResolver
     ) {
         parent::__construct($context);
         $this->storeManager = $storeManager;
@@ -43,29 +48,24 @@ class AbstractHelper extends MageAbstractHelper
         $this->templateModel = $templateModel;
         $this->templateConfig = $templateConfig;
         $this->objectManager = $objectManager;
+        $this->scopeResolver = $scopeResolver;
     }
 
-    public function getSettingsVal($val, $storeId = null)
+    /**
+     * @param $val
+     * @return mixed|null
+     */
+    public function getSettingsVal($val)
     {
-        if ($storeId) {
-            $storeCode = $this->storeManager->getStore($storeId)->getCode();
-            return $this->scopeConfig->getValue($val, ScopeInterface::SCOPE_STORE, $storeCode);
-        }
-        
-        if ($storeCode = $this->_request->getParam('store')) {
-            return $this->scopeConfig->getValue($val, ScopeInterface::SCOPE_STORE, $storeCode);
+        if ($storeId = $this->scopeResolver->resolveStoreId()) {
+            return $this->scopeConfig->getValue($val, ScopeInterface::SCOPE_STORE, $storeId);
         }
 
-        if ($orderId = $this->_request->getParam('order_id')) {
-            $storeCode = $this->getStoreCodeFromOrderId($orderId);
-            return $this->scopeConfig->getValue($val, ScopeInterface::SCOPE_STORE, $storeCode);
-        }
-
-        if ($websiteCode = $this->_request->getParam('website')) {
+        if ($websiteCode = $this->scopeResolver->resolveWebsiteId()) {
             return $this->scopeConfig->getValue($val, ScopeInterface::SCOPE_WEBSITE, $websiteCode);
         }
 
-        return $this->scopeConfig->getValue($val, ScopeInterface::SCOPE_STORE, $this->storeManager->getStore()->getCode());
+        return null;
     }
 
     private function getStoreCodeFromOrderId($orderId) {
