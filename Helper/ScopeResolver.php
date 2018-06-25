@@ -38,6 +38,7 @@ class ScopeResolver extends \Magento\Framework\App\Helper\AbstractHelper
         parent::__construct($context);
         $this->orderRepo = $orderRepo;
         $this->shipmentRepo = $shipmentRepo;
+        $this->storeManager = $storeManager;
         $this->webApiRequest = $webApiRequest;
     }
 
@@ -56,16 +57,17 @@ class ScopeResolver extends \Magento\Framework\App\Helper\AbstractHelper
      * Returns null if there's an issue.
      * @return int|null
      */
-    public function resolveStoreId()
+    public function resolveRequestedStoreId()
     {
         if ($storeId = $this->getStoreIdParam()) {
             return $storeId;
         }
-        if (!$this->getOrderId() && !$this->getShipmentId()) {
-            return $this->storeManager->getStore()->getId();
+
+        if ($this->getOrderId() || $this->getShipmentId()) {
+            return $this->getFromSalesScope();
         }
 
-        return $this->getFromSalesScope();
+        return null;
     }
 
     /**

@@ -55,15 +55,19 @@ abstract class AbstractHelper extends MageAbstractHelper
      */
     public function getSettingsVal($val)
     {
-        if ($storeId = $this->scopeResolver->resolveStoreId()) {
-            return $this->scopeConfig->getValue($val, ScopeInterface::SCOPE_STORE, $storeId);
+        if ($storeId = $this->scopeResolver->resolveRequestedStoreId()) {
+            $storeCode = $this->storeManager->getStore($storeId)->getCode();
+            $this->_logger->info("Logging store $storeCode");
+            return $this->scopeConfig->getValue($val, ScopeInterface::SCOPE_STORE, $storeCode);
         }
 
         if ($websiteCode = $this->scopeResolver->resolveWebsiteId()) {
+            $storeId = $this->storeManager->getStore()->getId();
+            $this->_logger->info("Logging website $websiteCode with store $storeId");
             return $this->scopeConfig->getValue($val, ScopeInterface::SCOPE_WEBSITE, $websiteCode);
         }
 
-        return null;
+        return $this->scopeConfig->getValue($val);
     }
     
 }
