@@ -3,8 +3,6 @@
 namespace Sailthru\MageSail\Helper;
 
 use Magento\Framework\App\Helper\Context;
-use Magento\Framework\Exception\LocalizedException;
-use Magento\Sales\Model\ResourceModel\Order\CollectionFactoryInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManager;
 use Magento\Framework\App\Helper\AbstractHelper as MageAbstractHelper;
@@ -13,7 +11,7 @@ use Sailthru\MageSail\Logger;
 use Sailthru\MageSail\Model\Template as TemplateModel;
 use Sailthru\MageSail\Model\Config\Template\Data as TemplateConfig;
 
-class AbstractHelper extends MageAbstractHelper
+abstract class AbstractHelper extends MageAbstractHelper
 {
     /** @var StoreManager  */
     protected $storeManager;
