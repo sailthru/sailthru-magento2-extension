@@ -4,6 +4,7 @@ namespace Sailthru\MageSail;
 
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Store\Model\StoreManager;
+use Sailthru\MageSail\Helper\ScopeResolver;
 
 class MageClient extends \Sailthru_Client
 {
@@ -19,10 +20,19 @@ class MageClient extends \Sailthru_Client
     /** @var ModuleListInterface */
     private $moduleList;
 
-    public function __construct($api_key, $secret, Logger $logger, StoreManager $storeManager, ModuleListInterface $moduleList)
-    {
+    /** @var ScopeResolver  */
+    private $scopeResolver;
+
+    public function __construct(
+        $api_key, $secret,
+        Logger $logger,
+        StoreManager $storeManager,
+        ModuleListInterface $moduleList,
+        ScopeResolver $scopeResolver
+    ) {
         $this->logger = $logger;
         $this->storeManager = $storeManager;
+        $this->scopeResolver = $scopeResolver;
         $this->moduleList = $moduleList;
         $options = [ "timeout" => 3000, "connection_timeout" => 3000];
         parent::__construct($api_key, $secret, false, $options);
@@ -32,7 +42,7 @@ class MageClient extends \Sailthru_Client
     protected function httpRequest($action, $data, $method = 'POST', $options = [])
     {
         $logAction = "{$method} /{$action}";
-        $storeId = intval($this->storeManager->getStore()->getId());
+        $storeId = $this->scopeResolver->resolveRequestedStoreId();
         $this->logger->info([
             'action'            => $logAction,
             'event_type'        => $this->_eventType,

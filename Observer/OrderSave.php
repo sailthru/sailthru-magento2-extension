@@ -10,6 +10,7 @@ use Sailthru\MageSail\Cookie\Hid as SailthruCookie;
 use Sailthru\MageSail\Helper\ClientManager;
 use Sailthru\MageSail\Helper\Order as SailthruOrder;
 use Sailthru\MageSail\Helper\ProductData as SailthruProduct;
+use Sailthru\MageSail\Helper\ScopeResolver;
 use Sailthru\MageSail\Helper\Settings as SailthruSettings;
 use Sailthru\MageSail\Logger;
 
@@ -36,6 +37,9 @@ class OrderSave implements ObserverInterface {
     /** @var  Logger */
     private $logger;
 
+    /** @var ScopeResolver  */
+    private $scopeResolver;
+
     public function __construct(
         ProductHelper $productHelper,
         ClientManager $clientManager,
@@ -43,7 +47,8 @@ class OrderSave implements ObserverInterface {
         SailthruCookie $sailthruCookie,
         SailthruProduct $sailthruProduct,
         SailthruOrder $sailthruOrder,
-        Logger $logger
+        Logger $logger,
+        ScopeResolver $scopeResolver
     ) {
         $this->productHelper = $productHelper;
         $this->sailthruClient = $clientManager;
@@ -52,6 +57,7 @@ class OrderSave implements ObserverInterface {
         $this->sailthruProduct = $sailthruProduct;
         $this->sailthruOrder = $sailthruOrder;
         $this->logger = $logger;
+        $this->scopeResolver = $scopeResolver;
     }
 
     public function execute(Observer $observer)
@@ -59,12 +65,15 @@ class OrderSave implements ObserverInterface {
         /** @var Order $order */
         $order = $observer->getOrder();
         $storeId = $order->getStoreId();
-        $this->sailthruClient = $this->sailthruClient->getClient(true, $storeId);
+        $this->scopeResolver->emulateStore($storeId);
+        $this->sailthruClient = $this->sailthruClient->getClient(true);
         $orderData = $this->build($order);
         try {
             $this->sailthruClient->apiPost("purchase", $orderData);
         } catch (\Sailthru_Client_Exception $e) {
             $this->logger->err("Error sync'ing purchase #{$order->getIncrementId()} - ({$e->getCode()}) {$e->getMessage()}");
+        } finally {
+            $this->scopeResolver->stopEmulation();
         }
     }
 

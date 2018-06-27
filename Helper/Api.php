@@ -92,6 +92,7 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
     protected $_apiSecret;
     private $moduleList;
     private $sailthruTemplates = [];
+    private $scopeResolver;
 
     /** @var \Magento\Framework\App\Request\Http */
     protected $request;
@@ -101,7 +102,8 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
         Hid $hid,
         Logger $logger,
         StoreManager $storeManager,
-        ModuleListInterface $moduleList
+        ModuleListInterface $moduleList,
+        ScopeResolver $scopeResolver
     ) {
         parent::__construct($context);
         $this->hid = $hid;
@@ -110,6 +112,7 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
         $this->logger = $logger;
         $this->storeManager = $storeManager;
         $this->moduleList = $moduleList;
+        $this->scopeResolver = $scopeResolver;
         $this->getClient();
     }
 
@@ -121,7 +124,8 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
                 $this->_apiSecret,
                 $this->logger,
                 $this->storeManager,
-                $this->moduleList
+                $this->moduleList,
+                $this->scopeResolver
             );
         } catch (\Sailthru_Client_Exception $e) {
             $this->client = $e->getMessage();

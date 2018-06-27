@@ -4,6 +4,7 @@ namespace Sailthru\MageSail\Mail;
 
 use Magento\Framework\App\TemplateTypesInterface;
 use Magento\Framework\Mail\MessageInterface;
+use Magento\Store\Model\Store;
 
 class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
 {
@@ -22,11 +23,17 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
 
         $body = $template->processTemplate();
 
-        /** @customization START */
+            /** @customization START */
         $templateData = [
-            'variables' => $template->templateVariables ?? [],
+            'variables' => $template->templateVariables ?: [],
             'identifier' => $this->templateIdentifier,
         ];
+
+        if(isset($this->templateVars['store'])){
+            /** @var Store $store */
+            $store = $this->templateVars['store'];
+            $templateData['storeId'] = $store->getId();
+        }
 
         $this->message->setTemplateInfo($templateData);
         /** @customization END */

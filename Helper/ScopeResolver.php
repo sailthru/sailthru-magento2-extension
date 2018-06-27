@@ -4,12 +4,14 @@ namespace Sailthru\MageSail\Helper;
 
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Exception\InputException;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Model\Order\ShipmentRepository;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Framework\Webapi\Rest\Request as WebapiRequest;
 use Magento\Sales\Api\ShipmentRepositoryInterface;
+use Magento\Store\Model\App\Emulation;
 use Magento\Store\Model\StoreManager;
 use Magento\Store\Model\StoreManagerInterface;
 
@@ -28,18 +30,30 @@ class ScopeResolver extends \Magento\Framework\App\Helper\AbstractHelper
     /** @var WebapiRequest  */
     protected $webApiRequest;
 
+    /** @var Emulation  */
+    protected $emulation;
+
     public function __construct(
         Context $context,
         OrderRepositoryInterface $orderRepo,
         ShipmentRepositoryInterface $shipmentRepo,
         StoreManagerInterface $storeManager,
-        WebapiRequest $webApiRequest
+        WebapiRequest $webApiRequest,
+        Emulation $emulation
     ) {
         parent::__construct($context);
         $this->orderRepo = $orderRepo;
         $this->shipmentRepo = $shipmentRepo;
         $this->storeManager = $storeManager;
         $this->webApiRequest = $webApiRequest;
+        $this->emulation = $emulation;
+    }
+
+    public function setStoreId($storeId = null)
+    {
+        if ($storeId){
+            $this->_request->setParams(["store"=>$storeId]);
+        }
     }
 
     /**
@@ -48,8 +62,7 @@ class ScopeResolver extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function resolveWebsiteId()
     {
-        $websiteId = $this->_request->getParam('website') ?: $this->storeManager->getStore()->getWebsiteId();
-        return $websiteId ?: null;
+        return $this->_request->getParam('website');
     }
 
     /**
@@ -59,12 +72,12 @@ class ScopeResolver extends \Magento\Framework\App\Helper\AbstractHelper
      */
     public function resolveRequestedStoreId()
     {
-        if ($storeId = $this->getStoreIdParam()) {
-            return $storeId;
-        }
-
         if ($this->getOrderId() || $this->getShipmentId()) {
             return $this->getFromSalesScope();
+        }
+
+        if ($storeId = $this->getStoreIdParam()) {
+            return $storeId;
         }
 
         return null;
@@ -88,6 +101,7 @@ class ScopeResolver extends \Magento\Framework\App\Helper\AbstractHelper
             return null;
         }
 
+        $this->_logger->info("resolved from order ID");
         return $entity->getStoreId();
     }
 
@@ -116,6 +130,16 @@ class ScopeResolver extends \Magento\Framework\App\Helper\AbstractHelper
     protected function getStoreIdParam()
     {
         return $this->_request->getParam('store');
+    }
+
+    public function emulateStore($storeId)
+    {
+        $this->setStoreId($storeId);
+        $this->emulation->startEnvironmentEmulation($storeId);
+    }
+
+    public function stopEmulation() {
+        $this->emulation->stopEnvironmentEmulation();
     }
 
 }

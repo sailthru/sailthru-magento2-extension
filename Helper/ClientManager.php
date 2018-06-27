@@ -36,19 +36,13 @@ class ClientManager extends AbstractHelper
         Context $context,
         StoreManager $storeManager,
         Logger $logger,
-        TemplateModel $templateModel,
-        TemplateConfig $templateConfig,
-        ObjectManagerInterface $objectManager,
-        ModuleListInterface $moduleList,
-        ScopeResolver $scopeResolver
+        ScopeResolver $scopeResolver,
+        ModuleListInterface $moduleList
     ) {
         parent::__construct(
             $context,
             $storeManager,
             $logger,
-            $templateModel,
-            $templateConfig,
-            $objectManager,
             $scopeResolver
         );
         $this->moduleList = $moduleList;
@@ -59,7 +53,7 @@ class ClientManager extends AbstractHelper
     {
         $apiKey = $this->getSettingsVal(self::XML_API_KEY, $storeId);
         $apiSecret = $this->getSettingsVal(self::XML_API_SECRET, $storeId);
-        $this->client = new MageClient($apiKey, $apiSecret, $this->logger, $this->storeManager, $this->moduleList);
+        $this->client = new MageClient($apiKey, $apiSecret, $this->logger, $this->storeManager, $this->moduleList, $this->scopeResolver);
     }
 
     public function getClient($update=false, $storeId = null)

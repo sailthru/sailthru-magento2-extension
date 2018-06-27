@@ -72,15 +72,12 @@ class ProductData extends AbstractHelper
         Context $context,
         StoreManager $storeManager,
         Logger $logger,
-        TemplateModel $templateModel,
-        TemplateConfig $templateConfig,
-        ObjectManagerInterface $objectManager,
+        ScopeResolver $scopeResolver,
         ConfigurableProduct $configurableProduct,
         ProductRepositoryInterface $productRepo,
-        ImageBuilder $imageBuilder,
-        ScopeResolver $scopeResolver
+        ImageBuilder $imageBuilder
     ) {
-        parent::__construct($context, $storeManager, $logger, $templateModel, $templateConfig, $objectManager, $scopeResolver);
+        parent::__construct($context, $storeManager, $logger, $scopeResolver);
         $this->configurableProduct = $configurableProduct;
         $this->productRepo = $productRepo;
         $this->imageBuilder = $imageBuilder;

@@ -3,13 +3,12 @@
 namespace Sailthru\MageSail\Helper;
 
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManager;
 use Magento\Framework\App\Helper\AbstractHelper as MageAbstractHelper;
-use Magento\Framework\ObjectManagerInterface;
+use Magento\Store\Model\WebsiteRepository;
 use Sailthru\MageSail\Logger;
-use Sailthru\MageSail\Model\Template as TemplateModel;
-use Sailthru\MageSail\Model\Config\Template\Data as TemplateConfig;
 
 abstract class AbstractHelper extends MageAbstractHelper
 {
@@ -19,15 +18,6 @@ abstract class AbstractHelper extends MageAbstractHelper
     /** @var Logger  */
     protected $logger;
 
-    /** @var TemplateModel */
-    protected $templateModel;
-
-    /** @var TemplateConfig */
-    protected $templateConfig;
-
-    /** @var ObjectManagerInterface */
-    protected $objectManager;
-
     /** @var ScopeResolver  */
     protected $scopeResolver;
 
@@ -35,39 +25,53 @@ abstract class AbstractHelper extends MageAbstractHelper
         Context $context,
         StoreManager $storeManager,
         Logger $logger,
-        TemplateModel $templateModel,
-        TemplateConfig $templateConfig,
-        ObjectManagerInterface $objectManager,
         ScopeResolver $scopeResolver
     ) {
         parent::__construct($context);
         $this->storeManager = $storeManager;
         $this->logger = $logger;
-        $this->templateModel = $templateModel;
-        $this->templateConfig = $templateConfig;
-        $this->objectManager = $objectManager;
         $this->scopeResolver = $scopeResolver;
     }
 
     /**
-     * @param $val
-     * @return mixed|null
+     * Retrieve a properly scoped Magento config value.
+     * @param string $val System Config Path
+     * @param int $storeId Store ID
+     * @return mixed
      */
-    public function getSettingsVal($val)
+    public function getSettingsVal($val, $storeId = null)
     {
-        if ($storeId = $this->scopeResolver->resolveRequestedStoreId()) {
+        if ($storeId) {
             $storeCode = $this->storeManager->getStore($storeId)->getCode();
-            $this->_logger->info("Logging store $storeCode");
             return $this->scopeConfig->getValue($val, ScopeInterface::SCOPE_STORE, $storeCode);
         }
 
-        if ($websiteCode = $this->scopeResolver->resolveWebsiteId()) {
-            $storeId = $this->storeManager->getStore()->getId();
-            $this->_logger->info("Logging website $websiteCode with store $storeId");
+        if ($storeId = $this->scopeResolver->resolveRequestedStoreId()) {
+            $storeCode = $this->storeManager->getStore($storeId)->getCode();
+            $this->_logger->info("Using Store ID $storeId");
+            return $this->scopeConfig->getValue($val, ScopeInterface::SCOPE_STORE, $storeCode);
+        }
+
+        $websiteId = $this->scopeResolver->resolveWebsiteId();
+        if ($websiteId and $websiteCode = $this->getWebsiteCode($websiteId)) {
+            /** @var WebsiteRepository $websiteRepo */
+            $this->_logger->info("Using Website ID $websiteId");
             return $this->scopeConfig->getValue($val, ScopeInterface::SCOPE_WEBSITE, $websiteCode);
         }
 
-        return $this->scopeConfig->getValue($val);
+        $this->_logger->info("Using default scope");
+        $storeCode = $this->storeManager->getStore()->getCode();
+        return $this->scopeConfig->getValue($val, ScopeInterface::SCOPE_STORE, $storeCode);
+    }
+
+    private function getWebsiteCode($websiteId)
+    {
+        try {
+            return $this->storeManager->getWebsite($websiteId)->getCode();
+        } catch (LocalizedException $ex) {
+            $this->logger->err("Sailthru Website Resolver Error: {$ex->getMessage()}");
+            return null;
+        }
     }
     
 }

@@ -4,7 +4,13 @@ namespace Sailthru\MageSail\Helper;
 
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\ObjectManager;
+use Magento\Framework\ObjectManagerInterface;
+use Magento\Store\Model\StoreManager;
 use Sailthru\MageSail\Cookie\Hid;
+use Sailthru\MageSail\Logger;
+use Sailthru\MageSail\Model\Config\Template\Data as TemplateConfig;
+use Sailthru\MageSail\Model\Template as TemplateModel;
+
 
 class Settings extends AbstractHelper
 {
@@ -13,6 +19,12 @@ class Settings extends AbstractHelper
     protected $_apiSecret;
     public $client;
     public $hid;
+
+    /** @var ObjectManagerInterface  */
+    protected $objectManager;
+
+    /** @var TemplateModel */
+    protected $templateModel;
 
     // Source models
     const SOURCE_MODEL_VALIDATION_MSG  = "Please Enter Valid Sailthru Credentials";
@@ -73,6 +85,20 @@ class Settings extends AbstractHelper
     /** Prefix for template name. */
     const MAGENTO_PREFIX = 'magento_';
 
+    public function __construct(
+        Context $context,
+        StoreManager $storeManager,
+        Logger $logger,
+        ScopeResolver $scopeResolver,
+        ObjectManagerInterface $objectManager,
+        TemplateModel $templateModel,
+        TemplateConfig $templateConfig
+    ) {
+        parent::__construct($context, $storeManager, $logger, $scopeResolver);
+        $this->objectManager = $objectManager;
+        $this->templateModel = $templateModel;
+        $this->templateConfig = $templateConfig;
+    }
 
     public function getInvalidMessage()
     {

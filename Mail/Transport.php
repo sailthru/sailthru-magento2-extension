@@ -2,17 +2,21 @@
 
 namespace Sailthru\MageSail\Mail;
 
+use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Exception\MailException;
 use Magento\Framework\Mail\MessageInterface;
+use Magento\Framework\Webapi\Request;
+use Magento\Store\Model\App\Emulation;
 use Magento\Store\Model\StoreManagerInterface;
 use Sailthru\MageSail\Helper\ClientManager;
 use Sailthru\MageSail\Helper\Settings;
 use Sailthru\MageSail\Helper\Api;
+use Sailthru\MageSail\Logger;
 use Sailthru\MageSail\MageClient;
 
 class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Framework\Mail\TransportInterface
 {
-    /** @var Magento\Framework\Mail\MessageInterface */
+    /** @var \Magento\Framework\Mail\MessageInterface|\Magento\Framework\Mail\Message */
     protected $_message;
 
     /** @var ClientManager */
@@ -26,6 +30,15 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
 
     /** @var Api */
     protected $apiHelper;
+
+    /** @var Logger  */
+    protected $logger;
+
+    /** @var Emulation  */
+    protected $emulation;
+
+    /** @var RequestInterface */
+    protected $request;
     
     /**
      * Transport constructor.
@@ -41,12 +54,18 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
         Settings $sailthruSettings,
         MessageInterface $message,
         Api $apiHelper,
+        Logger $logger,
+        Emulation $emulation,
+        RequestInterface $request,
         $parameters = null
     ) {
         $this->clientManager = $clientManager;
         $this->client = $clientManager;
         $this->sailthruSettings = $sailthruSettings;
         $this->apiHelper = $apiHelper;
+        $this->logger = $logger;
+        $this->emulation = $emulation;
+        $this->request = $request;
         parent::__construct($message, $parameters);
     }
 
@@ -86,6 +105,12 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
      */
     public function sendViaAPI($templateData)
     {
+        $storeId = isset($templateData['storeId']) ? $templateData['storeId'] : null;
+        if ($storeId) {
+            $this->request->setParams(["store" => $storeId]);
+        } else {
+            $this->logger->info("store is ".$this->request->getParam("store"));
+        }
         try {
             $this->client = $this->client->getClient(true);
             $vars = [
@@ -102,10 +127,6 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
             );
 
             $templateName = $template['name'];
-            if (!$this->apiHelper->templateExists($templateName)) {
-                $this->apiHelper->saveTemplate($templateName, $this->sailthruSettings->getSender($storeId));
-            }
-
             $message = [
                 "template" => $templateName,
                 "email" => $this->cleanEmails($this->recipients),
