@@ -39,7 +39,8 @@ class ClientManager extends AbstractHelper
         TemplateModel $templateModel,
         TemplateConfig $templateConfig,
         ObjectManagerInterface $objectManager,
-        ModuleListInterface $moduleList
+        ModuleListInterface $moduleList,
+        ScopeResolver $scopeResolver
     ) {
         parent::__construct(
             $context,
@@ -47,7 +48,8 @@ class ClientManager extends AbstractHelper
             $logger,
             $templateModel,
             $templateConfig,
-            $objectManager
+            $objectManager,
+            $scopeResolver
         );
         $this->moduleList = $moduleList;
         $this->initClient();

@@ -11,7 +11,7 @@ use Sailthru\MageSail\Logger;
 use Sailthru\MageSail\Model\Template as TemplateModel;
 use Sailthru\MageSail\Model\Config\Template\Data as TemplateConfig;
 
-class AbstractHelper extends MageAbstractHelper
+abstract class AbstractHelper extends MageAbstractHelper
 {
     /** @var StoreManager  */
     protected $storeManager;
@@ -25,8 +25,11 @@ class AbstractHelper extends MageAbstractHelper
     /** @var TemplateConfig */
     protected $templateConfig;
 
-    /** @var ObjectManager */
+    /** @var ObjectManagerInterface */
     protected $objectManager;
+
+    /** @var ScopeResolver  */
+    protected $scopeResolver;
 
     public function __construct(
         Context $context,
@@ -34,7 +37,8 @@ class AbstractHelper extends MageAbstractHelper
         Logger $logger,
         TemplateModel $templateModel,
         TemplateConfig $templateConfig,
-        ObjectManagerInterface $objectManager
+        ObjectManagerInterface $objectManager,
+        ScopeResolver $scopeResolver
     ) {
         parent::__construct($context);
         $this->storeManager = $storeManager;
@@ -42,28 +46,28 @@ class AbstractHelper extends MageAbstractHelper
         $this->templateModel = $templateModel;
         $this->templateConfig = $templateConfig;
         $this->objectManager = $objectManager;
+        $this->scopeResolver = $scopeResolver;
     }
 
-    public function getSettingsVal($val, $storeId = null)
+    /**
+     * @param $val
+     * @return mixed|null
+     */
+    public function getSettingsVal($val)
     {
-        $scopeType = ScopeInterface::SCOPE_STORES;
-        $scopeCode = null;
-
-        if ($storeId) {
-            $scopeCode = $this->storeManager->getStore($storeId)->getCode();
-        } else {
-            $storeCode = $this->_request->getParam('store');
-            $websiteCode = $this->_request->getParam('website');
-            if ($storeCode) {
-                $scopeType = ScopeInterface::SCOPE_STORE;
-                $scopeCode = $storeCode;
-            } elseif ($websiteCode) {
-                $scopeType = ScopeInterface::SCOPE_WEBSITE;
-                $scopeCode = $websiteCode;
-            } else {
-                $scopeCode = $this->storeManager->getStore()->getCode();
-            }
+        if ($storeId = $this->scopeResolver->resolveRequestedStoreId()) {
+            $storeCode = $this->storeManager->getStore($storeId)->getCode();
+            $this->_logger->info("Logging store $storeCode");
+            return $this->scopeConfig->getValue($val, ScopeInterface::SCOPE_STORE, $storeCode);
         }
-        return $this->scopeConfig->getValue($val, $scopeType, $scopeCode);
+
+        if ($websiteCode = $this->scopeResolver->resolveWebsiteId()) {
+            $storeId = $this->storeManager->getStore()->getId();
+            $this->_logger->info("Logging website $websiteCode with store $storeId");
+            return $this->scopeConfig->getValue($val, ScopeInterface::SCOPE_WEBSITE, $websiteCode);
+        }
+
+        return $this->scopeConfig->getValue($val);
     }
+    
 }
