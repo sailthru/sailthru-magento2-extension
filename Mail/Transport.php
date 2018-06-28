@@ -127,6 +127,10 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
             );
 
             $templateName = $template['name'];
+            if (!$this->apiHelper->templateExists($templateName)) {
+                $this->apiHelper->saveTemplate($templateName, $this->sailthruSettings->getSender($storeId));
+            }
+
             $message = [
                 "template" => $templateName,
                 "email" => $this->cleanEmails($this->recipients),
