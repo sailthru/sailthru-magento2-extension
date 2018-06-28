@@ -12,11 +12,25 @@ use Magento\ConfigurableProduct\Model\ConfigurableAttributeData;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use Magento\Swatches\Block\Product\Renderer\Configurable as SwatchModel;
 use Sailthru\MageSail\Helper\ClientManager as ClientManager;
+use Sailthru\MageSail\Helper\ScopeResolver;
 use Sailthru\MageSail\Helper\Settings as SailthruSettings;
 use Sailthru\MageSail\Cookie\Hid as SailthruCookie;
+use Sailthru\MageSail\Logger;
+use Sailthru\MageSail\MageClient;
 
 class CartIntercept
 {
+    /** @var ClientManager  */
+    protected $clientManager;
+
+    /** @var MageClient */
+    protected $client;
+
+    /** @var Logger */
+    protected $logger;
+
+    /** @var ScopeResolver  */
+    protected $scopeResolver;
 
     public function __construct(
         ClientManager $clientManager,
@@ -28,9 +42,11 @@ class CartIntercept
         ProductHelper $productHelper,
         ConfigurableAttributeData $cpData,
         Configurable $configProduct,
-        SwatchModel $swatchModel
+        SwatchModel $swatchModel,
+        Logger $logger,
+        ScopeResolver $scopeResolver
     ) {
-        $this->client = $clientManager;
+        $this->clientManager = $clientManager;
         $this->sailthruSettings = $sailthruSettings;
         $this->sailthruCookie = $sailthruCookie;
         $this->productRepo = $productRepo;
@@ -40,13 +56,14 @@ class CartIntercept
         $this->cpData = $cpData;
         $this->cpModel = $configProduct;
         $this->swatchModel = $swatchModel;
+        $this->logger = $logger;
+        $this->scopeResolver = $scopeResolver;
     }
 
     public function _gate(Cart $cart)
     {
         $storeId = $cart->getQuote()->getStoreId();
         if ($this->sailthruSettings->isAbandonedCartEnabled($storeId)) {
-            $this->client = $this->client->getClient(true, $storeId);
             return $this->sendCart($cart);
         } else {
             return $cart;
@@ -57,27 +74,28 @@ class CartIntercept
     {
         $customer = $cart->getCustomerSession()->getCustomer();
         $storeId = $cart->getQuote()->getStoreId();
+        $this->scopeResolver->emulateStore($storeId);
         $email = $customer->getEmail();
-        if ($email || $anonymousEmail = $this->isAnonymousReady($storeId)) {
-            $email = $email ? $email : $anonymousEmail;
+        $anonymousEmail = $this->isAnonymousReady($storeId);
+        if ($email || $anonymousEmail) {
+            $email = $email ?: $anonymousEmail;
+            $client = $this->clientManager->getClient(true, $storeId);
+            $client->_eventType = "CartUpdate";
+            $items = $this->_getItems($cart);
+            $data = [
+                'email'             => $email,
+                'items'             => $items,
+                'incomplete'        => 1,
+                'reminder_time'     => $this->sailthruSettings->getAbandonedTime($storeId),
+                'reminder_template' => $this->sailthruSettings->getAbandonedTemplate($storeId),
+                'message_id'        => $this->sailthruCookie->getBid(),
+            ];
             try {
-                $this->client->_eventType = "CartUpdate";
-                $items = $this->_getItems($cart);
-                $data = [
-                    'email'             => $email,
-                    'items'             => $items,
-                    'incomplete'        => 1,
-                    'reminder_time'     => $this->sailthruSettings->getAbandonedTime($storeId),
-                    'reminder_template' => $this->sailthruSettings->getAbandonedTemplate($storeId),
-                    'message_id'        => $this->sailthruCookie->getBid(),
-                ];
-                $this->client->apiPost("purchase", $data);
-            } catch (\Sailthru_Client_Exception $e) {
-                $this->client->logger($e);
+                $client->apiPost("purchase", $data);
             } catch (\Exception $e) {
                 $this->client->logger($e);
-                throw $e;
             } finally {
+                $this->scopeResolver->stopEmulation();
                 return $cart;
             }
         }
@@ -179,7 +197,7 @@ class CartIntercept
             }
             return $data;
         } catch (\Exception $e) {
-            $this->client->logger($e);
+            $this->logger->err("Error processing abandoned cart content item: {$e->getMessage()}", ["error" => $e]);
             return false;
         }
     }
