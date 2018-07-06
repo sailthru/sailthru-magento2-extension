@@ -10,9 +10,11 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Webapi\Rest\Request as WebapiRequest;
 use Magento\Sales\Api\OrderRepositoryInterface;
 use Magento\Sales\Api\ShipmentRepositoryInterface;
+use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Api\Data\WebsiteInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\Store\Model\Website;
 
 class ScopeResolver extends AbstractHelper {
 
@@ -53,10 +55,25 @@ class ScopeResolver extends AbstractHelper {
         $this->shipmentRepo = $shipmentRepo;
     }
 
+    public function getScope()
+    {
+        if ($store = $this->getStore()) {
+            return [$store->getCode(), ScopeInterface::SCOPE_STORE];
+
+        } elseif ($website = $this->getWebsite()) {
+            return [$website->getCode(), ScopeInterface::SCOPE_WEBSITE];
+        }
+
+        return [null, ScopeInterface::SCOPE_STORES];
+    }
+
+    /**
+     * @return StoreInterface|null
+     */
     public function getStore()
     {
         if ($this->isFrontendArea()){
-            return $this->_getStore()->getCode();
+            return $this->_getStore();
 
         } elseif ($storeId = $this->getRequestStoreScope()) {
             return $this->_getStore($storeId);
@@ -65,13 +82,16 @@ class ScopeResolver extends AbstractHelper {
             $storeId =  $this->getStoreIdFromSalesRequest();
             return $this->_getStore($storeId);
 
-        } elseif ($website = $this->getWebsite() and $storeId = $this->getWebsiteSingleStoreId()) {
+        } elseif ($website = $this->getWebsite() and $storeId = $this->getWebsiteSingleStoreId($website)) {
             return $this->_getStore($storeId);
         }
 
         return null;
     }
 
+    /**
+     * @return WebsiteInterface|null
+     */
     public function getWebsite()
     {
         if ($this->isFrontendArea() and $website = $this->_getWebsite()) {
@@ -136,24 +156,37 @@ class ScopeResolver extends AbstractHelper {
         return $this->_request->getParam("shipment_id");
     }
 
+    /**
+     * @param WebsiteInterface $website
+     * @return null|int
+     */
     protected function getWebsiteSingleStoreId(WebsiteInterface $website)
     {
-        $website->get
+       if ($website instanceof Website) {
+           $storeIds = $website->getStoreIds();
+           if ($storeIds and count($storeIds()) == 1) {
+               return $storeIds[0];
+           }
+       }
+       return null;
     }
 
+    /**
+     * @return null|string
+     */
     private function getAreaCode()
     {
         try {
             return $this->appState->getAreaCode();
         } catch (LocalizedException $e) {
             $this->_logger->error("Error getting area code: {$e->getMessage()}");
-            return false;
+            return null;
         }
     }
 
     /**
-     * @param int|null $storeId
-     * @return \Magento\Store\Api\Data\StoreInterface
+     * @param null|int $storeId
+     * @return StoreInterface
      */
     private function _getStore($storeId = null)
     {
@@ -161,15 +194,15 @@ class ScopeResolver extends AbstractHelper {
     }
 
     /**
-     * @param int|null $websiteId
-     * @return bool|\Magento\Store\Api\Data\WebsiteInterface
+     * @param null|int $websiteId
+     * @return null|WebsiteInterface
      */
     private function _getWebsite($websiteId = null) {
         try {
             return $this->storeManager->getWebsite($websiteId);
         } catch (LocalizedException $e) {
             $this->_logger->error("Error getting website: {$e->getMessage()}");
-            return false;
+            return null;
         }
     }
 

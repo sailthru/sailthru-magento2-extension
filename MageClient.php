@@ -4,39 +4,50 @@ namespace Sailthru\MageSail;
 
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Store\Model\StoreManager;
+use Sailthru\MageSail\Helper\ScopeResolver;
 
 class MageClient extends \Sailthru_Client
 {
 
     public $_eventType = null;
 
+    /** @var string */
+    private $version;
+
     /** @var Logger  */
     private $logger;
 
-    /** @var StoreManager  */
-    private $storeManager;
+    /** @var ScopeResolver */
+    private $scopeResolver;
 
-    /** @var ModuleListInterface */
-    private $moduleList;
+    protected static $TIMEOUT_OPTIONS = [
+        "timeout" => 3000,
+        "connection_timeout" => 3000
+    ];
 
-    public function __construct($api_key, $secret, Logger $logger, StoreManager $storeManager, ModuleListInterface $moduleList)
+    protected static $TRUNCATE_RESPONSES = [
+        ["GET", "template"],
+        ["GET", "settings"]
+    ];
+
+    public function __construct($api_key, $secret, $version, Logger $logger, ScopeResolver $scopeResolver)
     {
+        parent::__construct($api_key, $secret, false, self::$TIMEOUT_OPTIONS);
         $this->logger = $logger;
-        $this->storeManager = $storeManager;
-        $this->moduleList = $moduleList;
-        $options = [ "timeout" => 3000, "connection_timeout" => 3000];
-        parent::__construct($api_key, $secret, false, $options);
+        $this->scopeResolver = $scopeResolver;
+        $this->version = $version;
     }
 
 
     protected function httpRequest($action, $data, $method = 'POST', $options = [])
     {
         $logAction = "{$method} /{$action}";
-        $storeId = intval($this->storeManager->getStore()->getId());
+        $scope= $this->scopeResolver->getScope();
+        $scopeString = "{$scope[0]} {$scope[1]}";
         $this->logger->info([
             'action'            => $logAction,
             'event_type'        => $this->_eventType,
-            'store_id'          => $storeId,
+            'scope'             => $scopeString,
             'http_request_type' => $this->http_request_type,
             'body'              => $data['json']
         ]);
@@ -45,14 +56,14 @@ class MageClient extends \Sailthru_Client
             $this->logger->info([
               'action_response'  => $logAction,
               'event_type '      => $this->_eventType,
-              'store_id'         => $storeId,
-              'response'         => $response
+              'scope'            => $scopeString,
+              'response'         => !$this->truncateResponse($method, $action) ? $response : "<TRUNCATED>"
             ]);
             return $response;
         } catch (\Sailthru_Client_Exception $e) {
             $this->logger->err([
                 'error'    => $logAction,
-                'store_id' => $storeId,
+                'scope'    => $scopeString,
                 'code'     => $e->getCode(),
                 'message'  => $e->getMessage(),
             ]);
@@ -62,8 +73,7 @@ class MageClient extends \Sailthru_Client
 
     protected function prepareJsonPayload(array $data, array $binary_data = [])
     {
-        $versionString = $this->moduleList->getOne('Sailthru_MageSail')['setup_version'];
-        $data['integration'] = "Magento 2 - $versionString";
+        $data['integration'] = "Magento 2 - $this->version";
         return parent::prepareJsonPayload($data, $binary_data);
     }
 
@@ -87,5 +97,10 @@ class MageClient extends \Sailthru_Client
     public function logger($message)
     {
         $this->logger->info($message);
+    }
+
+    private function truncateResponse($method, $action)
+    {
+        return in_array([$method, $action], self::$TRUNCATE_RESPONSES);
     }
 }
