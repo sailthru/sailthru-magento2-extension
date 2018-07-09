@@ -2,56 +2,62 @@
 
 namespace Sailthru\MageSail\Mail;
 
+use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Exception\MailException;
 use Magento\Framework\Mail\MessageInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Sailthru\MageSail\Helper\ClientManager;
 use Sailthru\MageSail\Helper\Settings;
 use Sailthru\MageSail\Helper\Api;
+use Sailthru\MageSail\Helper\Templates as SailthruTemplates;
 use Sailthru\MageSail\MageClient;
 
 class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Framework\Mail\TransportInterface
 {
-    /** @var Magento\Framework\Mail\MessageInterface */
+
+    /** @var Message */
     protected $_message;
 
     /** @var ClientManager */
     protected $clientManager;
 
-    /** @var MageClient */
-    protected $client;
-
     /** @var Settings */
     protected $sailthruSettings;
 
-    /** @var Api */
-    protected $apiHelper;
+    /** @var SailthruTemplates */
+    protected $sailthruTemplates;
 
     /** @var StoreManagerInterface */
     protected $storeManager;
-    
+
+    /** @var RequestInterface  */
+    protected $request;
+
     /**
      * Transport constructor.
-     * 
-     * @param ClientManager    $clientManager
-     * @param Settings         $sailthruSettings
+     *
+     * @param ClientManager $clientManager
+     * @param Settings $sailthruSettings
      * @param MessageInterface $message
-     * @param Api              $apiHelper
+     * @param SailthruTemplates $sailthruTemplates
+     * @param StoreManagerInterface $storeManager
+     * @param RequestInterface $request
      * @param null|array
      */
     public function __construct(
         ClientManager $clientManager,
         Settings $sailthruSettings,
         MessageInterface $message,
-        Api $apiHelper,
+        SailthruTemplates $sailthruTemplates,
         StoreManagerInterface $storeManager,
+        RequestInterface $request,
         $parameters = null
     ) {
         $this->clientManager = $clientManager;
-        $this->client = $clientManager;
         $this->sailthruSettings = $sailthruSettings;
-        $this->apiHelper = $apiHelper;
+        $this->sailthruTemplates = $sailthruTemplates;
         $this->storeManager = $storeManager;
+        $this->request = $request;
         parent::__construct($message, $parameters);
     }
 
@@ -71,13 +77,24 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
         return implode(",", array_map([ $this, 'cleanEmail' ], explode(",", $emailStr)));
     }
 
+    /**
+     * @throws MailException
+     * @throws \Zend_Mail_Transport_Exception
+     */
     public function _sendMail()
     {
         # To get array with template variables and template identifier
         # use $this->_message->getTemplateInfo();
         $templateData = $this->_message->getTemplateInfo();
-        if ($this->sailthruSettings->getTransactionalsEnabled()) {
-            $this->sendViaAPI($templateData);
+
+        // Patch for emails sent from unscoped admin sections.
+        $storeId = isset($templateData['storeId'])
+            ? $templateData['storeId']
+            : $this->storeManager->getStore()->getId();
+        $this->request->setParams(["store"=>$storeId]);
+
+        if ($this->sailthruSettings->getTransactionalsEnabled($storeId)) {
+            $this->sendViaAPI($templateData, $storeId);
         } else {
             parent::_sendMail();
         }
@@ -85,19 +102,20 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
 
     /**
      * To send `Magento Generic` or `Magento Specific` template.
-     * 
+     *
      * @param  array $templateData
+     * @throws MailException
      */
-    public function sendViaAPI($templateData)
+    public function sendViaAPI($templateData, $storeId)
     {
-        try {
-            $storeId = $this->storeManager->getStore()->getId();
-            $this->client = $this->client->getClient(true, $storeId);
-            $vars = [
-                "subj" => $this->_message->getSubject(),
-                "content" => $this->_message->getBody()->getRawContent(),
-            ];
+        $client = $this->clientManager->getClient(true, $storeId);
 
+        $vars = [
+            "subj" => $this->_message->getSubject(),
+            "content" => $this->_message->getBody()->getRawContent(),
+        ];
+
+        try {
             # Get template name
             $template = $this->sailthruSettings->getTemplateName($templateData['identifier'], $storeId);
             # Vars used in Sailthru Magento 1 extension and template file.
@@ -107,8 +125,8 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
             );
 
             $templateName = $template['name'];
-            if (!$this->apiHelper->templateExists($templateName)) {
-                $this->apiHelper->saveTemplate($templateName, $this->sailthruSettings->getSender($storeId));
+            if (!$this->sailthruTemplates->templateExists($templateName, $storeId)) {
+                $this->sailthruTemplates->saveTemplate($templateName, $this->sailthruSettings->getSender($storeId), $storeId);
             }
 
             $message = [
@@ -117,13 +135,14 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
                 "vars" => $vars,
             ];
 
-            $response = $this->client->apiPost('send', $message);
+
+            $response = $client->apiPost('send', $message);
             if (isset($response["error"])) {
-                $this->client->logger($response['errormsg']);
+                $client->logger($response['errormsg']);
                 throw new MailException(__($response['errormsg']));
             }
         } catch (\Exception $e) {
-            throw new MailException(__("Couldn't send the mail {$e}"));
+            throw new MailException(__("Couldn't send the mail {$e->getMessage()}"));
         }
     }
 }

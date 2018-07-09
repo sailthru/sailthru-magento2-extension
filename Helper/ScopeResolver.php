@@ -200,7 +200,8 @@ class ScopeResolver extends AbstractHelper {
      * @param null|int $websiteId
      * @return null|WebsiteInterface
      */
-    private function _getWebsite($websiteId = null) {
+    private function _getWebsite($websiteId = null)
+    {
         try {
             return $this->storeManager->getWebsite($websiteId);
         } catch (LocalizedException $e) {

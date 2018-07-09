@@ -334,49 +334,6 @@ class Api extends AbstractHelper
         return $this->getAddressVars($address);
     }
 
-    /**
-     * To set Sailthru templates.
-     */
-    public function getSailthruTemplates()
-    {
-        if (empty($this->sailthruTemplates)) {
-            $this->sailthruTemplates = $this->client->getTemplates();
-        }
-
-        return $this->sailthruTemplates;
-    }
-
-    /**
-     * To create template in Sailthru.
-     * 
-     * @param  string $templateIdentifier
-     * @param  string $sender
-     */
-    public function saveTemplate($templateIdentifier, $sender)
-    {
-        try {
-            $data = [
-                "content_html" => "{content} {beacon}",
-                "subject" => "{subj}",
-                "from_email" => $sender,
-                "is_link_tracking" => 1
-            ];
-            $response = $this->client->saveTemplate($templateIdentifier, $data);
-            if (isset($response['error']))
-                $this->client->logger($response['errormsg']);
-        } catch (\Exception $e) {
-            $this->client->logger($e->getMessage());
-        }
-    }
-
-    public function templateExists($templateIdentifier) {
-        $templates = $this->getSailthruTemplates();
-        if (isset($templates['templates'])) {
-            $templates = array_column($templates['templates'], 'name');
-            return in_array($templateIdentifier, $templates);
-        }
-        return false;
-    }
 
     private function getApiKey($storeId = null)
     {

@@ -2,12 +2,23 @@
  
 namespace Sailthru\MageSail\Model\Config\Source;
 
+use Sailthru\MageSail\Helper\Api;
+use Sailthru\MageSail\Helper\Templates;
+
 class SailthruTemplates extends AbstractSource
 {
+    private $sailthruTemplates;
+
+    public function __construct(Api $apiHelper, Templates $sailthruTemplates)
+    {
+        parent::__construct($apiHelper);
+        $this->sailthruTemplates = $sailthruTemplates;
+    }
+
     /** @inheritdoc */
     protected function getDisplayData()
     {
-        $data = $this->apiHelper->getSailthruTemplates();
+        $data = $this->sailthruTemplates->getSailthruTemplates();
         $tpl_options = [
             ['value'=> 0, 'label'=>'Use current Magento template']
         ];

@@ -86,7 +86,7 @@ class MageClient extends \Sailthru_Client
     {
         $settings = $this->getSettings();
 
-        return $settings['from_emails'] ?? [];
+        return $settings['from_emails'] ?: [];
     }
 
     /**
