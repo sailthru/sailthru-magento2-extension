@@ -3,6 +3,7 @@
 namespace Sailthru\MageSail\Helper;
 
 use Magento\Framework\App\Area;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\App\State;
@@ -13,6 +14,7 @@ use Magento\Sales\Api\ShipmentRepositoryInterface;
 use Magento\Store\Api\Data\StoreInterface;
 use Magento\Store\Api\Data\WebsiteInterface;
 use Magento\Store\Model\ScopeInterface;
+use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Store\Model\Website;
 
@@ -64,7 +66,7 @@ class ScopeResolver extends AbstractHelper {
             return [$website->getCode(), ScopeInterface::SCOPE_WEBSITE];
         }
 
-        return [null, ScopeInterface::SCOPE_STORES];
+        return [null, ScopeConfigInterface::SCOPE_TYPE_DEFAULT];
     }
 
     /**
@@ -73,17 +75,18 @@ class ScopeResolver extends AbstractHelper {
     public function getStore()
     {
         if ($this->isFrontendArea()){
+            $this->_logger->info("frontend");
             return $this->_getStore();
 
         } elseif ($storeId = $this->getRequestStoreScope()) {
+            $this->_logger->info("store request");
             return $this->_getStore($storeId);
 
         } elseif ($this->isSalesRequest()) {
+            $this->_logger->info("sales request");
             $storeId =  $this->getStoreIdFromSalesRequest();
             return $this->_getStore($storeId);
 
-        } elseif ($website = $this->getWebsite() and $storeId = $this->getWebsiteSingleStoreId($website)) {
-            return $this->_getStore($storeId);
         }
 
         return null;
@@ -160,12 +163,12 @@ class ScopeResolver extends AbstractHelper {
      * @param WebsiteInterface $website
      * @return null|int
      */
-    protected function getWebsiteSingleStoreId(WebsiteInterface $website)
+    protected function getWebsiteSingleStore(WebsiteInterface $website)
     {
        if ($website instanceof Website) {
-           $storeIds = $website->getStoreIds();
-           if ($storeIds and count($storeIds()) == 1) {
-               return $storeIds[0];
+           $stores = $website->getStores();
+           if ($stores and count($stores) == 1) {
+               return array_values($stores)[0]; // getStores returns indexed by store ID
            }
        }
        return null;

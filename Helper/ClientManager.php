@@ -52,7 +52,6 @@ class ClientManager extends AbstractHelper
             $scopeResolver
         );
         $this->moduleList = $moduleList;
-        $this->initClient();
     }
 
     public function initClient($storeId = null)
@@ -64,7 +63,7 @@ class ClientManager extends AbstractHelper
 
     public function getClient($update=false, $storeId = null)
     {
-        if ($update) {
+        if ($update or !$this->client) {
             $this->initClient($storeId);
         }
         return $this->client;
