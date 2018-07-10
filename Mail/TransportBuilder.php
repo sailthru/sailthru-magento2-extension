@@ -4,6 +4,7 @@ namespace Sailthru\MageSail\Mail;
 
 use Magento\Framework\App\TemplateTypesInterface;
 use Magento\Framework\Mail\MessageInterface;
+use Magento\Newsletter\Model\Subscriber;
 use Magento\Store\Api\Data\StoreInterface;
 
 class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
@@ -35,10 +36,18 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
             'identifier' => $this->templateIdentifier,
         ];
 
-        if(isset($this->templateVars['store'])){
+        if (isset($this->templateVars['store'])){
             /** @var StoreInterface $store */
             $store = $this->templateVars['store'];
             $templateData['storeId'] = $store->getId();
+        }
+
+        // Newsletter admin patch
+        if (isset($this->templateVars['subscriber'])) {
+            /** @var Subscriber $subscriber */
+            $subscriber = $this->templateVars['subscriber'];
+            $storeId = $subscriber->getStoreId();
+            $templateData['storeId'] = $storeId;
         }
 
         $this->message->setTemplateInfo($templateData);
