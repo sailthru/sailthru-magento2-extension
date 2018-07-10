@@ -58,10 +58,11 @@ class Templates extends AbstractHelper {
     /**
      * To create template in Sailthru.
      *
-     * @param  string $templateIdentifier
-     * @param  string $sender
+     * @param   string $templateIdentifier
+     * @param   string $sender
+     * @param null|int $storeId
      */
-    public function saveTemplate($templateIdentifier, $sender, $storeId)
+    public function saveTemplate($templateIdentifier, $sender, $storeId = null)
     {
         $data = [
             "content_html" => "{content} {beacon}",
