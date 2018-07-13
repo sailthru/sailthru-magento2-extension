@@ -53,12 +53,10 @@ class AbstractHelper extends MageAbstractHelper
     {
         if ($storeId) {
             $storeCode = $this->storeManager->getStore($storeId)->getCode();
-            $this->logger->debug("passed Store ID $storeId");
             return $this->scopeConfig->getValue($val, ScopeInterface::SCOPE_STORES, $storeCode);
 
         } else {
             list($scopeCode, $scopeType) = $this->scopeResolver->getScope();
-            $this->logger->debug("resolved scope $scopeCode ($scopeType)");
             return $this->scopeConfig->getValue($val, $scopeType, $scopeCode);
         }
     }
