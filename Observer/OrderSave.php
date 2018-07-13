@@ -92,10 +92,14 @@ class OrderSave implements ObserverInterface {
         $items = $order->getAllVisibleItems();
         $bundleIds = $this->getIdsOfType($items, "bundle");
         $configurableIds = $this->getIdsOfType($items, "configurable");
+        $storeId = $order->getStoreId();
 
         $data = [];
         foreach ($items as $item) {
             $product = $item->getProduct();
+            if ($product->getStoreId() != $storeId) {
+                $product->setStoreId($storeId);
+            }
             $_item = [];
             $_item['vars'] = [];
             if ($item->getProduct()->getTypeId() == 'configurable') {

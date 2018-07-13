@@ -167,12 +167,13 @@ class ProductData extends AbstractHelper
      */
     public function getTags(Product $product, $attributes = null, $categories = null)
     {
+        $storeId = $product->getStoreId();
         $tags = '';
-        if ($this->tagsUseKeywords()) {
+        if ($this->tagsUseKeywords($storeId)) {
             $keywords = htmlspecialchars($product->getData('meta_keyword'));
             $tags .= "$keywords,";
         }
-        if ($this->tagsUseCategories()) {
+        if ($this->tagsUseCategories($storeId)) {
             if ($categories === null) {
                 $categories = $this->getCategories($product);
             }
@@ -180,7 +181,7 @@ class ProductData extends AbstractHelper
         }
         try {
             $attribute_str = '';
-            if ($this->tagsUseAttributes()) {
+            if ($this->tagsUseAttributes($storeId)) {
                 if ($attributes === null) {
                     $attributes = $this->getProductAttributeValues($product);
                 }
