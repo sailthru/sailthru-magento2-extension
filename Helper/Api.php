@@ -8,13 +8,16 @@ namespace Sailthru\MageSail\Helper;
 
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Module\ModuleListInterface;
+use Magento\Framework\ObjectManagerInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManager;
 use Sailthru\MageSail\Cookie\Hid;
 use Sailthru\MageSail\Logger;
 use Sailthru\MageSail\MageClient;
+use Sailthru\MageSail\Model\Config\Template\Data as TemplateConfig;
+use Sailthru\MageSail\Model\Template as TemplateModel;
 
-class Api extends \Magento\Framework\App\Helper\AbstractHelper
+class Api extends AbstractHelper
 {
     // Source models
     const SOURCE_MODEL_VALIDATION_MSG  = "Please Enter Valid Sailthru Credentials";
@@ -85,12 +88,15 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
     /** @var  MageClient */
     public $client;
 
+    /** @var Hid  */
     public $hid;
-    public $logger;
+
+    /** @var StoreManager */
     public $storeManager;
-    protected $_apiKey;
-    protected $_apiSecret;
-    private $moduleList;
+
+    /** @var ClientManager */
+    private $clientManager;
+
     private $sailthruTemplates = [];
 
     /** @var \Magento\Framework\App\Request\Http */
@@ -98,36 +104,27 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
 
     public function __construct(
         Context $context,
-        Hid $hid,
-        Logger $logger,
         StoreManager $storeManager,
-        ModuleListInterface $moduleList
+        Logger $logger,
+        TemplateModel $templateModel,
+        TemplateConfig $templateConfig,
+        ObjectManagerInterface $objectManager,
+        ScopeResolver $scopeResolver,
+        Hid $hid,
+        ClientManager $clientManager
     ) {
-        parent::__construct($context);
+        parent::__construct($context, $storeManager, $logger, $templateModel, $templateConfig, $objectManager, $scopeResolver);
         $this->hid = $hid;
-        $this->_apiKey = $this->getApiKey($storeManager->getStore()->getId());
-        $this->_apiSecret = $this->getApiSecret($storeManager->getStore()->getId());
-        $this->logger = $logger;
-        $this->storeManager = $storeManager;
-        $this->moduleList = $moduleList;
+        $this->clientManager = $clientManager;
         $this->getClient();
     }
 
     public function getClient()
     {
-        try {
-            $this->client = new \Sailthru\MageSail\MageClient(
-                $this->_apiKey,
-                $this->_apiSecret,
-                $this->logger,
-                $this->storeManager,
-                $this->moduleList
-            );
-        } catch (\Sailthru_Client_Exception $e) {
-            $this->client = $e->getMessage();
-            throw $e;
+        if ($this->client == null) {
+            $this->client = $this->clientManager->getClient();
         }
-        return true;
+        return $this->client;
     }
 
     /* General */
@@ -162,19 +159,7 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
 
     public function logger($message)
     {
-        $this->client->logger($message);
-    }
-
-    public function getSettingsVal($val)
-    {
-        $storeCode = $this->_request->getParam('store');
-        $websiteCode = $this->_request->getParam('website');
-        if ($storeCode) {
-            return $this->scopeConfig->getValue($val, ScopeInterface::SCOPE_STORE, $storeCode);
-        } elseif ($websiteCode) {
-            return $this->scopeConfig->getValue($val, ScopeInterface::SCOPE_WEBSITE, $websiteCode);
-        }
-        return $this->scopeConfig->getValue($val, ScopeInterface::SCOPE_STORES);
+        $this->logger->info($message);
     }
 
     /* Content */
@@ -349,49 +334,6 @@ class Api extends \Magento\Framework\App\Helper\AbstractHelper
         return $this->getAddressVars($address);
     }
 
-    /**
-     * To set Sailthru templates.
-     */
-    public function getSailthruTemplates()
-    {
-        if (empty($this->sailthruTemplates)) {
-            $this->sailthruTemplates = $this->client->getTemplates();
-        }
-
-        return $this->sailthruTemplates;
-    }
-
-    /**
-     * To create template in Sailthru.
-     * 
-     * @param  string $templateIdentifier
-     * @param  string $sender
-     */
-    public function saveTemplate($templateIdentifier, $sender)
-    {
-        try {
-            $data = [
-                "content_html" => "{content} {beacon}",
-                "subject" => "{subj}",
-                "from_email" => $sender,
-                "is_link_tracking" => 1
-            ];
-            $response = $this->client->saveTemplate($templateIdentifier, $data);
-            if (isset($response['error']))
-                $this->client->logger($response['errormsg']);
-        } catch (\Exception $e) {
-            $this->client->logger($e->getMessage());
-        }
-    }
-
-    public function templateExists($templateIdentifier) {
-        $templates = $this->getSailthruTemplates();
-        if (isset($templates['templates'])) {
-            $templates = array_column($templates['templates'], 'name');
-            return in_array($templateIdentifier, $templates);
-        }
-        return false;
-    }
 
     private function getApiKey($storeId = null)
     {

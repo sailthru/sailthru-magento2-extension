@@ -25,8 +25,11 @@ class AbstractHelper extends MageAbstractHelper
     /** @var TemplateConfig */
     protected $templateConfig;
 
-    /** @var ObjectManager */
+    /** @var ObjectManagerInterface */
     protected $objectManager;
+
+    /** @var ScopeResolver  */
+    protected $scopeResolver;
 
     public function __construct(
         Context $context,
@@ -34,7 +37,8 @@ class AbstractHelper extends MageAbstractHelper
         Logger $logger,
         TemplateModel $templateModel,
         TemplateConfig $templateConfig,
-        ObjectManagerInterface $objectManager
+        ObjectManagerInterface $objectManager,
+        ScopeResolver $scopeResolver
     ) {
         parent::__construct($context);
         $this->storeManager = $storeManager;
@@ -42,28 +46,18 @@ class AbstractHelper extends MageAbstractHelper
         $this->templateModel = $templateModel;
         $this->templateConfig = $templateConfig;
         $this->objectManager = $objectManager;
+        $this->scopeResolver = $scopeResolver;
     }
 
     public function getSettingsVal($val, $storeId = null)
     {
-        $scopeType = ScopeInterface::SCOPE_STORES;
-        $scopeCode = null;
-
         if ($storeId) {
-            $scopeCode = $this->storeManager->getStore($storeId)->getCode();
+            $storeCode = $this->storeManager->getStore($storeId)->getCode();
+            return $this->scopeConfig->getValue($val, ScopeInterface::SCOPE_STORES, $storeCode);
+
         } else {
-            $storeCode = $this->_request->getParam('store');
-            $websiteCode = $this->_request->getParam('website');
-            if ($storeCode) {
-                $scopeType = ScopeInterface::SCOPE_STORE;
-                $scopeCode = $storeCode;
-            } elseif ($websiteCode) {
-                $scopeType = ScopeInterface::SCOPE_WEBSITE;
-                $scopeCode = $websiteCode;
-            } else {
-                $scopeCode = $this->storeManager->getStore()->getCode();
-            }
+            list($scopeCode, $scopeType) = $this->scopeResolver->getScope();
+            return $this->scopeConfig->getValue($val, $scopeType, $scopeCode);
         }
-        return $this->scopeConfig->getValue($val, $scopeType, $scopeCode);
     }
 }

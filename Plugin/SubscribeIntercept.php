@@ -5,37 +5,54 @@ namespace Sailthru\MageSail\Plugin;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Newsletter\Model\Subscriber;
 use Magento\Store\Model\StoreManagerInterface;
+use Psr\Log\LoggerInterface;
 use Sailthru\MageSail\Helper\ClientManager;
+use Sailthru\MageSail\Helper\ScopeResolver;
 use Sailthru\MageSail\Helper\Settings as SailthruSettings;
 
 class SubscribeIntercept
 {
+    protected static $UPDATE_STATUSES = [
+        Subscriber::STATUS_UNSUBSCRIBED,
+        Subscriber::STATUS_SUBSCRIBED
+    ];
+    
+    /** @var ClientManager  */
+    private $clientManager;
+
+    /** @var SailthruSettings  */
+    private $sailthruSettings;
+
     /** @var StoreManagerInterface */
     private $storeManager;
+
+    /** @var ScopeResolver  */
+    protected $scopeResolver;
 
     public function __construct(
         ClientManager $clientManager,
         SailthruSettings $sailthruSettings,
-        StoreManagerInterface $storeManager
+        StoreManagerInterface $storeManager,
+        ScopeResolver $scopeResolver
     ) {
-        $this->storeManager = $storeManager;
-        $this->client = $clientManager->getClient($storeManager->getStore()->getId());
+        $this->clientManager = $clientManager;
         $this->sailthruSettings = $sailthruSettings;
+        $this->storeManager = $storeManager;
+        $this->scopeResolver = $scopeResolver;
     }
 
     /**
      * Saving customer subscription status
      *
-     * @param generic Subscriber Model $subscriberModel
-     * @param loaded Subscriber $subscriber
+     * @param Subscriber Model $subscriberModel (generic)
+     * @param Subscriber $subscriber (loaded)
      * @return  $subscriber
      *
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @throws \Exception
      */
-
-
-    public function afterSave(Subscriber $subscriberModel, $subscriber)
+    public function afterSave(Subscriber $subscriberModel, Subscriber $subscriber)
     {
         $this->updateSailthruSubscription($subscriber);
         return $subscriber;
@@ -44,10 +61,11 @@ class SubscribeIntercept
     /**
      * Saving customer unsubscribe status through FrontEnd Control Panel
      *
-     * @param generic Subscriber Model $subscriberModel
-     * @param loaded Subscriber $subscriber
-     * @return  $subscriber
+     * @param Subscriber $subscriberModel
+     * @param Subscriber $subscriber
+     * @return Subscriber $subscriber
      *
+     * @throws \Exception
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)
      * @SuppressWarnings(PHPMD.NPathComplexity)
      */
@@ -57,22 +75,25 @@ class SubscribeIntercept
         return $subscriber;
     }
 
+    /**
+     * @param Subscriber $subscriber
+     * @throws \Exception
+     */
     public function updateSailthruSubscription(Subscriber $subscriber)
     {
-        $storeId = $this->storeManager->getStore()->getId();
+        $storeId = $subscriber->getStoreId();
         $email = $subscriber->getEmail();
         $status = $subscriber->getStatus();
         $isSubscribed = ($status == Subscriber::STATUS_SUBSCRIBED ? 1 : 0);
 
-        if (($status == Subscriber::STATUS_UNSUBSCRIBED ||
-            $status == Subscriber::STATUS_SUBSCRIBED) &&
-            $this->sailthruSettings->newsletterListEnabled($storeId)
-        ) {
+        if ($this->shouldUpdate($status, $storeId)) {
+            $newsletterList = $this->sailthruSettings->getNewsletterList($storeId);
             $data = [
                 'id'     => $email,
                 'key'    => 'email',
-                'lists'  => [ $this->sailthruSettings->getNewsletterList($storeId) => $isSubscribed ],
+                'lists'  => [ $newsletterList => $isSubscribed ],
             ];
+
             if ($fullName = $subscriber->getSubscriberFullName()) {
                 $data['vars'] = [
                     'firstName' => $subscriber->getFirstname(),
@@ -80,13 +101,20 @@ class SubscribeIntercept
                     'name'      => $fullName,
                 ];
             }
+
+            $client = $this->clientManager->getClient(true, $storeId);
+            $client->_eventType = $isSubscribed ? 'CustomerSubscribe' : 'CustomerUnsubscribe';
             try {
-                $this->client->_eventType = $isSubscribed ? 'CustomerSubscribe' : 'CustomerUnsubscribe';
-                $this->client->apiPost('user', $data);
+                $client->apiPost('user', $data);
             } catch(\Sailthru_Client_Exception $e) {
-                $this->client->logger($e->getMessage());
+                $client->logger($e->getMessage());
                 throw new \Exception($e->getMessage());
             }
         }
+    }
+
+    private function shouldUpdate($status, $storeId)
+    {
+        return in_array($status, self::$UPDATE_STATUSES) and $this->sailthruSettings->newsletterListEnabled($storeId);
     }
 }

@@ -2,12 +2,24 @@
  
 namespace Sailthru\MageSail\Model\Config\Source;
 
+use Sailthru\MageSail\Helper\Api;
+use Sailthru\MageSail\Helper\Templates;
+
 class SailthruAbandonedCartTemplates extends AbstractSource
 {
+    /** @var Templates  */
+    private $sailthruTemplates;
+
+    public function __construct(Api $apiHelper, Templates $sailthruTemplates)
+    {
+        parent::__construct($apiHelper);
+        $this->sailthruTemplates = $sailthruTemplates;
+    }
+
     /** @inheritdoc */
     protected function getDisplayData()
     {
-        $data = $this->apiHelper->getSailthruTemplates();
+        $data = $this->sailthruTemplates->getSailthruTemplates();
         $tpl_options = [];
         
         if (!isset($data["templates"]))

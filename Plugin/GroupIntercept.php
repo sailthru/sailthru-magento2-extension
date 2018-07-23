@@ -4,6 +4,7 @@ namespace Sailthru\MageSail\Plugin;
 
 use \Magento\Framework\Exception\MailException;
 use \Magento\Config\Model\Config\Structure\Element\Group as OriginalGroup;
+use Sailthru\MageSail\Helper\Templates;
 use Sailthru\MageSail\Model\Config\Template\Data as TemplateConfig;
 use Sailthru\MageSail\Helper\Api;
 use Sailthru\MageSail\Helper\Settings;
@@ -37,27 +38,32 @@ class GroupIntercept
     /** @var \Sailthru\MageSail\Model\Config\Template\Data */
     private $templateConfig;
 
-    /** @var Sailthru\MageSail\Helper\Settings */
+    /** @var Settings */
     private $sailthruSettings;
 
-    /** @var Sailthru\MageSail\Helper\Api */
+    /** @var Api  */
     private $apiHelper;
+
+    /** @var Templates */
+    private $sailthruTemplates;
 
     /**
      * Group constructor.
-     * 
+     *
      * @param TemplateConfig $templateConfig
-     * @param Settings       $sailthruSettings
-     * @param Api            $apiHelper
+     * @param Settings $sailthruSettings
+     * @param Templates $sailthruTemplates
      */
     public function __construct(
         TemplateConfig $templateConfig,
         Settings $sailthruSettings,
-        Api $apiHelper
+        Api $apiHelper,
+        Templates $sailthruTemplates
     ) {
         $this->templateConfig = $templateConfig;
         $this->sailthruSettings = $sailthruSettings;
         $this->apiHelper = $apiHelper;
+        $this->sailthruTemplates = $sailthruTemplates;
     }
 
     /**
@@ -80,7 +86,7 @@ class GroupIntercept
             return $proceed($data, $scope);
         }
 
-        $data['children'] = $this->addRendered($data['children'] ?? []);
+        $data['children'] = $this->addRendered($data['children'] ?: []);
         if (self::GROUP_WITH_CONFIG_FIELDS == $data['id'] && $this->apiHelper->isValid()) {
             $dynamicFields = $this->getDynamicConfigFields();
             if (!empty($dynamicFields)) {
@@ -121,7 +127,7 @@ class GroupIntercept
             return $fields;
         }
 
-        $sailthruTemplates = $this->apiHelper->getSailthruTemplates();
+        $sailthruTemplates = $this->sailthruTemplates->getSailthruTemplates();
         $sailthruTemplates = isset($sailthruTemplates['templates'])
             ? array_column($sailthruTemplates['templates'], 'name')
             : [];
@@ -129,13 +135,13 @@ class GroupIntercept
         # Create the `Magento Generic` template if doesn't exists.
         $sender = $this->sailthruSettings->getSender();
         if ($sender && !in_array(self::MAGENTO_GENERIC_TEMPLATE, $sailthruTemplates)) {
-            $this->apiHelper->saveTemplate(self::MAGENTO_GENERIC_TEMPLATE, $sender);
+            $this->sailthruTemplates->saveTemplate(self::MAGENTO_GENERIC_TEMPLATE, $sender);
         }
         
         foreach ($templateList as $template) {
             # Create the `specific` template if doesn't exists.
             if ($sender && !in_array(self::MAGENTO_TEMPLATE_NAME_PREFIX . $template['id'], $sailthruTemplates)) {
-                $this->apiHelper->saveTemplate(self::MAGENTO_TEMPLATE_NAME_PREFIX . $template['id'], $sender);
+                $this->sailthruTemplates->saveTemplate(self::MAGENTO_TEMPLATE_NAME_PREFIX . $template['id'], $sender);
             }
 
             $tmpListField = self::addField($template, 'template_list');

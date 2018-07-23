@@ -75,11 +75,12 @@ class ProductData extends AbstractHelper
         TemplateModel $templateModel,
         TemplateConfig $templateConfig,
         ObjectManagerInterface $objectManager,
+        ScopeResolver $scopeResolver,
         ConfigurableProduct $configurableProduct,
         ProductRepositoryInterface $productRepo,
         ImageBuilder $imageBuilder
     ) {
-        parent::__construct($context, $storeManager, $logger, $templateModel, $templateConfig, $objectManager);
+        parent::__construct($context, $storeManager, $logger, $templateModel, $templateConfig, $objectManager, $scopeResolver);
         $this->configurableProduct = $configurableProduct;
         $this->productRepo = $productRepo;
         $this->imageBuilder = $imageBuilder;
@@ -166,12 +167,13 @@ class ProductData extends AbstractHelper
      */
     public function getTags(Product $product, $attributes = null, $categories = null)
     {
+        $storeId = $product->getStoreId();
         $tags = '';
-        if ($this->tagsUseKeywords()) {
+        if ($this->tagsUseKeywords($storeId)) {
             $keywords = htmlspecialchars($product->getData('meta_keyword'));
             $tags .= "$keywords,";
         }
-        if ($this->tagsUseCategories()) {
+        if ($this->tagsUseCategories($storeId)) {
             if ($categories === null) {
                 $categories = $this->getCategories($product);
             }
@@ -179,7 +181,7 @@ class ProductData extends AbstractHelper
         }
         try {
             $attribute_str = '';
-            if ($this->tagsUseAttributes()) {
+            if ($this->tagsUseAttributes($storeId)) {
                 if ($attributes === null) {
                     $attributes = $this->getProductAttributeValues($product);
                 }

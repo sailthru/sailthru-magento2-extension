@@ -39,7 +39,8 @@ class ClientManager extends AbstractHelper
         TemplateModel $templateModel,
         TemplateConfig $templateConfig,
         ObjectManagerInterface $objectManager,
-        ModuleListInterface $moduleList
+        ModuleListInterface $moduleList,
+        ScopeResolver $scopeResolver
     ) {
         parent::__construct(
             $context,
@@ -47,22 +48,22 @@ class ClientManager extends AbstractHelper
             $logger,
             $templateModel,
             $templateConfig,
-            $objectManager
+            $objectManager,
+            $scopeResolver
         );
         $this->moduleList = $moduleList;
-        $this->initClient();
     }
 
     public function initClient($storeId = null)
     {
         $apiKey = $this->getSettingsVal(self::XML_API_KEY, $storeId);
         $apiSecret = $this->getSettingsVal(self::XML_API_SECRET, $storeId);
-        $this->client = new MageClient($apiKey, $apiSecret, $this->logger, $this->storeManager, $this->moduleList);
+        $this->client = new MageClient($apiKey, $apiSecret, $this->getSetupVersion(), $this->logger, $this->scopeResolver);
     }
 
     public function getClient($update=false, $storeId = null)
     {
-        if ($update) {
+        if ($update or !$this->client) {
             $this->initClient($storeId);
         }
         return $this->client;
@@ -109,6 +110,14 @@ class ClientManager extends AbstractHelper
     {
         $check = $this->apiValidate();
         return $check[0];
+    }
+
+    private function getSetupVersion()
+    {
+        $moduleData = $this->moduleList->getOne('Sailthru_MageSail');
+        return isset($moduleData['setup_version'])
+            ? $moduleData['setup_version']
+            : "";
     }
 
 }
