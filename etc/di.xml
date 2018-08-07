@@ -23,7 +23,7 @@
     <type name="\Magento\Config\Model\Config\Structure\Element\Group">
         <plugin name="MageSail_Config_Fields" type="Sailthru\MageSail\Plugin\GroupIntercept"/>
     </type>
-    <preference for="\Magento\Framework\Mail\Transport" type="Sailthru\MageSail\Mail\Transport"/>
+    <preference for="Magento\Framework\Mail\TransportInterface" type="Sailthru\MageSail\Mail\Transport"/>
     <preference for="\Magento\Framework\Mail\Template\TransportBuilder" type="Sailthru\MageSail\Mail\TransportBuilder"/>
     <preference for="\Magento\Framework\Mail\Message" type="Sailthru\MageSail\Mail\Message"/>
     <preference for="\Magento\Email\Model\Template" type="Sailthru\MageSail\Mail\Template"/>
