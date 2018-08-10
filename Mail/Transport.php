@@ -78,25 +78,29 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
     }
 
     /**
-     * @throws MailException
-     * @throws \Zend_Mail_Transport_Exception
+     * Send a mail using this transport
+     *
+     * @return void
+     * @throws \Magento\Framework\Exception\MailException
      */
-    public function _sendMail()
+    public function sendMessage()
     {
-        # To get array with template variables and template identifier
-        # use $this->_message->getTemplateInfo();
-        $templateData = $this->_message->getTemplateInfo();
+        try {
+            $templateData = $this->_message->getTemplateInfo();
 
-        // Patch for emails sent from unscoped admin sections.
-        $storeId = isset($templateData['storeId'])
-            ? $templateData['storeId']
-            : $this->storeManager->getStore()->getId();
-        $this->request->setParams(["store"=>$storeId]);
+            // Patch for emails sent from unscoped admin sections.
+            $storeId = isset($templateData['storeId'])
+                ? $templateData['storeId']
+                : $this->storeManager->getStore()->getId();
+            $this->request->setParams(['store' => $storeId]);
 
-        if ($this->sailthruSettings->getTransactionalsEnabled($storeId)) {
-            $this->sendViaAPI($templateData, $storeId);
-        } else {
-            parent::_sendMail();
+            if ($this->sailthruSettings->getTransactionalsEnabled($storeId)) {
+                $this->sendViaAPI($templateData, $storeId);
+            } else {
+                parent::sendMessage();
+            }
+        } catch (\Exception $e) {
+            throw new \Magento\Framework\Exception\MailException(new \Magento\Framework\Phrase($e->getMessage()), $e);
         }
     }
 
@@ -134,7 +138,6 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
                 "email" => $this->cleanEmails($this->recipients),
                 "vars" => $vars,
             ];
-
 
             $response = $client->apiPost('send', $message);
             if (isset($response["error"])) {
