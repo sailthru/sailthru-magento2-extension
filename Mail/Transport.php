@@ -14,10 +14,6 @@ use Sailthru\MageSail\MageClient;
 
 class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Framework\Mail\TransportInterface
 {
-
-    /** @var Message */
-    protected $_message;
-
     /** @var ClientManager */
     protected $clientManager;
 
@@ -135,7 +131,7 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
 
             $message = [
                 "template" => $templateName,
-                "email" => $this->cleanEmails($this->recipients),
+                "email" => $this->cleanEmails(implode(',', $this->_message->getRecipients())),
                 "vars" => $vars,
             ];
 
