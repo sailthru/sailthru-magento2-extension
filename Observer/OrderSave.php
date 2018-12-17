@@ -12,6 +12,7 @@ use Sailthru\MageSail\Helper\Order as SailthruOrder;
 use Sailthru\MageSail\Helper\ProductData as SailthruProduct;
 use Sailthru\MageSail\Helper\Settings as SailthruSettings;
 use Sailthru\MageSail\Logger;
+use Sailthru\MageSail\Model\Purchase;
 
 class OrderSave implements ObserverInterface {
 
@@ -92,49 +93,45 @@ class OrderSave implements ObserverInterface {
         $items = $order->getAllVisibleItems();
         $bundleIds = $this->getIdsOfType($items, "bundle");
         $configurableIds = $this->getIdsOfType($items, "configurable");
-        $storeId = $order->getStoreId();
 
         $data = [];
         foreach ($items as $item) {
             $product = $item->getProduct();
-            if ($product->getStoreId() != $storeId) {
-                $product->setStoreId($storeId);
-            }
-            $_item = [];
-            $_item['vars'] = [];
-            if ($item->getProduct()->getTypeId() == 'configurable') {
-                $parentIds[] = $item->getParentItemId();
-                $options = $item->getProductOptions();
-                $_item['id'] = $options['simple_sku'];
-                $_item['title'] = $item->getName();
-                $_item['vars'] = $this->sailthruOrder->getItemOptions($item);
-                $_item['url'] = $this->sailthruProduct->getProductUrlBySku($_item['id'], $order->getStoreId());
-                $configurableSkus[] = $options['simple_sku'];
-            } else {
-                $parent = $item->getParentItem();
-                if (!$parent || !(in_array($parent->getProductId(), $configurableIds) || in_array($parent->getProductId(), $bundleIds))) {
-                    $_item['id'] = $item->getSku();
-                    $_item['title'] = $item->getName();
-                    $_item['url'] = $this->sailthruProduct->getProductUrl($product);
-                } else {
-                    $_item['id'] = null;
-                }
+            if ($product->getStoreId() != $order->getStoreId()) {
+                $product->setStoreId($order->getStoreId());
             }
 
-            if ($_item['id']) {
-                $_item['qty'] = $item->getQtyOrdered();
-                $_item['images'] = [
-                    'full' =>   [ 'url' => $this->sailthruProduct->getBaseImageUrl($product) ],
-                ];
-                $_item['price'] = $item->getPrice() * 100;
-                if ($tags = $this->sailthruProduct->getTags($product)) {
-                    $_item['tags'] = $tags;
-                }
-                $data[] = $_item;
+            $i = new \Sailthru\MageSail\Model\Item();
+            $i->setTitle($item->getName());
+            if ($item->getProduct()->getTypeId() == 'configurable') {
+                $options = $item->getProductOptions();
+                $sku = $options['simple_sku'];
+                $i->setId($sku)
+                    ->setUrl($this->sailthruProduct->getProductUrlBySku($sku, $order->getStoreId()))
+                    ->setVars($this->sailthruOrder->getItemOptions($item));
+            } else if ($this->isTrueSimpleItem($item, $configurableIds, $bundleIds)) {
+                $i
+                    ->setId($item->getSku())
+                    ->setUrl($this->sailthruProduct->getProductUrl($product));
             }
+
+            $i->setPrice($item->getPrice());
+            $i->setQuantity($item->getQtyOrdered());
+            $i->setImages([
+                'full' => ['url' => $this->sailthruProduct->getBaseImageUrl($product)],
+            ]);
+
+            $i->setTags([$this->sailthruProduct->getTags($product)]);
+            $data[] = $i;
         }
 
         return $data;
+    }
+
+    private function isTrueSimpleItem(Item $item, $configurableIds, $bundleIds)
+    {
+        $parent = $item->getParentItem();
+        return (!$parent || !(in_array($parent->getProductId(), $configurableIds) || in_array($parent->getProductId(), $bundleIds));
     }
 
     /**

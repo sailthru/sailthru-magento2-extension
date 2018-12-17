@@ -29,7 +29,9 @@ class Purchase implements ApiData {
     private $extId;
 
     public function __construct()
-    {}
+    {
+        return $this;
+    }
 
     /**
      * @return String
@@ -122,7 +124,7 @@ class Purchase implements ApiData {
     }
 
     /**
-     * @return \DateTime
+     * @return string datetime
      */
     public function getDate()
     {
@@ -130,7 +132,7 @@ class Purchase implements ApiData {
     }
 
     /**
-     * @param \DateTime $date
+     * @param string $date
      * @return Purchase
      */
     public function setDate($date)

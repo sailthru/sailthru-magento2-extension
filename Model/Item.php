@@ -8,6 +8,9 @@ class Item implements ApiData {
     private $url;
 
     /** @var String */
+    private $id;
+
+    /** @var String */
     private $sku;
 
     /** @var String */
@@ -46,6 +49,24 @@ class Item implements ApiData {
     public function setUrl($url)
     {
         $this->url = $url;
+        return $this;
+    }
+
+    /**
+     * @return String
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    /**
+     * @param String $id
+     * @return Item
+     */
+    public function setId($id)
+    {
+        $this->id = $id;
         return $this;
     }
 
@@ -157,6 +178,17 @@ class Item implements ApiData {
     public function setVars($vars)
     {
         $this->vars = $vars;
+        return $this;
+    }
+
+    /**
+     * @param $var name
+     * @param $val
+     * @return $this
+     */
+    public function setVar($var, $val)
+    {
+        $this->vars[$var] = $val;
         return $this;
     }
 
