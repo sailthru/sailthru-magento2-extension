@@ -32,6 +32,8 @@ class CustomerRegistered implements ObserverInterface
         $storeId = $customer->getStoreId();
         $this->sailthruClient = $this->sailthruClient->getClient(true, $storeId);
         $email = $customer->getEmail();
+        $selectedCase = $this->sailthruSettings->getSelectCase($storeId);
+        $nameKeys = $this->sailthruSettings->getNameKeys($selectedCase);
         $data = [
             'id'     => $email,
             'key'    => 'email',
@@ -39,8 +41,8 @@ class CustomerRegistered implements ObserverInterface
                 'keys' => 1
             ],
             'vars'   => [
-                'firstName' => $customer->getFirstname(),
-                'lastName'  => $customer->getLastname(),
+                $nameKeys[0] => $customer->getFirstname(),
+                $nameKeys[1]  => $customer->getLastname(),
                 'name'  => "{$customer->getFirstname()} {$customer->getLastname()}"
             ]
         ];

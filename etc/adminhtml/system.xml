@@ -111,7 +111,7 @@
         <!-- Lists section -->
         <section id="magesail_lists" translate="label" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
             <tab>sailthru</tab>
-            <label>Lists</label>
+            <label>Users</label>
             <resource>Sailthru_Magesail::config</resource>
             <group id="lists" type="text" translate="label" sortOrder="0" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Lists</label>
@@ -143,6 +143,14 @@
                     <depends>
                         <field id="*/*/enable_newsletter">1</field>
                     </depends>
+                </field>
+            </group>
+            <group id="names" type="text" translate="label" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Names</label>
+                <field id="select_case" type="select" translate="label" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Case of first and last name</label>
+                    <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedSnakeOrCamel</source_model>
+                    <!--<comment>Upon registration, set users to be added to a Sailthru list of your choice.</comment>-->
                 </field>
             </group>
         </section>

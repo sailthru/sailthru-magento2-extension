@@ -25,6 +25,7 @@ class Settings extends AbstractHelper
     const XML_ONREGISTER_LIST_VALUE    = "magesail_lists/lists/signup_list";
     const XML_NEWSLETTER_LIST_ENABLED  = "magesail_lists/lists/enable_newsletter";
     const XML_NEWSLETTER_LIST_VALUE    = "magesail_lists/lists/newsletter_list";
+    const XML_SELECT_CASE              = "magesail_lists/names/select_case";
 
     // Transactional Emails
     const XML_ABANDONED_CART_ENABLED   = "magesail_send/abandoned_cart/enabled";
@@ -175,6 +176,21 @@ class Settings extends AbstractHelper
         return $this->getSettingsVal(self::XML_NEWSLETTER_LIST_VALUE, $storeId);
     }
 
+    public function getSelectCase($storeId = null)
+    {
+        return $this->getSettingsVal(self::XML_SELECT_CASE, $storeId);
+    }
+    public function getNameKeys($case)
+    {
+        if ($case == "camel")
+        {
+            return ["firstName", "lastName"];
+        }
+        else
+        {
+            return ["first_name", "last_name"];
+        }
+    }
     /**
      * To get template name.
      * 
