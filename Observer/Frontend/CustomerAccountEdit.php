@@ -11,6 +11,7 @@ use Sailthru\MageSail\Helper\ClientManager;
 use Sailthru\MageSail\Helper\Settings as SailthruSettings;
 use Sailthru\MageSail\Helper\Customer as SailthruCustomer;
 use Sailthru\MageSail\Cookie\Hid as SailthruCookie;
+use Sailthru\MageSail\Helper\VarHelper;
 
 class CustomerAccountEdit implements ObserverInterface
 {
@@ -22,6 +23,7 @@ class CustomerAccountEdit implements ObserverInterface
     private $sailthruCookie;
     private $sailthruCustomer;
     private $sailthruSettings;
+    private $sailthruVars;
 
     public function __construct(
         ClientManager $clientManager,
@@ -30,7 +32,8 @@ class CustomerAccountEdit implements ObserverInterface
         SailthruCustomer $sailthruCustomer,
         Manager $moduleManager,
         Customer $customerModel,
-        StoreManagerInterface $storeManager
+        StoreManagerInterface $storeManager,
+        VarHelper $sailthruVars
     ) {
         $this->moduleManager = $moduleManager;
         $this->customerModel = $customerModel;
@@ -39,6 +42,7 @@ class CustomerAccountEdit implements ObserverInterface
         $this->sailthruSettings = $sailthruSettings;
         $this->sailthruCookie = $sailthruCookie;
         $this->sailthruCustomer = $sailthruCustomer;
+        $this->sailthruVars = $sailthruVars;
     }
 
     public function execute(Observer $observer) {
@@ -50,7 +54,7 @@ class CustomerAccountEdit implements ObserverInterface
         $this->sailthruClient = $this->sailthruClient->getClient(true, $storeId);
         $sid = $customer->getData('sailthru_id');
         $selectedCase = $this->sailthruSettings->getSelectCase($storeId);
-        $nameKeys = $this->sailthruSettings->getNameKeys($selectedCase);
+        $nameKeys = $this->sailthruVars->getNameKeys($selectedCase);
 
         try {
             $this->sailthruClient->_eventType = 'CustomerUpdate';
@@ -63,8 +67,8 @@ class CustomerAccountEdit implements ObserverInterface
                     'email' => $email
                 ],
                 'vars'         => [
-                    $nameKeys[0] => $customer->getFirstname(),
-                    $nameKeys[1]  => $customer->getLastname(),
+                    $nameKeys['firstname'] => $customer->getFirstname(),
+                    $nameKeys['lastname']  => $customer->getLastname(),
                     'name'      => "{$customer->getFirstname()} {$customer->getLastname()}"
                 ]
             ];

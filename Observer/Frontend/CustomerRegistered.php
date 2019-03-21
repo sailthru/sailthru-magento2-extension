@@ -10,20 +10,23 @@ use Magento\Store\Model\StoreManagerInterface;
 use Sailthru\MageSail\Helper\ClientManager;
 use Sailthru\MageSail\Helper\Settings as SailthruSettings;
 use Sailthru\MageSail\Cookie\Hid as SailthruCookie;
+use Sailthru\MageSail\Helper\VarHelper;
 
 class CustomerRegistered implements ObserverInterface
 {
 
-    private $sailthruClient, $sailthruSettings, $sailthruCookie;
+    private $sailthruClient, $sailthruSettings, $sailthruCookie, $sailThruVars;
 
     public function __construct(
         ClientManager $clientManager,
         SailthruSettings $sailthruSettings,
-        SailthruCookie $sailthruCookie
+        SailthruCookie $sailthruCookie,
+        VarHelper $sailThruVars
     ) {
         $this->sailthruClient = $clientManager;
         $this->sailthruSettings = $sailthruSettings;
         $this->sailthruCookie = $sailthruCookie;
+        $this->sailThruVars = $sailThruVars;
     }
 
     public function execute(Observer $observer)
@@ -33,7 +36,7 @@ class CustomerRegistered implements ObserverInterface
         $this->sailthruClient = $this->sailthruClient->getClient(true, $storeId);
         $email = $customer->getEmail();
         $selectedCase = $this->sailthruSettings->getSelectCase($storeId);
-        $nameKeys = $this->sailthruSettings->getNameKeys($selectedCase);
+        $nameKeys = $this->sailThruVars->getNameKeys($selectedCase);
         $data = [
             'id'     => $email,
             'key'    => 'email',
@@ -41,8 +44,8 @@ class CustomerRegistered implements ObserverInterface
                 'keys' => 1
             ],
             'vars'   => [
-                $nameKeys[0] => $customer->getFirstname(),
-                $nameKeys[1]  => $customer->getLastname(),
+                $nameKeys['firstname'] => $customer->getFirstname(),
+                $nameKeys['lastname']  => $customer->getLastname(),
                 'name'  => "{$customer->getFirstname()} {$customer->getLastname()}"
             ]
         ];

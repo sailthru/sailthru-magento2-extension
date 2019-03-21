@@ -180,17 +180,6 @@ class Settings extends AbstractHelper
     {
         return $this->getSettingsVal(self::XML_SELECT_CASE, $storeId);
     }
-    public function getNameKeys($case)
-    {
-        if ($case == "camel")
-        {
-            return ["firstName", "lastName"];
-        }
-        else
-        {
-            return ["first_name", "last_name"];
-        }
-    }
     /**
      * To get template name.
      * 
