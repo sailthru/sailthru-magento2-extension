@@ -37,6 +37,7 @@ class VarHelper
     {
         $vars = [
             'firstname' => ['first', 'name'],
+            'middlename' => ['middle', 'name'],
             'lastname' => ['last', 'name'],
         ];
         if ($case == "snake")
