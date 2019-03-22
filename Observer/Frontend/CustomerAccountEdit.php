@@ -54,7 +54,7 @@ class CustomerAccountEdit implements ObserverInterface
         $this->sailthruClient = $this->sailthruClient->getClient(true, $storeId);
         $sid = $customer->getData('sailthru_id');
         $selectedCase = $this->sailthruSettings->getSelectCase($storeId);
-        $nameKeys = $this->sailthruVars->getNameKeys($selectedCase);
+        $varKeys = $this->sailthruVars->getVarKeys($selectedCase);
 
         try {
             $this->sailthruClient->_eventType = 'CustomerUpdate';
@@ -67,8 +67,8 @@ class CustomerAccountEdit implements ObserverInterface
                     'email' => $email
                 ],
                 'vars'         => [
-                    $nameKeys['firstname'] => $customer->getFirstname(),
-                    $nameKeys['lastname']  => $customer->getLastname(),
+                    $varKeys['firstname'] => $customer->getFirstname(),
+                    $varKeys['lastname']  => $customer->getLastname(),
                     'name'      => "{$customer->getFirstname()} {$customer->getLastname()}"
                 ]
             ];

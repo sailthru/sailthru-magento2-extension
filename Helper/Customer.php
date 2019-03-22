@@ -82,8 +82,8 @@ class Customer extends VariablesAbstractHelper
         $storeId = $dataModel->getStoreId();
         $store = $this->storeManager->getStore($storeId);
         $group = $this->customerGroupModel->load($dataModel->getGroupId());
-        $case = $this->sailthruSettings->getSelectCase($storeId);
-        $vars = $this->sailthruVars->getNameKeys($case);
+        $selectedCase = $this->sailthruSettings->getSelectCase($storeId);
+        $vars = $this->sailthruVars->getNameKeys($selectedCase);
 
         $date = \DateTime::createFromFormat(
             'Y-m-d H:i:s',

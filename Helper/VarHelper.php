@@ -3,12 +3,16 @@
 namespace Sailthru\MageSail\Helper;
 
 class VarHelper
-
 {
-    private function formatCamelCaseVars($vars)
+    private $vars = [
+        'firstname' => ['first', 'name'],
+        'middlename' => ['middle', 'name'],
+        'lastname' => ['last', 'name'],
+    ];
+    private function formatCamelCaseVars()
     {
         $ret = [];
-        foreach($vars as $k => $v)
+        foreach($this->vars as $k => $v)
         {
             $str = $v[0];
             for ($i = 0; $i < count($v) - 1; $i++)
@@ -19,34 +23,24 @@ class VarHelper
         }
         return $ret;
     }
-    private function formatSnakeCaseVars($vars)
+    private function formatSnakeCaseVars()
     {
         $ret = [];
-        foreach($vars as $k => $v)
+        foreach($this->vars as $k => $v)
         {
-            $str = $v[0];
-            for ($i = 0; $i < count($v) - 1; $i++)
-            {
-                $str = $str . "_" . $v[$i + 1];
-            }
-            $ret[$k] = $str;
+            $ret[$k] = implode("_", $v);
         }
         return $ret;
     }
-    public function getNameKeys($case)
+    public function getVarKeys($case)
     {
-        $vars = [
-            'firstname' => ['first', 'name'],
-            'middlename' => ['middle', 'name'],
-            'lastname' => ['last', 'name'],
-        ];
         if ($case == "snake")
         {
-            return $this->formatSnakeCaseVars($vars);
+            return $this->formatSnakeCaseVars();
         }
         else
         {
-            return $this->formatCamelCaseVars($vars);
+            return $this->formatCamelCaseVars();
         }
     }
 }
