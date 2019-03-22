@@ -83,7 +83,7 @@ class Customer extends VariablesAbstractHelper
         $store = $this->storeManager->getStore($storeId);
         $group = $this->customerGroupModel->load($dataModel->getGroupId());
         $selectedCase = $this->sailthruSettings->getSelectCase($storeId);
-        $vars = $this->sailthruVars->getNameKeys($selectedCase);
+        $varKeys = $this->sailthruVars->getVarKeys($selectedCase);
 
         $date = \DateTime::createFromFormat(
             'Y-m-d H:i:s',
@@ -97,9 +97,9 @@ class Customer extends VariablesAbstractHelper
                 'name' => $object->getName(),
                 'suffix' => $dataModel->getSuffix() ?? '',
                 'prefix' => $dataModel->getPrefix() ?? '',
-                $vars['firstname'] => $dataModel->getFirstname() ?? '',
-                $vars['middlename'] => $dataModel->getMiddlename() ?? '',
-                $vars['lastname'] => $dataModel->getLastname() ?? '',
+                $varKeys['firstname'] => $dataModel->getFirstname() ?? '',
+                $varKeys['middlename'] => $dataModel->getMiddlename() ?? '',
+                $varKeys['lastname'] => $dataModel->getLastname() ?? '',
                 'store' => $store->getName(),
                 'customerGroup' => $group->getCustomerGroupCode(),
                 'created_date' => $date->format('Y-m-d'),

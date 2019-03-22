@@ -15,18 +15,18 @@ use Sailthru\MageSail\Helper\VarHelper;
 class CustomerRegistered implements ObserverInterface
 {
 
-    private $sailthruClient, $sailthruSettings, $sailthruCookie, $sailThruVars;
+    private $sailthruClient, $sailthruSettings, $sailthruCookie, $sailthruVars;
 
     public function __construct(
         ClientManager $clientManager,
         SailthruSettings $sailthruSettings,
         SailthruCookie $sailthruCookie,
-        VarHelper $sailThruVars
+        VarHelper $sailthruVars
     ) {
         $this->sailthruClient = $clientManager;
         $this->sailthruSettings = $sailthruSettings;
         $this->sailthruCookie = $sailthruCookie;
-        $this->sailThruVars = $sailThruVars;
+        $this->sailthruVars = $sailthruVars;
     }
 
     public function execute(Observer $observer)
@@ -36,7 +36,7 @@ class CustomerRegistered implements ObserverInterface
         $this->sailthruClient = $this->sailthruClient->getClient(true, $storeId);
         $email = $customer->getEmail();
         $selectedCase = $this->sailthruSettings->getSelectCase($storeId);
-        $nameKeys = $this->sailThruVars->getVarKeys($selectedCase);
+        $varKeys = $this->sailthruVars->getVarKeys($selectedCase);
         $data = [
             'id'     => $email,
             'key'    => 'email',
@@ -44,8 +44,8 @@ class CustomerRegistered implements ObserverInterface
                 'keys' => 1
             ],
             'vars'   => [
-                $nameKeys['firstname'] => $customer->getFirstname(),
-                $nameKeys['lastname']  => $customer->getLastname(),
+                $varKeys['firstname'] => $customer->getFirstname(),
+                $varKeys['lastname']  => $customer->getLastname(),
                 'name'  => "{$customer->getFirstname()} {$customer->getLastname()}"
             ]
         ];
