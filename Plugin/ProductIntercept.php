@@ -236,7 +236,7 @@ class ProductIntercept
             }
 
             if ($inventory = $product->getStockData()["qty"] or $inventory = intval($product->getQty())) {
-                $data['inventory'] = $inventory;
+                $data['inventory'] = $inventory > 0 ? $inventory : 0;
             }
 
             // Add product images
