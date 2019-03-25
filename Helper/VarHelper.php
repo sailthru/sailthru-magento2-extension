@@ -9,38 +9,23 @@ class VarHelper
         'middlename' => ['middle', 'name'],
         'lastname' => ['last', 'name'],
     ];
-    private function formatCamelCaseVars()
+    private function formatCamelCaseVars($v)
     {
-        $ret = [];
-        foreach($this->vars as $k => $v)
-        {
-            $str = $v[0];
-            for ($i = 0; $i < count($v) - 1; $i++)
-            {
-                $str = $str . ucfirst($v[$i + 1]);
-            }
-            $ret[$k] = $str;
-        }
-        return $ret;
+        return array_shift($v) . implode(array_map("ucfirst", $v));
     }
-    private function formatSnakeCaseVars()
+    private function formatSnakeCaseVars($v)
     {
-        $ret = [];
-        foreach($this->vars as $k => $v)
-        {
-            $ret[$k] = implode("_", $v);
-        }
-        return $ret;
+        return implode("_", $v);
     }
     public function getVarKeys($case)
     {
-        if ($case == "snake")
+        $ret = [];
+        foreach($this->vars as $k => $v)
         {
-            return $this->formatSnakeCaseVars();
+            $ret[$k] = $case == "snake"
+                ? $this->formatSnakeCaseVars($v)
+                : $this -> formatCamelCaseVars($v);
         }
-        else
-        {
-            return $this->formatCamelCaseVars();
-        }
+        return $ret;
     }
 }
