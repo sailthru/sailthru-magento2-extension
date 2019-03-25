@@ -10,6 +10,8 @@ use Magento\Framework\Stdlib\DateTime\Timezone;
 use Magento\Framework\App\Helper\Context;
 use Magento\Store\Model\StoreManager;
 use Magento\Directory\Api\CountryInformationAcquirerInterface;
+use Sailthru\MageSail\Helper\Settings as SailthruSettings;
+use Sailthru\MageSail\Helper\VarHelper;
 
 class Customer extends VariablesAbstractHelper
 {
@@ -22,19 +24,27 @@ class Customer extends VariablesAbstractHelper
     /** @var Magento\Framework\Stdlib\DateTime\Timezone */
     private $dateTime;
 
+    private $sailthruSettings;
+
+    private $sailthruVars;
+
     public function __construct(
         MageCustomer $customerModel,
         Group $customerGroupModel,
         Timezone $dateTime,
         Context $context,
         StoreManager $storeManager,
-        CountryInformationAcquirerInterface $countryInformation
+        CountryInformationAcquirerInterface $countryInformation,
+        SailthruSettings $sailthruSettings,
+        VarHelper $sailthruVars
     ) {
         parent::__construct($context, $storeManager, $countryInformation);
 
         $this->customerModel = $customerModel;
         $this->customerGroupModel = $customerGroupModel;
         $this->dateTime = $dateTime;
+        $this->sailthruSettings = $sailthruSettings;
+        $this->sailthruVars = $sailthruVars;
     }
 
     public function getAddressVars(Address $address)
@@ -69,8 +79,11 @@ class Customer extends VariablesAbstractHelper
     public function getCustomVariables($object, $data = [])
     {        
         $dataModel = $object->getDataModel();
-        $store = $this->storeManager->getStore($dataModel->getStoreId());
+        $storeId = $dataModel->getStoreId();
+        $store = $this->storeManager->getStore($storeId);
         $group = $this->customerGroupModel->load($dataModel->getGroupId());
+        $selectedCase = $this->sailthruSettings->getSelectCase($storeId);
+        $varKeys = $this->sailthruVars->getVarKeys($selectedCase);
 
         $date = \DateTime::createFromFormat(
             'Y-m-d H:i:s',
@@ -84,9 +97,9 @@ class Customer extends VariablesAbstractHelper
                 'name' => $object->getName(),
                 'suffix' => $dataModel->getSuffix() ?? '',
                 'prefix' => $dataModel->getPrefix() ?? '',
-                'firstName' => $dataModel->getFirstname() ?? '',
-                'middleName' => $dataModel->getMiddlename() ?? '',
-                'lastName' => $dataModel->getLastname() ?? '',
+                $varKeys['firstname'] => $dataModel->getFirstname() ?? '',
+                $varKeys['middlename'] => $dataModel->getMiddlename() ?? '',
+                $varKeys['lastname'] => $dataModel->getLastname() ?? '',
                 'store' => $store->getName(),
                 'customerGroup' => $group->getCustomerGroupCode(),
                 'created_date' => $date->format('Y-m-d'),

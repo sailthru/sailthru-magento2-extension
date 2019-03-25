@@ -9,6 +9,7 @@ use Psr\Log\LoggerInterface;
 use Sailthru\MageSail\Helper\ClientManager;
 use Sailthru\MageSail\Helper\ScopeResolver;
 use Sailthru\MageSail\Helper\Settings as SailthruSettings;
+use Sailthru\MageSail\Helper\VarHelper;
 
 class SubscribeIntercept
 {
@@ -26,6 +27,8 @@ class SubscribeIntercept
     /** @var StoreManagerInterface */
     private $storeManager;
 
+    private $sailthruVars;
+
     /** @var ScopeResolver  */
     protected $scopeResolver;
 
@@ -33,12 +36,14 @@ class SubscribeIntercept
         ClientManager $clientManager,
         SailthruSettings $sailthruSettings,
         StoreManagerInterface $storeManager,
-        ScopeResolver $scopeResolver
+        ScopeResolver $scopeResolver,
+        VarHelper $sailthruVars
     ) {
         $this->clientManager = $clientManager;
         $this->sailthruSettings = $sailthruSettings;
         $this->storeManager = $storeManager;
         $this->scopeResolver = $scopeResolver;
+        $this->sailthruVars = $sailthruVars;
     }
 
     /**
@@ -85,6 +90,8 @@ class SubscribeIntercept
         $email = $subscriber->getEmail();
         $status = $subscriber->getStatus();
         $isSubscribed = ($status == Subscriber::STATUS_SUBSCRIBED ? 1 : 0);
+        $selectedCase = $this->sailthruSettings->getSelectCase($storeId);
+        $varKeys = $this->sailthruVars->getVarKeys($selectedCase);
 
         if ($this->shouldUpdate($status, $storeId)) {
             $newsletterList = $this->sailthruSettings->getNewsletterList($storeId);
@@ -96,8 +103,8 @@ class SubscribeIntercept
 
             if ($fullName = $subscriber->getSubscriberFullName()) {
                 $data['vars'] = [
-                    'firstName' => $subscriber->getFirstname(),
-                    'lastName'  => $subscriber->getLastname(),
+                    $varKeys['firstname'] => $subscriber->getFirstname(),
+                    $varKeys['lastname']  => $subscriber->getLastname(),
                     'name'      => $fullName,
                 ];
             }

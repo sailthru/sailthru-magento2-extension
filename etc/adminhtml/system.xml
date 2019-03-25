@@ -111,7 +111,7 @@
         <!-- Lists section -->
         <section id="magesail_lists" translate="label" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
             <tab>sailthru</tab>
-            <label>Lists</label>
+            <label>Users</label>
             <resource>Sailthru_Magesail::config</resource>
             <group id="lists" type="text" translate="label" sortOrder="0" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Lists</label>
@@ -143,6 +143,14 @@
                     <depends>
                         <field id="*/*/enable_newsletter">1</field>
                     </depends>
+                </field>
+            </group>
+            <group id="names" type="text" translate="label" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>User Vars</label>
+                <field id="select_case" type="select" translate="label" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Name Vars Format</label>
+                    <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedSnakeOrCamel</source_model>
+                    <comment><![CDATA[Save name vars to Sailthru using camel case (<code><b>firstName</b></code>) or snake case (<code><b>first_name</b></code>)]]></comment>
                 </field>
             </group>
         </section>
