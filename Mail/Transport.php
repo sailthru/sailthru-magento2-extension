@@ -1,5 +1,4 @@
 <?php
-
 namespace Sailthru\MageSail\Mail;
 
 use Magento\Framework\App\RequestInterface;
@@ -11,6 +10,9 @@ use Sailthru\MageSail\Helper\Settings;
 use Sailthru\MageSail\Helper\Api;
 use Sailthru\MageSail\Helper\Templates as SailthruTemplates;
 use Sailthru\MageSail\MageClient;
+use Zend\Mail\Message as ZendMessage;
+use Zend\Mail\Address\AddressInterface;
+use Zend\Mail\Header\HeaderInterface;
 
 class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Framework\Mail\TransportInterface
 {
@@ -28,6 +30,9 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
 
     /** @var RequestInterface  */
     protected $request;
+
+    /** @var string */
+    protected $operatingSystem;
 
     /**
      * Transport constructor.
@@ -57,22 +62,6 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
         parent::__construct($message, $parameters);
     }
 
-    public function cleanEmail($str)
-    {
-        $startPart = strpos($str, '<');
-        if ($startPart === false) {
-            return $str;
-        }
-        $email = substr($str, $startPart + 1);
-        $email = substr($email, 0, -1);
-        return $email;
-    }
-
-    public function cleanEmails($emailStr)
-    {
-        return implode(",", array_map([ $this, 'cleanEmail' ], explode(",", $emailStr)));
-    }
-
     /**
      * Send a mail using this transport
      *
@@ -82,7 +71,7 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
     public function sendMessage()
     {
         try {
-            $templateData = $this->_message->getTemplateInfo();
+            $templateData = $this->getMessage()->getTemplateInfo();
 
             // Patch for emails sent from unscoped admin sections.
             $storeId = isset($templateData['storeId'])
@@ -109,10 +98,20 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
     public function sendViaAPI($templateData, $storeId)
     {
         $client = $this->clientManager->getClient(true, $storeId);
-
+        if(class_exists('Zend\Mail\Message')){
+            $_message = ZendMessage::fromString($this->getMessage()->getRawMessage());
+            $to      = $this->prepareRecipients($_message);
+            $subject = $this->prepareSubject($_message);
+            $body    = $this->prepareBody($_message);
+        } else {
+            $_message = $this->getMessage();
+            $to      = $this->cleanEmails(implode(',', $_message->getRecipients()));
+            $subject = $_message->getSubject();
+            $body    = $_message->getBody()->getRawContent();
+        }
         $vars = [
-            "subj" => $this->_message->getSubject(),
-            "content" => $this->_message->getBody()->getRawContent(),
+            "subj" => $subject,
+            "content" => $body,
         ];
 
         try {
@@ -131,7 +130,7 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
 
             $message = [
                 "template" => $templateName,
-                "email" => $this->cleanEmails(implode(',', $this->_message->getRecipients())),
+                "email" => $to,
                 "vars" => $vars,
             ];
 
@@ -143,5 +142,112 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
         } catch (\Exception $e) {
             throw new MailException(__("Couldn't send the mail {$e->getMessage()}"));
         }
+    }
+
+    /**
+     * Prepare recipients list
+     *
+     * @param  \Zend\Mail\Message $message
+     * @throws \Zend\Mail\Transport\Exception\RuntimeException
+     * @return string
+     */
+    protected function prepareRecipients(\Zend\Mail\Message $message)
+    {
+        $headers = $message->getHeaders();
+
+        $hasTo = $headers->has('to');
+        if (! $hasTo && ! $headers->has('cc') && ! $headers->has('bcc')) {
+            throw new Exception\RuntimeException(
+                'Invalid email; contains no at least one of "To", "Cc", and "Bcc" header'
+            );
+        }
+
+        if (! $hasTo) {
+            return '';
+        }
+
+        /** @var Mail\Header\To $to */
+        $to   = $headers->get('to');
+        $list = $to->getAddressList();
+        if (0 == count($list)) {
+            throw new Exception\RuntimeException('Invalid "To" header; contains no addresses');
+        }
+
+        // If not on Windows, return normal string
+        if (! $this->isWindowsOs()) {
+            return $to->getFieldValue(HeaderInterface::FORMAT_ENCODED);
+        }
+
+        // Otherwise, return list of emails
+        $addresses = [];
+        foreach ($list as $address) {
+            $addresses[] = $address->getEmail();
+        }
+        $addresses = implode(', ', $addresses);
+        return $addresses;
+    }
+
+    /**
+     * Prepare the subject line string
+     *
+     * @param  \Zend\Mail\Message $message
+     * @return string
+     */
+    protected function prepareSubject(\Zend\Mail\Message $message)
+    {
+        $headers = $message->getHeaders();
+        if (! $headers->has('subject')) {
+            return;
+        }
+        $header = $headers->get('subject');
+        return $header->getFieldValue(HeaderInterface::FORMAT_ENCODED);
+    }
+
+    /**
+     * Prepare the body string
+     *
+     * @param  \Zend\Mail\Message $message
+     * @return string
+     */
+    protected function prepareBody(\Zend\Mail\Message $message)
+    {
+        if (! $this->isWindowsOs()) {
+            // *nix platforms can simply return the body text
+            return $message->getBodyText();
+        }
+
+        // On windows, lines beginning with a full stop need to be fixed
+        $text = $message->getBodyText();
+        $text = str_replace("\n.", "\n..", $text);
+        return $text;
+    }
+
+    /**
+     * Is this a windows OS?
+     *
+     * @return bool
+     */
+    protected function isWindowsOs()
+    {
+        if (! $this->operatingSystem) {
+            $this->operatingSystem = strtoupper(substr(PHP_OS, 0, 3));
+        }
+        return ($this->operatingSystem == 'WIN');
+    }
+
+    public function cleanEmail($str)
+    {
+        $startPart = strpos($str, '<');
+        if ($startPart === false) {
+            return $str;
+        }
+        $email = substr($str, $startPart + 1);
+        $email = substr($email, 0, -1);
+        return $email;
+    }
+
+    public function cleanEmails($emailStr)
+    {
+        return implode(",", array_map([ $this, 'cleanEmail' ], explode(",", $emailStr)));
     }
 }
