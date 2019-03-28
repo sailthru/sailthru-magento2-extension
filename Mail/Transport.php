@@ -98,16 +98,16 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
     public function sendViaAPI($templateData, $storeId)
     {
         $client = $this->clientManager->getClient(true, $storeId);
-        if(class_exists('Zend\Mail\Message')){
-            $_message = ZendMessage::fromString($this->getMessage()->getRawMessage());
-            $to      = $this->prepareRecipients($_message);
-            $subject = $this->prepareSubject($_message);
-            $body    = $this->prepareBody($_message);
+        if (version_compare($this->clientManager->getMagentoVersion(), '2.3.0', '<')) {
+            $message = $this->getMessage();
+            $to      = $this->cleanEmails(implode(',', $message->getRecipients()));
+            $subject = $message->getSubject();
+            $body    = $message->getBody()->getRawContent();
         } else {
-            $_message = $this->getMessage();
-            $to      = $this->cleanEmails(implode(',', $_message->getRecipients()));
-            $subject = $_message->getSubject();
-            $body    = $_message->getBody()->getRawContent();
+            $message = ZendMessage::fromString($this->getMessage()->getRawMessage());
+            $to      = $this->prepareRecipients($message);
+            $subject = $this->prepareSubject($message);
+            $body    = $this->prepareBody($message);
         }
         $vars = [
             "subj" => $subject,
@@ -128,13 +128,13 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
                 $this->sailthruTemplates->saveTemplate($templateName, $this->sailthruSettings->getSender($storeId), $storeId);
             }
 
-            $message = [
+            $params = [
                 "template" => $templateName,
                 "email" => $to,
                 "vars" => $vars,
             ];
 
-            $response = $client->apiPost('send', $message);
+            $response = $client->apiPost('send', $params);
             if (isset($response["error"])) {
                 $client->logger($response['errormsg']);
                 throw new MailException(__($response['errormsg']));
@@ -156,7 +156,7 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
         $headers = $message->getHeaders();
 
         $hasTo = $headers->has('to');
-        if (! $hasTo && ! $headers->has('cc') && ! $headers->has('bcc')) {
+        if (!$hasTo && !$headers->has('cc') && !$headers->has('bcc')) {
             throw new Exception\RuntimeException(
                 'Invalid email; contains no at least one of "To", "Cc", and "Bcc" header'
             );
@@ -169,7 +169,7 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
         /** @var Mail\Header\To $to */
         $to   = $headers->get('to');
         $list = $to->getAddressList();
-        if (0 == count($list)) {
+        if (count($list) == 0) {
             throw new Exception\RuntimeException('Invalid "To" header; contains no addresses');
         }
 
