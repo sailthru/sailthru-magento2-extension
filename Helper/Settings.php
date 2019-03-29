@@ -319,4 +319,15 @@ class Settings extends AbstractHelper
 
         return null;
     }
+
+    /**
+     * To get magento version
+     *
+     * @return string
+     */
+    public function getMagentoVersion()
+    {
+        $productMetadata = $this->objectManager->get('Magento\Framework\App\ProductMetadataInterface');
+        return $productMetadata->getVersion();
+    }
 }
