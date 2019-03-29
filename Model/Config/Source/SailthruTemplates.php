@@ -20,7 +20,8 @@ class SailthruTemplates extends AbstractSource
     {
         $data = $this->sailthruTemplates->getSailthruTemplates();
         $tpl_options = [
-            ['value'=> 0, 'label'=>'Use current Magento template']
+            ['value'=> 0, 'label'=>'Use current Magento template'],
+            ['value'=> 'disableSailthru', 'label'=> 'Send with Magento (Do not use Sailthru)']
         ];
         
         if (!isset($data["templates"]))
