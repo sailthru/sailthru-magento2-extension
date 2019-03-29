@@ -94,7 +94,6 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
             if ($this->sailthruSettings->getTransactionalsEnabled($storeId) && $template['name'] != 'disableSailthru') {
                 $this->sendViaAPI($templateData, $storeId);
             } else {
-                $this->clientManager->getClient()->logger("disableSailthru template found, overriding Sailthru send");
                 parent::sendMessage();
             }
         } catch (\Exception $e) {
