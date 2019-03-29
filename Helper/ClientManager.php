@@ -120,10 +120,4 @@ class ClientManager extends AbstractHelper
             : "";
     }
 
-    public function getMagentoVersion()
-    {
-        $productMetadata = $this->objectManager->get('Magento\Framework\App\ProductMetadataInterface');
-        return $productMetadata->getVersion();
-    }
-
 }
