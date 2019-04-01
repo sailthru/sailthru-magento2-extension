@@ -3,16 +3,22 @@
 namespace Sailthru\MageSail\Helper;
 
 use Magento\Framework\App\Helper\Context;
+use Magento\Store\Model\StoreManager;
 use Magento\Framework\App\ObjectManager;
 use Sailthru\MageSail\Cookie\Hid;
+use Sailthru\MageSail\Logger;
+use Sailthru\MageSail\Model\Template as TemplateModel;
+use Sailthru\MageSail\Model\Config\Template\Data as TemplateConfig;
+use Magento\Framework\ObjectManagerInterface;
+use Magento\Framework\App\ProductMetadataInterface;
 
 class Settings extends AbstractHelper
 {
-
     protected $_apiKey;
     protected $_apiSecret;
     public $client;
     public $hid;
+    protected $productMetadataInterface;
 
     // Source models
     const SOURCE_MODEL_VALIDATION_MSG  = "Please Enter Valid Sailthru Credentials";
@@ -74,6 +80,19 @@ class Settings extends AbstractHelper
     /** Prefix for template name. */
     const MAGENTO_PREFIX = 'magento_';
 
+    public function __construct(
+        Context $context,
+        StoreManager $storeManager,
+        Logger $logger,
+        TemplateModel $templateModel,
+        TemplateConfig $templateConfig,
+        ObjectManagerInterface $objectManager,
+        ScopeResolver $scopeResolver,
+        ProductMetadataInterface $productMetadataInterface
+    ) {
+        parent::__construct($context, $storeManager, $logger, $templateModel, $templateConfig, $objectManager, $scopeResolver);
+        $this->productMetadataInterface = $productMetadataInterface;
+    }
 
     public function getInvalidMessage()
     {
@@ -327,7 +346,6 @@ class Settings extends AbstractHelper
      */
     public function getMagentoVersion()
     {
-        $productMetadata = $this->objectManager->get('Magento\Framework\App\ProductMetadataInterface');
-        return $productMetadata->getVersion();
+        return $this->productMetadataInterface->getVersion();
     }
 }
