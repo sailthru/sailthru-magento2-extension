@@ -130,7 +130,7 @@ class Settings extends AbstractHelper
 
     public function isAbandonedCartEnabled($storeId = null)
     {
-        return boolval($this->getSettingsVal(self::XML_ABANDONED_CART_ENABLED, $storeId));
+        return $this->getSettingsVal(self::XML_ABANDONED_CART_ENABLED, $storeId);
     }
 
     public function getAbandonedTemplate($storeId = null)

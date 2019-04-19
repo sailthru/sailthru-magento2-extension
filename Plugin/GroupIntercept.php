@@ -25,7 +25,6 @@ class GroupIntercept
         'intercept',
         'tags',
         'lists',
-        'abandoned_cart',
         'transactionals',
     ];
 

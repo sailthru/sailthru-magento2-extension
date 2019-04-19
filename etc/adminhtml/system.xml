@@ -156,19 +156,26 @@
         </section>
         <!-- Transactionals section -->
         <section id="magesail_send" translate="label" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Transactionals</label>
+            <label>Messaging</label>
             <tab>sailthru</tab>
             <resource>Sailthru_Magesail::config</resource>
             <group id="abandoned_cart" type="text" translate="label" sortOrder="0" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Sailthru Abandoned Cart</label>
                 <field id="enabled" type="select" translate="label" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Enable Abandoned Cart</label>
-                    <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnableDisable</source_model>
-                </field>                
+                    <label>Send Abandoned Cart Messages</label>
+                    <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedLOEnableDisable</source_model>
+                </field>   
+                <field id="lo_selected" translate="label" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label/>
+                    <frontend_model>Sailthru\MageSail\Block\System\Config\Image\Check</frontend_model>
+                    <depends>
+                        <field id="*/*/enabled">1</field>
+                    </depends>
+                </field>
                 <field id="template" type="select" translate="label" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Abandoned Cart Template</label>
                     <depends>
-                        <field id="*/*/enabled">1</field>
+                        <field id="*/*/enabled">2</field>
                     </depends>
                     <source_model>Sailthru\MageSail\Model\Config\Source\SailthruAbandonedCartTemplates</source_model>
                 </field>
@@ -179,7 +186,7 @@
                         Amount of time after updating a non-empty cart that Sailthru should send the customer an email
                     </comment>
                     <depends>
-                        <field id="*/*/enabled">1</field>
+                        <field id="*/*/enabled">2</field>
                     </depends>
                 </field>
                 <field id="anonymous_carts" type="select" translate="label" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">

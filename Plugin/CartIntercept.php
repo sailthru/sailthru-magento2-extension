@@ -45,32 +45,44 @@ class CartIntercept
     public function _gate(Cart $cart)
     {
         $storeId = $cart->getQuote()->getStoreId();
-        if ($this->sailthruSettings->isAbandonedCartEnabled($storeId)) {
+        if ($this->sailthruSettings->isAbandonedCartEnabled($storeId) == 2) {
             $this->client = $this->client->getClient(true, $storeId);
-            return $this->sendCart($cart);
+            return $this->sendCart($cart, false);
+        } else if ($this->sailthruSettings->isAbandonedCartEnabled($storeId) == 1) {
+            $this->client = $this->client->getClient(true, $storeId);
+            return $this->sendCart($cart, true);
         } else {
             return $cart;
         }
     }
-
-    public function sendCart(Cart $cart)
+    public function sendCart(Cart $cart, $isLOEnabled)
     {
         $customer = $cart->getCustomerSession()->getCustomer();
         $storeId = $cart->getQuote()->getStoreId();
         $email = $customer->getEmail();
+        $data = array();
         if ($email || $anonymousEmail = $this->isAnonymousReady($storeId)) {
             $email = $email ? $email : $anonymousEmail;
             try {
                 $this->client->_eventType = "CartUpdate";
                 $items = $this->_getItems($cart);
-                $data = [
-                    'email'             => $email,
-                    'items'             => $items,
-                    'incomplete'        => 1,
-                    'reminder_time'     => $this->sailthruSettings->getAbandonedTime($storeId),
-                    'reminder_template' => $this->sailthruSettings->getAbandonedTemplate($storeId),
-                    'message_id'        => $this->sailthruCookie->getBid(),
-                ];
+                if ($isLOEnabled) {
+                    $data = [
+                        'email'             => $email,
+                        'items'             => $items,
+                        'incomplete'        => 1,
+                        'message_id'        => $this->sailthruCookie->getBid(),
+                    ];    
+                } else {
+                    $data = [
+                        'email'             => $email,
+                        'items'             => $items,
+                        'incomplete'        => 1,
+                        'reminder_time'     => $this->sailthruSettings->getAbandonedTime($storeId),
+                        'reminder_template' => $this->sailthruSettings->getAbandonedTemplate($storeId),
+                        'message_id'        => $this->sailthruCookie->getBid(),
+                    ];
+                }
                 $this->client->apiPost("purchase", $data);
             } catch (\Sailthru_Client_Exception $e) {
                 $this->client->logger($e);
