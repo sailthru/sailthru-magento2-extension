@@ -42,6 +42,7 @@ class Settings extends AbstractHelper
     const XML_TRANSACTIONALS_SENDER    = "magesail_send/transactionals/from_sender";
     const XML_ORDER_ENABLED            = "magesail_send/transactionals/purchase_enabled";
     const XML_ORDER_TEMPLATE           = "magesail_send/transactionals/purchase_template";
+    const LO_ABANDONED_CART_ENABLED    = "1";
 
     /** Path to the `transactionals` tab. */
     const XML_TRANSACTIONALS_PATH = 'magesail_send/transactionals/';
