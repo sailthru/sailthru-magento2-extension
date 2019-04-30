@@ -55,7 +55,7 @@ class Check extends \Magento\Config\Block\System\Config\Form\Field
         $usingJs = $this->clientManager->isJsEnabled();
         $data = array();
         if ($usingJs) {
-            $data['markup'] = '<strong style="color:#3fb220;">Great!</strong> With Sailthru Onsite and the Purchase API configured, you are all set on the Magento end. Now you can create a Sailthru Lifecycle Optimizer flow with the Cart Abandonment entry to engage with your non-converting users. To learn more about creating a cart abandonment flow, visit our <a href="https://getstarted.sailthru.com/email/lo/automate-abandoned-cart-reminders/" target="_blank">docs</a>.';
+            $data['markup'] = '<strong style="color:#3fb220;">Great!</strong> With Sailthru Onsite and the Purchase API configured, you are all set on the Magento end. You must activate a Sailthru Lifecycle Optimizer flow with the Cart Abandonment entry to engage with your non-converting users. To learn more about creating a cart abandonment flow, visit our <a href="https://getstarted.sailthru.com/email/lo/automate-abandoned-cart-reminders/" target="_blank">docs</a>.';
             $data['imgurl'] = 'https://getstarted.sailthru.com/wp-content/uploads/2017/08/Screen-Shot-2017-08-14-at-11.43.57-AM-1024x293.png';
         }
         else {
