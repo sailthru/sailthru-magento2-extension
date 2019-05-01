@@ -42,6 +42,7 @@ class Settings extends AbstractHelper
     const XML_TRANSACTIONALS_SENDER    = "magesail_send/transactionals/from_sender";
     const XML_ORDER_ENABLED            = "magesail_send/transactionals/purchase_enabled";
     const XML_ORDER_TEMPLATE           = "magesail_send/transactionals/purchase_template";
+    const LO_ABANDONED_CART_ENABLED    = "1";
 
     /** Path to the `transactionals` tab. */
     const XML_TRANSACTIONALS_PATH = 'magesail_send/transactionals/';
@@ -130,7 +131,7 @@ class Settings extends AbstractHelper
 
     public function isAbandonedCartEnabled($storeId = null)
     {
-        return boolval($this->getSettingsVal(self::XML_ABANDONED_CART_ENABLED, $storeId));
+        return $this->getSettingsVal(self::XML_ABANDONED_CART_ENABLED, $storeId);
     }
 
     public function getAbandonedTemplate($storeId = null)

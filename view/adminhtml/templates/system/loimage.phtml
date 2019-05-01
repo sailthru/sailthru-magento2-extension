@@ -1,0 +1,10 @@
+<div class="<?php echo $block->getClass() ?>">
+    <p>
+        <?php echo $block->getMarkup() ?>
+    </p>
+    <?php if ($block->getImgurl()): ?>
+        <div style="text-align:center;">
+            <img src="<?php echo $block->getImgurl() ?>" style="width:75%;">
+        </div>
+    <?php endif; ?>
+</div>
