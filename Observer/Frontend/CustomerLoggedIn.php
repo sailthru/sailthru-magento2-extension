@@ -4,40 +4,47 @@ namespace Sailthru\MageSail\Observer\Frontend;
 
 use Sailthru\MageSail\Helper\ClientManager;
 use Sailthru\MageSail\Cookie\Hid as SailthruCookie;
+use Sailthru\MageSail\Helper\Settings as SailthruSettings;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
+use Magento\Newsletter\Model\Subscriber;
 
 class CustomerLoggedIn implements ObserverInterface
 {
 
     private $sailthruCookie;
     private $sailthruClient;
+    private $sailthruSettings;
+    private $subscriber;
 
     public function __construct(
         ClientManager $clientManager,
-        SailthruCookie $sailthruCookie
+        SailthruCookie $sailthruCookie,
+        SailthruSettings $sailthruSettings,
+        Subscriber $subscriber
     ) {
         $this->sailthruCookie = $sailthruCookie;
         $this->sailthruClient = $clientManager;
+        $this->sailthruSettings = $sailthruSettings;
+        $this->subscriber = $subscriber;
     }
 
     public function execute(Observer $observer)
     {
         $customer = $observer->getData('customer');
-        $this->sailthruClient = $this->sailthruClient->getClient(true, $customer->getStore()->getId());
+        $storeId = $customer->getStore()->getId();
         $sid = $customer->getData('sailthru_id');
+        $newsletterList = $this->sailthruSettings->getNewsletterList($storeId);
+        $this->sailthruClient = $this->sailthruClient->getClient(true, $storeId);
 
         try {
             $this->sailthruClient->_eventType = 'CustomerLogin';
-            $data = [
-                    'id' => $sid ? $sid : $customer->getEmail(),
-                    'fields' => [
-                        'keys' => 1,
-                        'engagement' => 1,
-                        'activity' => 1,
-                    ]
-            ];
-            $response = $this->sailthruClient->apiPost('user', $data);
+            $response = $this->sailthruClient->apiGet('user', [ 'id' => $sid  ]);
+            $shouldUpdateSubscriptionStatus = $this->shouldUpdateSubscriptionStatus($newsletterList, $response);
+            if ($shouldUpdateSubscriptionStatus) {
+                $this->subscriber->loadByEmail($customer->getEmail());
+                $this->subscriber->setSubscriberStatus(Subscriber::STATUS_UNSUBSCRIBED)->save();
+            }
             if (!$sid) {
                 $customerData = $customer->getDataModel();
                 $customerData->setCustomAttribute('sailthru_id', $response['keys']['sid']);
@@ -48,5 +55,9 @@ class CustomerLoggedIn implements ObserverInterface
         } catch (\Exception $e) {
             $this->sailthruClient->logger($e);
         }
+    }
+    private function shouldUpdateSubscriptionStatus($newsletterList, $userData)
+    {
+        return $userData['optout_email'] != 'none' || !in_array($newsletterList, array_keys($userData['lists']));
     }
 }
