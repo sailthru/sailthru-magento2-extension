@@ -39,20 +39,12 @@ class CustomerLoggedIn implements ObserverInterface
 
         try {
             $this->sailthruClient->_eventType = 'CustomerLogin';
-            $data = [
-                    'id' => $sid ? $sid : $customer->getEmail(),
-                    'fields' => [
-                        'keys' => 1,
-                        'engagement' => 1,
-                        'activity' => 1,
-                    ]
-            ];
-            $shouldUpdateSubscriptionStatus = $this->shouldUpdateSubscriptionStatus($sid, $newsletterList);
+            $response = $this->sailthruClient->apiGet('user', [ 'id' => $sid  ]);
+            $shouldUpdateSubscriptionStatus = $this->shouldUpdateSubscriptionStatus($newsletterList, $response);
             if ($shouldUpdateSubscriptionStatus) {
                 $this->subscriber->loadByEmail($customer->getEmail());
                 $this->subscriber->setSubscriberStatus(Subscriber::STATUS_UNSUBSCRIBED)->save();
             }
-            $response = $this->sailthruClient->apiPost('user', $data);
             if (!$sid) {
                 $customerData = $customer->getDataModel();
                 $customerData->setCustomAttribute('sailthru_id', $response['keys']['sid']);
@@ -64,9 +56,8 @@ class CustomerLoggedIn implements ObserverInterface
             $this->sailthruClient->logger($e);
         }
     }
-    private function shouldUpdateSubscriptionStatus($sid, $newsletterList)
+    private function shouldUpdateSubscriptionStatus($newsletterList, $userData)
     {
-        $userData = $this->sailthruClient->apiGet('user', [ 'id' => $sid  ]);
-        return $userData['optout_email'] != 'none' || !in_array($newsletterList, $userData['lists']);
+        return $userData['optout_email'] != 'none' || !in_array($newsletterList, array_keys($userData['lists']));
     }
 }
