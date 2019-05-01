@@ -2,11 +2,9 @@
     <p>
         <?php echo $block->getMarkup() ?>
     </p>
-    <?php
-        if ($block->getImgurl()) {
-            echo '<div style="text-align:center;">';
-            echo '<img src="' . $block->getImgurl() . '" style="width:75%;">';
-            echo '</div>';
-        }
-    ?>
+    <?php if ($block->getImgurl()): ?>
+        <div style="text-align:center;">
+            <img src="<?php echo $block->getImgurl() ?>" style="width:75%;">
+        </div>
+    <?php endif; ?>
 </div>

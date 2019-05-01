@@ -56,14 +56,13 @@ class CartIntercept
             return $cart;
         }
     }
-    public function sendCart(Cart $cart)
+    public function sendCart(Cart $cart, $storeId)
     {
         $customer = $cart->getCustomerSession()->getCustomer();
-        $storeId = $cart->getQuote()->getStoreId();
         $email = $customer->getEmail();
         $this->client = $this->client->getClient(true, $storeId);
         if ($email || $anonymousEmail = $this->isAnonymousReady($storeId)) {
-        $items = $this->_getItems($cart);
+            $items = $this->_getItems($cart);
             $data = [
                 'email'             => $email,
                 'items'             => $items,

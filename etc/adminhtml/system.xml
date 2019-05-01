@@ -201,7 +201,7 @@
             <group id="transactionals" type="text" translate="label" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Transactionals</label>
                 <field id="send_through_sailthru" type="select" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="1">
-                    <label>Send e-mails with Sailthru</label>
+                    <label>Send emails with Sailthru</label>
                     <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnableDisable</source_model>
                     <comment>
                         <![CDATA[
