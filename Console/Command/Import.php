@@ -1,21 +1,20 @@
 <?php
 
-
 namespace Sailthru\MageSail\Console\Command;
 
-use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Catalog\Api\ProductRepositoryInterface\Proxy as ProductRepositoryInterface;
 use Magento\Catalog\Block\Product\AbstractProduct;
 use Magento\Catalog\Helper\Image;
 use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\Product\Attribute\Source\Status;
-use Magento\Catalog\Model\ResourceModel\Product\Collection;
-use Magento\Framework\Api\SearchCriteriaBuilder;
+use Magento\Catalog\Model\ResourceModel\Product\Collection\Proxy as Collection;
+use Magento\Framework\Api\SearchCriteriaBuilder\Proxy as SearchCriteriaBuilder;
 use Magento\Framework\App\Area;
-use Magento\Framework\App\State;
-use Magento\Store\Model\App\Emulation;
-use Magento\Store\Model\StoreManagerInterface;
-use Sailthru\MageSail\Helper\ClientManager;
-use Sailthru\MageSail\Plugin\ProductIntercept;
+use Magento\Framework\App\State\Proxy as State;
+use Magento\Store\Model\App\Emulation\Proxy as Emulation;
+use Magento\Store\Model\StoreManagerInterface\Proxy as StoreManagerInterface;
+use Sailthru\MageSail\Helper\ClientManager\Proxy as ClientManager;
+use Sailthru\MageSail\Plugin\ProductIntercept\Proxy as ProductIntercept;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -28,28 +27,28 @@ class Import extends Command
 
     const EVENT_NAME = "cli_product_sync";
 
-    /** @var ClientManager  */
+    /** @var \Sailthru\MageSail\Helper\ClientManager  */
     protected $clientManager;
 
-    /** @var ProductIntercept  */
+    /** @var \Sailthru\MageSail\Plugin\ProductIntercept  */
     protected $productIntercept;
 
-    /** @var Collection  */
+    /** @var \Magento\Catalog\Model\ResourceModel\Product\Collection  */
     protected $productCollection;
 
-    /** @var Emulation  */
+    /** @var \Magento\Store\Model\App\Emulation  */
     protected $emulation;
 
-    /** @var State  */
+    /** @var \Magento\Framework\App\State  */
     private $state;
 
-    /** @var StoreManagerInterface  */
+    /** @var \Magento\Store\Model\StoreManagerInterface  */
     private $storeManager;
 
-    /** @var ProductRepositoryInterface  */
+    /** @var \Magento\Catalog\Api\ProductRepositoryInterface  */
     private $productRepo;
 
-    /** @var SearchCriteriaBuilder  */
+    /** @var \Magento\Framework\Api\SearchCriteriaBuilder  */
     private $criteriaBuilder;
 
     public function __construct(
