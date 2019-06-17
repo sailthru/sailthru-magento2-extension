@@ -2,6 +2,7 @@
 
 namespace Sailthru\MageSail\Observer\Frontend;
 
+use Magento\Customer\Model\Customer;
 use Sailthru\MageSail\Helper\ClientManager;
 use Sailthru\MageSail\Cookie\Hid as SailthruCookie;
 use Sailthru\MageSail\Helper\Settings as SailthruSettings;
@@ -11,6 +12,12 @@ use Magento\Newsletter\Model\Subscriber;
 
 class CustomerLoggedIn implements ObserverInterface
 {
+
+    const GET_FIELDS = [
+        "keys" => 1,
+        "lists" => 1,
+        "optout_email" => 1
+    ];
 
     private $sailthruCookie;
     private $sailthruClient;
@@ -31,15 +38,22 @@ class CustomerLoggedIn implements ObserverInterface
 
     public function execute(Observer $observer)
     {
+        /** @var Customer $customer */
         $customer = $observer->getData('customer');
         $storeId = $customer->getStore()->getId();
-        $sid = $customer->getData('sailthru_id');
         $newsletterList = $this->sailthruSettings->getNewsletterList($storeId);
         $this->sailthruClient = $this->sailthruClient->getClient(true, $storeId);
 
+        $sid = $customer->getData('sailthru_id');
+        $email = $customer->getEmail();
+        $data = [
+            "id" => $sid ?: $email,
+            "fields" => $this::GET_FIELDS
+        ];
+
         try {
             $this->sailthruClient->_eventType = 'CustomerLogin';
-            $response = $this->sailthruClient->apiGet('user', [ 'id' => $sid  ]);
+            $response = $this->sailthruClient->apiGet('user', $data);
             $shouldUpdateSubscriptionStatus = $this->shouldUpdateSubscriptionStatus($newsletterList, $response);
             if ($shouldUpdateSubscriptionStatus) {
                 $this->subscriber->loadByEmail($customer->getEmail());
