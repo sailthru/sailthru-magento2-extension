@@ -6,7 +6,7 @@ use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Store\Model\StoreManagerInterface;
 use Sailthru\MageSail\Model\Template as TemplateModel;
 
-class Template extends \Magento\Email\Model\Template
+class Template extends \Magento\Email\Model\BackendTemplate
 {
     /**
      * List of the templeta variable directives.
@@ -49,7 +49,7 @@ class Template extends \Magento\Email\Model\Template
         \Magento\Framework\View\DesignInterface $design,
         \Magento\Framework\Registry $registry,
         \Magento\Store\Model\App\Emulation $appEmulation,
-        StoreManagerInterface $storeManager,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Framework\View\Asset\Repository $assetRepo,
         \Magento\Framework\Filesystem $filesystem,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
@@ -58,7 +58,9 @@ class Template extends \Magento\Email\Model\Template
         \Magento\Framework\Filter\FilterManager $filterManager,
         \Magento\Framework\UrlInterface $urlModel,
         \Magento\Email\Model\Template\FilterFactory $filterFactory,
+        \Magento\Config\Model\Config\Structure $structure,
         TemplateModel $templateModel,
+        \Magento\Framework\Serialize\Serializer\Json $serializer = null,
         array $data = []
     ) {
         $this->templateModel = $templateModel;
@@ -76,7 +78,9 @@ class Template extends \Magento\Email\Model\Template
             $filterManager,
             $urlModel,
             $filterFactory,
-            $data
+            $structure,
+            $data,
+            $serializer
         );
     }
 
@@ -151,7 +155,7 @@ class Template extends \Magento\Email\Model\Template
 
             /**
              * Add variable key => value directives to templateDirectives
-             * 
+             *
              * @customization START
              */
             $parsedVars = explode('",', $matches[1]);
