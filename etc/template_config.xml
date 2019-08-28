@@ -54,84 +54,91 @@ xsi:noNamespaceSchemaLocation="template_list.xsd">
         <!-- Magento_Newsletter(Subscription Confirmation) -->
         <template>
             <id>newsletter_subscription_confirm_email_template</id>
-            <name>Subscription Confirmation</name>
+            <name>Newsletter Subscription Confirmation</name>
             <custom_template_source>newsletter/subscription/confirm_email_template</custom_template_source>
             <sort_order>10</sort_order>
+        </template>
+        <!-- Magento_Newsletter(Subscription Success) -->
+        <template>
+            <id>newsletter_subscription_success_email_template</id>
+            <name>Newsletter Subscription Success</name>
+            <custom_template_source>newsletter/subscription/success_email_template</custom_template_source>
+            <sort_order>11</sort_order>
         </template>
         <!-- Magento_Newsletter(Unsubscription Success) -->
         <template>
             <id>newsletter_subscription_un_email_template</id>
-            <name>Unsubscription Success</name>
+            <name>Newsletter Unsubscription Success</name>
             <custom_template_source>newsletter/subscription/un_email_template</custom_template_source>
-            <sort_order>11</sort_order>
+            <sort_order>12</sort_order>
         </template>
         <!-- Magento_Sales(New Order) -->
         <template>
             <id>sales_email_order_template</id>
             <name>New Order</name>
             <custom_template_source>sales_email/order/template</custom_template_source>
-            <sort_order>12</sort_order>
+            <sort_order>13</sort_order>
         </template>
         <!-- Magento_Sales (New Order for Guest -->
         <template>
             <id>sales_email_order_guest_template</id>
             <name>New Guest Order</name>
             <custom_template_source>sales_email/order/guest_template</custom_template_source>
-            <sort_order>13</sort_order>
+            <sort_order>14</sort_order>
         </template>
         <!-- Magento_Sales(New Shipment) -->
         <template>
             <id>sales_email_shipment_template</id>
             <name>New Shipment</name>
             <custom_template_source>sales_email/shipment/template</custom_template_source>
-            <sort_order>14</sort_order>
+            <sort_order>15</sort_order>
         </template>
         <!-- Magento_Sales(New Shipment for Guest) -->
         <template>
             <id>sales_email_shipment_guest_template</id>
             <name>New Shipment (Guest)</name>
             <custom_template_source>sales_email/shipment/guest_template</custom_template_source>
-            <sort_order>15</sort_order>
+            <sort_order>16</sort_order>
         </template>
         <!-- Magento_Sales(Order Update) -->
         <template>
             <id>sales_email_order_comment_template</id>
             <name>Order Update</name>
             <custom_template_source>sales_email/order/comment_template</custom_template_source>
-            <sort_order>16</sort_order>
+            <sort_order>17</sort_order>
         </template>
         <!-- Magento_Sales(Order Update for Guest) -->
         <template>
             <id>sales_email_order_comment_guest_template</id>
             <name>Order Update for Guest</name>
             <custom_template_source>sales_email/order/comment_guest_template</custom_template_source>
-            <sort_order>17</sort_order>
+            <sort_order>18</sort_order>
         </template>
         <!-- Magento_Sales(Shipment Update) -->
         <template>
             <id>sales_email_shipment_comment_template</id>
             <name>Shipment Update</name>
             <custom_template_source>sales_email/shipment_comment/template</custom_template_source>
-            <sort_order>18</sort_order>
+            <sort_order>19</sort_order>
         </template>
         <!-- Magento_Sales(Shipment Update for Guest) -->
         <template>
             <id>sales_email_shipment_comment_guest_template</id>
             <name>Shipment Update for Guest</name>
             <custom_template_source>sales_email/shipment/comment/guest_template</custom_template_source>
-            <sort_order>19</sort_order>
+            <sort_order>20</sort_order>
         </template>
         <template>
             <id>sales_email_creditmemo_comment_template</id>
             <name>Credit Memo Update</name>
             <custom_template_source>sales_email/creditmemo/comment/template</custom_template_source>
-            <sort_order>20</sort_order>
+            <sort_order>21</sort_order>
         </template>
         <template>
             <id>sales_email_creditmemo_comment_guest_template</id>
             <name>Credit Memo Update (Guest)</name>
             <custom_template_source>sales_email/creditmemo/comment/guest_template</custom_template_source>
-            <sort_order>21</sort_order>
+            <sort_order>22</sort_order>
         </template>
     </template_list>
 </config>

@@ -1,0 +1,9 @@
+<config>
+    <default>
+        <magesail_lists>
+            <names>
+                <select_case>0</select_case>
+            </names>
+        </magesail_lists>
+    </default>
+</config>

@@ -111,7 +111,7 @@
         <!-- Lists section -->
         <section id="magesail_lists" translate="label" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
             <tab>sailthru</tab>
-            <label>Lists</label>
+            <label>Users</label>
             <resource>Sailthru_Magesail::config</resource>
             <group id="lists" type="text" translate="label" sortOrder="0" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Lists</label>
@@ -145,22 +145,37 @@
                     </depends>
                 </field>
             </group>
+            <group id="names" type="text" translate="label" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>User Vars</label>
+                <field id="select_case" type="select" translate="label" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Name Vars Format</label>
+                    <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedSnakeOrCamel</source_model>
+                    <comment><![CDATA[Save name vars to Sailthru using camel case (<code><b>firstName</b></code>) or snake case (<code><b>first_name</b></code>)]]></comment>
+                </field>
+            </group>
         </section>
         <!-- Transactionals section -->
         <section id="magesail_send" translate="label" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Transactionals</label>
+            <label>Messaging</label>
             <tab>sailthru</tab>
             <resource>Sailthru_Magesail::config</resource>
             <group id="abandoned_cart" type="text" translate="label" sortOrder="0" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Sailthru Abandoned Cart</label>
                 <field id="enabled" type="select" translate="label" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Enable Abandoned Cart</label>
-                    <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnableDisable</source_model>
-                </field>                
+                    <label>Send Abandoned Cart Messages</label>
+                    <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedLOEnableDisable</source_model>
+                </field>   
+                <field id="lo_selected" translate="label" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label/>
+                    <frontend_model>Sailthru\MageSail\Block\System\Config\Image\Check</frontend_model>
+                    <depends>
+                        <field id="*/*/enabled">1</field>
+                    </depends>
+                </field>
                 <field id="template" type="select" translate="label" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Abandoned Cart Template</label>
                     <depends>
-                        <field id="*/*/enabled">1</field>
+                        <field id="*/*/enabled">2</field>
                     </depends>
                     <source_model>Sailthru\MageSail\Model\Config\Source\SailthruAbandonedCartTemplates</source_model>
                 </field>
@@ -171,7 +186,7 @@
                         Amount of time after updating a non-empty cart that Sailthru should send the customer an email
                     </comment>
                     <depends>
-                        <field id="*/*/enabled">1</field>
+                        <field id="*/*/enabled">2</field>
                     </depends>
                 </field>
                 <field id="anonymous_carts" type="select" translate="label" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -184,9 +199,9 @@
                 </field>
             </group>
             <group id="transactionals" type="text" translate="label" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
-                <label>General Transactionals</label>
+                <label>Transactionals</label>
                 <field id="send_through_sailthru" type="select" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="1">
-                    <label>Send through Sailthru</label>
+                    <label>Send emails with Sailthru</label>
                     <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnableDisable</source_model>
                     <comment>
                         <![CDATA[
