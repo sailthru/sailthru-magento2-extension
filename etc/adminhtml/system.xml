@@ -84,6 +84,13 @@
                         <field id="*/*/enable_intercept">1</field>
                     </depends>
                 </field>
+                <field id="enable_intercept_cron" type="select" translate="label comment" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Run Sailthru Catalog Import Nightly</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>
+                        Sync Product Data Nightly to Sailthru
+                    </comment>
+                </field>
             </group>
             <group id="tags" type="text" translate="label" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Product Tags</label>
