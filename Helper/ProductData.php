@@ -222,12 +222,13 @@ class ProductData extends AbstractHelper
      */
     public function getProductAttributeValues(\Magento\Catalog\Model\Product $product)
     {
+        $usableAttributes = $this->getUsableAttributes($product->getStoreId());
         $setId = $product->getAttributeSetId();
         $attributeSet = $product->getAttributes();
         $data = [];
         foreach ($attributeSet as $attribute) {
             $label = $attribute->getName();
-            if (!in_array($label, self::$unusedVarKeys)) {
+            if(in_array($label, $usableAttributes)) {
                 $value = $attribute->getFrontend()->getValue($product);
                 if ($value and $label and $value != "No" and $value != " ") {
                     $data[$label] = $value;

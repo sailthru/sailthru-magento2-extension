@@ -7,6 +7,7 @@ use Magento\Framework\FlagManager;
 use Magento\Store\Model\StoreManagerInterface;
 use Sailthru\MageSail\Helper\ProductData as SailthruProduct;
 use \Sailthru\MageSail\Plugin\ProductIntercept as SailthruIntercept;
+use Sailthru\MageSail\Logger;
 
 class Cron
 {
@@ -37,6 +38,9 @@ class Cron
      */
     private $_storeManager;
 
+    /** @var Logger  */
+    protected $logger;
+
     /**
      * Cron constructor.
      * @param ProductCollectionFactory $collectionFactory
@@ -50,18 +54,22 @@ class Cron
         StoreManagerInterface $storeManager,
         SailthruIntercept $sailthruIntercept,
         SailthruProduct $sailthruProduct,
-        FlagManager $flagManager
+        FlagManager $flagManager,
+        Logger $logger
     ) {
         $this->collectionFactory = $collectionFactory;
         $this->sailthruProduct  = $sailthruProduct;
         $this->sailthruIntercept = $sailthruIntercept;
         $this->_storeManager = $storeManager;
         $this->flagManager = $flagManager;
+        $this->logger = $logger;
     }
 
+    /**
+     * Export all vidible products  to the sailthru
+     */
     public function exportProducts()
     {
-
         $storeManagerDataList = $this->_storeManager->getStores();
         $storesCronStatus = [];
         $storesCronStatus[0] = (int)$this->sailthruProduct->isSyncProductCronEnable();
@@ -71,29 +79,30 @@ class Cron
         if(!in_array(1, $storesCronStatus)) {
             return false;
         }
-
-        $collection = $this->collectionFactory->create();
-        $collectionSize = $collection->getSize();
-        $attemptsCount = $this->flagManager->getFlagData(self::FLAG_NAME);
-        if (($attemptsCount === null) || ($attemptsCount <= 0)) {
-            $attemptsCount = 0;
-        }
-        for ($i = $attemptsCount; $i < $collectionSize; $i += self::LOAD_COLLECTION_STEP) {
-            $collection
-                ->addAttributeToSelect('*')
-                ->setOrder('entity_id', 'ASC')
-                ->addFieldToFilter('entity_id', ['from' => $i, 'to' => $i + self::LOAD_COLLECTION_STEP]);;
-            foreach ($collection as $product) {
-                foreach ($product->getStoreIds() as $storeId) {
-                    if ($storesCronStatus[$storeId]) {
-                        $this->sailthruIntercept->sendRequest($product, $storeId);
+        try {
+            $collection = $this->collectionFactory->create();
+            $collectionSize = $collection->getSize();
+            $attemptsCount = $this->flagManager->getFlagData(self::FLAG_NAME);
+            if (($attemptsCount === null) || ($attemptsCount <= 0)) {
+                $attemptsCount = 0;
+            }
+            for ($i = $attemptsCount; $i < $collectionSize; $i += self::LOAD_COLLECTION_STEP) {
+                $collection
+                    ->addAttributeToSelect('*')
+                    ->setOrder('entity_id', 'ASC')
+                    ->addFieldToFilter('entity_id', ['from' => $i, 'to' => $i + self::LOAD_COLLECTION_STEP]);;
+                foreach ($collection as $product) {
+                    foreach ($product->getStoreIds() as $storeId) {
+                        if ($storesCronStatus[$storeId]) {
+                            $this->sailthruIntercept->sendRequest($product, $storeId);
+                        }
                     }
                 }
-
+                $this->flagManager->saveFlag(self::FLAG_NAME, $i + self::LOAD_COLLECTION_STEP);
             }
-            $this->flagManager->saveFlag(self::FLAG_NAME, $i + self::LOAD_COLLECTION_STEP);
-
+            $this->flagManager->deleteFlag(self::FLAG_NAME);
+        } catch (\Exception $e) {
+            $this->logger->err($e);
         }
-        $this->flagManager->deleteFlag(self::FLAG_NAME);
     }
 }

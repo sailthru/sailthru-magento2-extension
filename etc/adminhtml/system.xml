@@ -106,13 +106,13 @@
                     <label>Get tags from from product attributes</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
-<!--                 <field id="usable_attributes" type="multiselect" translate="label" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
+                <field id="usable_attributes" type="multiselect" translate="label" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Select Product Attributes to be used in Sailthru tags.</label>
                     <source_model>Sailthru\MageSail\Model\Config\Source\TaggableAttributes</source_model>
                     <depends>
                         <field id="*/*/use_attributes">1</field>
                     </depends>
-                </field> -->
+                </field>
             </group>
         </section>
         <!-- Lists section -->
