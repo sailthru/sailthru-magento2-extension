@@ -112,6 +112,7 @@
                     <depends>
                         <field id="*/*/use_attributes">1</field>
                     </depends>
+                    <can_be_empty>1</can_be_empty>
                 </field>
             </group>
         </section>
