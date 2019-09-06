@@ -11,8 +11,8 @@ use Sailthru\MageSail\Logger;
 
 class Cron
 {
-    const LOAD_COLLECTION_STEP = 500;
-    const FLAG_NAME = 'catalog_product_sync_sailthru';
+    const BATCH_SIZE          = 750;
+    const FLAG_LAST_ENTITY_ID = 'sailthru_catalog_product_sync_last_entity_id';
 
     /**
      * @var FlagManager
@@ -36,18 +36,19 @@ class Cron
     /**
      * @var StoreManagerInterface
      */
-    private $_storeManager;
+    private $storeManager;
 
     /** @var Logger  */
     protected $logger;
 
     /**
      * Cron constructor.
+     *
      * @param ProductCollectionFactory $collectionFactory
-     * @param StoreManagerInterface $storeManager
-     * @param SailthruIntercept $sailthruIntercept
-     * @param SailthruProduct $sailthruProduct
-     * @param FlagManager $flagManager
+     * @param StoreManagerInterface    $storeManager
+     * @param SailthruIntercept        $sailthruIntercept
+     * @param SailthruProduct          $sailthruProduct
+     * @param FlagManager              $flagManager
      */
     public function __construct(
         ProductCollectionFactory $collectionFactory,
@@ -58,50 +59,62 @@ class Cron
         Logger $logger
     ) {
         $this->collectionFactory = $collectionFactory;
-        $this->sailthruProduct  = $sailthruProduct;
+        $this->sailthruProduct = $sailthruProduct;
         $this->sailthruIntercept = $sailthruIntercept;
-        $this->_storeManager = $storeManager;
+        $this->storeManager = $storeManager;
         $this->flagManager = $flagManager;
         $this->logger = $logger;
     }
 
     /**
-     * Export all vidible products  to the sailthru
+     * Export all products to the Sailthru
+     *
+     * @return bool
      */
     public function exportProducts()
     {
-        $storeManagerDataList = $this->_storeManager->getStores();
+        $storeManagerDataList = $this->storeManager->getStores();
         $storesCronStatus = [];
-        $storesCronStatus[0] = (int)$this->sailthruProduct->isSyncProductCronEnable();
+        $storesCronStatus[0] = (int)$this->sailthruProduct->isProductScheduledSyncEnabled();
         foreach ($storeManagerDataList as $store) {
-            $storesCronStatus[$store->getStoreId()] = (int)$this->sailthruProduct->isSyncProductCronEnable($store->getStoreId());
+            $storesCronStatus[$store->getStoreId()] = (int)$this->sailthruProduct->isProductScheduledSyncEnabled($store->getStoreId());
         }
-        if(!in_array(1, $storesCronStatus)) {
+
+        if (empty($storesCronStatus)) {
+
             return false;
         }
-        try {
-            $collection = $this->collectionFactory->create();
-            $collectionSize = $collection->getSize();
-            $attemptsCount = $this->flagManager->getFlagData(self::FLAG_NAME);
-            if (($attemptsCount === null) || ($attemptsCount <= 0)) {
-                $attemptsCount = 0;
-            }
-            for ($i = $attemptsCount; $i < $collectionSize; $i += self::LOAD_COLLECTION_STEP) {
-                $collection
-                    ->addAttributeToSelect('*')
-                    ->setOrder('entity_id', 'ASC')
-                    ->addFieldToFilter('entity_id', ['from' => $i, 'to' => $i + self::LOAD_COLLECTION_STEP]);;
-                foreach ($collection as $product) {
-                    foreach ($product->getStoreIds() as $storeId) {
-                        if ($storesCronStatus[$storeId]) {
-                            $this->sailthruIntercept->sendRequest($product, $storeId);
-                        }
+try {
+        $collection = $this->collectionFactory->create();
+        $collectionSize = $collection->getSize();
+        $collectionLastEntityId = $this->flagManager->getFlagData(self::FLAG_LAST_ENTITY_ID);
+        if (!$collectionLastEntityId) {
+            $collectionLastEntityId = 0;
+        }
+        for ($i = 0; $i <= $collectionSize; $i += self::BATCH_SIZE) {
+            $collection= $this->collectionFactory->create();
+                $collection->addAttributeToSelect('*');
+                $collection->getSelect()
+                ->order('entity_id'. \Magento\Framework\Data\Collection::SORT_ORDER_ASC)
+                ->limit( self::BATCH_SIZE);
+
+            $collection->getSelect()->where('entity_id > ?', $collectionLastEntityId);
+            foreach ($collection as $product) {
+                foreach ($product->getStoreIds() as $storeId) {
+                    if (!empty($storesCronStatus[$storeId])) {
+                        $this->sailthruIntercept->sendRequest($product, $storeId);
                     }
                 }
-                $this->flagManager->saveFlag(self::FLAG_NAME, $i + self::LOAD_COLLECTION_STEP);
-            }
-            $this->flagManager->deleteFlag(self::FLAG_NAME);
-        } catch (\Exception $e) {
+}
+
+            $collectionLastEntityId = $collection->getLastItem()->getId();
+            $this->flagManager->saveFlag(self::FLAG_LAST_ENTITY_ID, $collectionLastEntityId);
+            unset($collection);
+}
+
+        $this->flagManager->deleteFlag(self::FLAG_LAST_ENTITY_ID);
+
+        return true;} catch (\Exception $e) {
             $this->logger->err($e);
         }
     }

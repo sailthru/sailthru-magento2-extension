@@ -140,5 +140,26 @@ xsi:noNamespaceSchemaLocation="template_list.xsd">
             <custom_template_source>sales_email/creditmemo/comment/guest_template</custom_template_source>
             <sort_order>22</sort_order>
         </template>
+        <!-- Magento_User(Forgot Admin Password) -->
+        <template>
+            <id>admin_emails_forgot_email_template</id>
+            <name>Forgot Admin Password</name>
+            <custom_template_source>admin/emails/forgot_email_template</custom_template_source>
+            <sort_order>23</sort_order>
+        </template>
+        <!-- Magento_User(User notification) -->
+        <template>
+            <id>admin_emails_user_notification_template</id>
+            <name>Admin User Notification</name>
+            <custom_template_source>admin/emails/user_notification_template</custom_template_source>
+            <sort_order>24</sort_order>
+        </template>
+        <!-- Magento_User(New user notification) -->
+        <template>
+            <id>admin_emails_new_user_notification_template</id>
+            <name>New Admin User Notification</name>
+            <custom_template_source>admin/emails/new_user_notification_template</custom_template_source>
+            <sort_order>25</sort_order>
+        </template>
     </template_list>
 </config>
