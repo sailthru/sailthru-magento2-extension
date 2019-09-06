@@ -10,9 +10,8 @@ use \Sailthru\MageSail\Plugin\ProductIntercept as SailthruIntercept;
 
 class Cron
 {
-    const LOAD_COLLECTION_STEP = 500;
-    const FLAG_NAME = 'catalog_product_sync_sailthru';
-    const DEFAULT_WEBSITE_ID = 1;
+    const BATCH_SIZE          = 750;
+    const FLAG_LAST_ENTITY_ID = 'sailthru_catalog_product_sync_last_entity_id';
 
     /**
      * @var FlagManager
@@ -36,15 +35,16 @@ class Cron
     /**
      * @var StoreManagerInterface
      */
-    private $_storeManager;
+    private $storeManager;
 
     /**
      * Cron constructor.
+     *
      * @param ProductCollectionFactory $collectionFactory
-     * @param StoreManagerInterface $storeManager
-     * @param SailthruIntercept $sailthruIntercept
-     * @param SailthruProduct $sailthruProduct
-     * @param FlagManager $flagManager
+     * @param StoreManagerInterface    $storeManager
+     * @param SailthruIntercept        $sailthruIntercept
+     * @param SailthruProduct          $sailthruProduct
+     * @param FlagManager              $flagManager
      */
     public function __construct(
         ProductCollectionFactory $collectionFactory,
@@ -54,50 +54,60 @@ class Cron
         FlagManager $flagManager
     ) {
         $this->collectionFactory = $collectionFactory;
-        $this->sailthruProduct  = $sailthruProduct;
+        $this->sailthruProduct = $sailthruProduct;
         $this->sailthruIntercept = $sailthruIntercept;
-        $this->_storeManager = $storeManager;
+        $this->storeManager = $storeManager;
         $this->flagManager = $flagManager;
     }
 
+    /**
+     * @return bool
+     */
     public function exportProducts()
     {
-        $storeManagerDataList = $this->_storeManager->getStores();
+        $storeManagerDataList = $this->storeManager->getStores();
         $storesCronStatus = [];
         $storesCronStatus[0] = (int)$this->sailthruProduct->isSyncProductCronEnable();
         foreach ($storeManagerDataList as $store) {
             $storesCronStatus[$store->getStoreId()] = (int)$this->sailthruProduct->isSyncProductCronEnable($store->getStoreId());
         }
-        if (!in_array(self::DEFAULT_WEBSITE_ID, $storesCronStatus)) {
+
+        if (empty($storesCronStatus)) {
+
             return false;
         }
 
         $collection = $this->collectionFactory->create();
         $collectionSize = $collection->getSize();
-        $collectionLastEntityId = $this->flagManager->getFlagData(self::FLAG_NAME);
+        $collectionLastEntityId = $this->flagManager->getFlagData(self::FLAG_LAST_ENTITY_ID);
+        if (!$collectionLastEntityId) {
+            $collectionLastEntityId = 0;
+        }
 
-        for ($i = 0; $i < $collectionSize; $i += self::LOAD_COLLECTION_STEP) {
+        for ($i = 0; $i <= $collectionSize; $i += self::BATCH_SIZE) {
             $collection = $this->collectionFactory->create();
             $collection->addAttributeToSelect('*');
             $collection->getSelect()
                 ->order('entity_id ' . \Magento\Framework\Data\Collection::SORT_ORDER_ASC)
-                ->limit(self::LOAD_COLLECTION_STEP);
-            if (!$collectionLastEntityId) {
-                $collectionLastEntityId = 0;
-            } else {
-                $collection->getSelect()->where('entity_id > ?', $collectionLastEntityId );
-            }
+                ->limit(self::BATCH_SIZE);
+
+            $collection->getSelect()->where('entity_id > ?', $collectionLastEntityId);
+
             foreach ($collection as $product) {
                 foreach ($product->getStoreIds() as $storeId) {
-                    if ($storesCronStatus[$storeId]) {
+                    if (!empty($storesCronStatus[$storeId])) {
                         $this->sailthruIntercept->sendRequest($product, $storeId);
                     }
                 }
             }
-            $collectionLastEntityId = $collectionLastEntityId + self::LOAD_COLLECTION_STEP;
-            $this->flagManager->saveFlag(self::FLAG_NAME, $collection->getLastItem()->getId());
+
+            $collectionLastEntityId = $collection->getLastItem()->getId();
+            $this->flagManager->saveFlag(self::FLAG_LAST_ENTITY_ID, $collectionLastEntityId);
             unset($collection);
         }
-        $this->flagManager->deleteFlag(self::FLAG_NAME);
+
+        $this->flagManager->deleteFlag(self::FLAG_LAST_ENTITY_ID);
+
+        return true;
     }
 }
