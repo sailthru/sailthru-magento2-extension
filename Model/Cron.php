@@ -12,6 +12,7 @@ class Cron
 {
     const LOAD_COLLECTION_STEP = 500;
     const FLAG_NAME = 'catalog_product_sync_sailthru';
+    const DEFAULT_WEBSITE_ID = 1;
 
     /**
      * @var FlagManager
@@ -61,38 +62,41 @@ class Cron
 
     public function exportProducts()
     {
-
         $storeManagerDataList = $this->_storeManager->getStores();
         $storesCronStatus = [];
         $storesCronStatus[0] = (int)$this->sailthruProduct->isSyncProductCronEnable();
         foreach ($storeManagerDataList as $store) {
             $storesCronStatus[$store->getStoreId()] = (int)$this->sailthruProduct->isSyncProductCronEnable($store->getStoreId());
         }
-        if(!in_array(1, $storesCronStatus)) {
+        if (!in_array(self::DEFAULT_WEBSITE_ID, $storesCronStatus)) {
             return false;
         }
 
         $collection = $this->collectionFactory->create();
         $collectionSize = $collection->getSize();
-        $attemptsCount = $this->flagManager->getFlagData(self::FLAG_NAME);
-        if (($attemptsCount === null) || ($attemptsCount <= 0)) {
-            $attemptsCount = 0;
-        }
-        for ($i = $attemptsCount; $i < $collectionSize; $i += self::LOAD_COLLECTION_STEP) {
-            $collection
-                ->addAttributeToSelect('*')
-                ->setOrder('entity_id', 'ASC')
-                ->addFieldToFilter('entity_id', ['from' => $i, 'to' => $i + self::LOAD_COLLECTION_STEP]);;
+        $collectionLastEntityId = $this->flagManager->getFlagData(self::FLAG_NAME);
+
+        for ($i = 0; $i < $collectionSize; $i += self::LOAD_COLLECTION_STEP) {
+            $collection = $this->collectionFactory->create();
+            $collection->addAttributeToSelect('*');
+            $collection->getSelect()
+                ->order('entity_id ' . \Magento\Framework\Data\Collection::SORT_ORDER_ASC)
+                ->limit(self::LOAD_COLLECTION_STEP);
+            if (!$collectionLastEntityId) {
+                $collectionLastEntityId = 0;
+            } else {
+                $collection->getSelect()->where('entity_id > ?', $collectionLastEntityId );
+            }
             foreach ($collection as $product) {
                 foreach ($product->getStoreIds() as $storeId) {
                     if ($storesCronStatus[$storeId]) {
                         $this->sailthruIntercept->sendRequest($product, $storeId);
                     }
                 }
-
             }
-            $this->flagManager->saveFlag(self::FLAG_NAME, $i + self::LOAD_COLLECTION_STEP);
-
+            $collectionLastEntityId = $collectionLastEntityId + self::LOAD_COLLECTION_STEP;
+            $this->flagManager->saveFlag(self::FLAG_NAME, $collection->getLastItem()->getId());
+            unset($collection);
         }
         $this->flagManager->deleteFlag(self::FLAG_NAME);
     }
