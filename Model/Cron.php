@@ -38,7 +38,7 @@ class Cron
      */
     private $storeManager;
 
-    /** @var Logger  */
+    /** @var Logger */
     protected $logger;
 
     /**
@@ -49,6 +49,7 @@ class Cron
      * @param SailthruIntercept        $sailthruIntercept
      * @param SailthruProduct          $sailthruProduct
      * @param FlagManager              $flagManager
+     * @param Logger                   $logger
      */
     public function __construct(
         ProductCollectionFactory $collectionFactory,
@@ -84,38 +85,42 @@ class Cron
 
             return false;
         }
-try {
-        $collection = $this->collectionFactory->create();
-        $collectionSize = $collection->getSize();
-        $collectionLastEntityId = $this->flagManager->getFlagData(self::FLAG_LAST_ENTITY_ID);
-        if (!$collectionLastEntityId) {
-            $collectionLastEntityId = 0;
-        }
-        for ($i = 0; $i <= $collectionSize; $i += self::BATCH_SIZE) {
-            $collection= $this->collectionFactory->create();
+
+        try {
+            $collection = $this->collectionFactory->create();
+            $collectionSize = $collection->getSize();
+            $collectionLastEntityId = $this->flagManager->getFlagData(self::FLAG_LAST_ENTITY_ID);
+            if (!$collectionLastEntityId) {
+                $collectionLastEntityId = 0;
+            }
+            for ($i = 0; $i <= $collectionSize; $i += self::BATCH_SIZE) {
+                $collection = $this->collectionFactory->create();
                 $collection->addAttributeToSelect('*');
                 $collection->getSelect()
-                ->order('entity_id'. \Magento\Framework\Data\Collection::SORT_ORDER_ASC)
-                ->limit( self::BATCH_SIZE);
+                    ->order('entity_id' . \Magento\Framework\Data\Collection::SORT_ORDER_ASC)
+                    ->limit(self::BATCH_SIZE);
 
-            $collection->getSelect()->where('entity_id > ?', $collectionLastEntityId);
-            foreach ($collection as $product) {
-                foreach ($product->getStoreIds() as $storeId) {
-                    if (!empty($storesCronStatus[$storeId])) {
-                        $this->sailthruIntercept->sendRequest($product, $storeId);
+                $collection->getSelect()->where('entity_id > ?', $collectionLastEntityId);
+                foreach ($collection as $product) {
+                    foreach ($product->getStoreIds() as $storeId) {
+                        if (!empty($storesCronStatus[$storeId])) {
+                            $this->sailthruIntercept->sendRequest($product, $storeId);
+                        }
                     }
                 }
-}
 
-            $collectionLastEntityId = $collection->getLastItem()->getId();
-            $this->flagManager->saveFlag(self::FLAG_LAST_ENTITY_ID, $collectionLastEntityId);
-            unset($collection);
-}
+                $collectionLastEntityId = $collection->getLastItem()->getId();
+                $this->flagManager->saveFlag(self::FLAG_LAST_ENTITY_ID, $collectionLastEntityId);
+                unset($collection);
+            }
 
-        $this->flagManager->deleteFlag(self::FLAG_LAST_ENTITY_ID);
+            $this->flagManager->deleteFlag(self::FLAG_LAST_ENTITY_ID);
 
-        return true;} catch (\Exception $e) {
+            return true;
+        } catch (\Exception $e) {
             $this->logger->err($e);
+
+            return false;
         }
     }
 }
