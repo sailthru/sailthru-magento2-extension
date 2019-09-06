@@ -67,9 +67,9 @@ class Cron
     {
         $storeManagerDataList = $this->storeManager->getStores();
         $storesCronStatus = [];
-        $storesCronStatus[0] = (int)$this->sailthruProduct->isSyncProductCronEnable();
+        $storesCronStatus[0] = (int)$this->sailthruProduct->isProductScheduledSyncEnabled();
         foreach ($storeManagerDataList as $store) {
-            $storesCronStatus[$store->getStoreId()] = (int)$this->sailthruProduct->isSyncProductCronEnable($store->getStoreId());
+            $storesCronStatus[$store->getStoreId()] = (int)$this->sailthruProduct->isProductScheduledSyncEnabled($store->getStoreId());
         }
 
         if (empty($storesCronStatus)) {

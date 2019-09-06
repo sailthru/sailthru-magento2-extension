@@ -104,7 +104,7 @@ class ProductData extends AbstractHelper
      *
      * @return bool
      */
-    public function isSyncProductCronEnable($storeId = null)
+    public function isProductScheduledSyncEnabled($storeId = null)
     {
         return boolval($this->getSettingsVal(self::XML_CONTENT_INTERCEPT_CRON, $storeId));
     }

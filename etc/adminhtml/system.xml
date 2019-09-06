@@ -11,15 +11,10 @@
             <resource>Sailthru_Magesail::config</resource>
             <group id="service" type="text" translate="label" sortOrder="0" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Sailthru API</label>
-                <comment>
-                    <![CDATA[
-                        Please enter your API credentials to sync users, orders, and products as well as send transactional emails with Sailthru.
-                        Find your API credentials <a href="https://my.sailthru.com/settings/api_postbacks" target="_blank">here</a>.
-                    ]]>
-                </comment>
+                <comment><![CDATA[Please enter your API credentials to sync users, orders, and products as well as send transactional emails with Sailthru. Find your API credentials <a href="https://my.sailthru.com/settings/api_postbacks" target="_blank">here</a>.]]></comment>
                 <field id="api_key" type="text" translate="label" sortOrder="0" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>API Key</label>
-                </field>                
+                </field>
                 <field id="secret_key" type="text" translate="label" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Secret Key</label>
                 </field>
@@ -31,11 +26,7 @@
             </group>
             <group id="js" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Sailthru JavaScript</label>
-                <comment>
-                    <![CDATA[
-                        Use the Sailthru Script Tag to improve personalization and leverage onsite tools like Site Personalization Manager, Overlays, and the Sailthru JavaScript API.
-                    ]]>
-                </comment>
+                <comment><![CDATA[Use the Sailthru Script Tag to improve personalization and leverage onsite tools like Site Personalization Manager, Overlays, and the Sailthru JavaScript API.]]></comment>
                 <field id="enabled" type="select" translate="label comment" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Enable Sailthru Script Tag</label>
                     <comment><![CDATA[<em>Note: You must flush your full-page cache for changes to take affect.</em>]]></comment>
@@ -44,9 +35,7 @@
                 <field id="customer_id" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Customer ID</label>
                     <validate>required-entry</validate>
-                    <comment>
-                        <![CDATA[Click <a href="https://my.sailthru.com/settings/api_postbacks" target="_blank">here</a> to see your Customer ID]]>
-                    </comment>
+                    <comment><![CDATA[Click <a href="https://my.sailthru.com/settings/api_postbacks" target="_blank">here</a> to see your Customer ID]]></comment>
                     <depends>
                         <field id="*/*/enabled">1</field>
                     </depends>
@@ -63,33 +52,28 @@
                 <field id="enable_intercept" type="select" translate="label comment" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Send products to Sailthru on product update</label>
                     <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnableDisable</source_model>
-                    <comment>This allows us to keep your content library in-sync with Magento.</comment>
+                    <comment><![CDATA[This allows us to keep your content library in-sync with Magento.]]></comment>
                 </field>
                 <field id="send_master" type="select" translate="label comment" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Send Configurable/Master Products to Sailthru</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment>Should Configurable products (masters) be sent to Sailthru</comment>
+                    <comment><![CDATA[Should Configurable products (masters) be sent to Sailthru]]></comment>
                     <depends>
                         <field id="*/*/enable_intercept">1</field>
                     </depends>
                 </field>
                 <field id="send_variants" type="select" translate="label comment" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Send Variant Products to Sailthru</label>
+                    <label>Send Variant Products to Sailthru on Product Update</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment>
-                        Should variant products be sent to Sailthru.
-                        NOTE: If variants aren't visible individually, must enable URL-fragmenting in Sailthru.
-                    </comment>
+                    <comment><![CDATA[Should variant products be sent to Sailthru. NOTE: If variants aren't visible individually, must enable URL-fragmenting in Sailthru.]]></comment>
                     <depends>
                         <field id="*/*/enable_intercept">1</field>
                     </depends>
                 </field>
                 <field id="enable_intercept_cron" type="select" translate="label comment" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Run Sailthru Catalog Import Nightly</label>
+                    <label>Enable Scheduled Products Sync to Sailthru</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment>
-                        Sync Product Data Nightly to Sailthru
-                    </comment>
+                    <comment><![CDATA[Sync Products Nightly to Sailthru]]></comment>
                 </field>
             </group>
             <group id="tags" type="text" translate="label" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
@@ -125,13 +109,13 @@
                 <field id="enable_signup_list" type="select" translate="label" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Add new registering customers to Sailthru list</label>
                     <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnableDisable</source_model>
-                    <comment>Upon registration, set users to be added to a Sailthru list of your choice.</comment>
+                    <comment><![CDATA[Upon registration, set users to be added to a Sailthru list of your choice.]]></comment>
                 </field>
                  <field id="signup_list" type="select" translate="label" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Customer Sign-Up Lists</label>
                     <source_model>Sailthru\MageSail\Model\Config\Source\SailthruLists</source_model>
                     <tooltip><![CDATA[New a new list? Check my.sailthru.com to create it!]]></tooltip>
-                    <comment>Select the Sailthru list where newly registered customers will be added.</comment>
+                    <comment><![CDATA[Select the Sailthru list where newly registered customers will be added.]]></comment>
                     <depends>
                         <field id="*/*/enable_signup_list">1</field>
                     </depends>
@@ -139,9 +123,7 @@
                 <field id="enable_newsletter" type="select" translate="label comment" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Override Default Magento Newsletter Subscribe</label>
                     <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnableDisable</source_model>
-                    <comment>
-                        Override Magento's default Newsletter system and add users instead to a Sailthru List
-                    </comment>
+                    <comment><![CDATA[Override Magento's default Newsletter system and add users instead to a Sailthru List]]></comment>
                 </field>
                 <field id="newsletter_list" type="select" translate="label" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Newsletter Lists</label>
@@ -171,7 +153,7 @@
                 <field id="enabled" type="select" translate="label" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Send Abandoned Cart Messages</label>
                     <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedLOEnableDisable</source_model>
-                </field>   
+                </field>
                 <field id="lo_selected" translate="label" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label/>
                     <frontend_model>Sailthru\MageSail\Block\System\Config\Image\Check</frontend_model>
@@ -189,19 +171,14 @@
                 <field id="delay_time" type="text" translate="label" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Abandoned Cart Send Time</label>
                     <tooltip>e.g. 5 minutes, 1 hour, 1 day</tooltip>
-                    <comment>
-                        Amount of time after updating a non-empty cart that Sailthru should send the customer an email
-                    </comment>
+                    <comment><![CDATA[Amount of time after updating a non-empty cart that Sailthru should send the customer an email.]]></comment>
                     <depends>
                         <field id="*/*/enabled">2</field>
                     </depends>
                 </field>
                 <field id="anonymous_carts" type="select" translate="label" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Send Abandoned Carts to Guest Users with HID</label>
-                    <comment>
-                        Enabling will allow you to send Abandoned Carts to customers who aren't currently signed-in,
-                        but have a sailthru_hid cookie for your site.
-                    </comment>
+                    <comment><![CDATA[Enabling will allow you to send Abandoned Carts to customers who aren't currently signed-in, but have a sailthru_hid cookie for your site.]]></comment>
                     <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnableDisable</source_model>
                 </field>
             </group>
@@ -210,11 +187,7 @@
                 <field id="send_through_sailthru" type="select" translate="label" showInDefault="1" showInWebsite="1" showInStore="1" sortOrder="1">
                     <label>Send emails with Sailthru</label>
                     <source_model>Sailthru\MageSail\Model\Config\Source\ValidatedEnableDisable</source_model>
-                    <comment>
-                        <![CDATA[
-                            Let Sailthru send all of your store's Magento transactional messaging.  Can use your Magento or Sailthru templates.
-                        ]]>
-                    </comment>
+                    <comment><![CDATA[Let Sailthru send all of your store's Magento transactional messaging.  Can use your Magento or Sailthru templates.]]></comment>
                 </field>
                 <field id="from_sender" type="select" translate="label" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>From Email</label>
