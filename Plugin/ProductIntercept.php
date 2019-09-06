@@ -117,7 +117,7 @@ class ProductIntercept
      * @param  Product $productResult
      * @param  string|null                   $storeId
      */
-    private function sendRequest($productResult, $storeId = null)
+    public function sendRequest($productResult, $storeId = null)
     {
         $client = $this->clientManager->getClient(true, $storeId);
         $data = $this->getProductData($productResult, $storeId);

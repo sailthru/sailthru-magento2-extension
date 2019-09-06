@@ -21,6 +21,7 @@ class ProductData extends AbstractHelper
 {
 
     const XML_CONTENT_INTERCEPT        = "magesail_content/intercept/enable_intercept";
+    const XML_CONTENT_INTERCEPT_CRON   = "magesail_content/intercept/enable_intercept_cron";
     const XML_CONTENT_SEND_MASTER      = "magesail_content/intercept/send_master";
     const XML_CONTENT_SEND_VARIANTS    = "magesail_content/intercept/send_variants";
     const XML_CONTENT_USE_KEYWORDS     = "magesail_content/tags/use_seo";
@@ -95,6 +96,17 @@ class ProductData extends AbstractHelper
     public function isProductInterceptOn($storeId = null)
     {
         return boolval($this->getSettingsVal(self::XML_CONTENT_INTERCEPT, $storeId));
+    }
+
+    /**
+     * Is Synchtonization Product by Cron Enable
+     * @param string|null $storeId
+     *
+     * @return bool
+     */
+    public function isProductScheduledSyncEnabled($storeId = null)
+    {
+        return boolval($this->getSettingsVal(self::XML_CONTENT_INTERCEPT_CRON, $storeId));
     }
 
     /**
