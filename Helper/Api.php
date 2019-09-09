@@ -1,9 +1,5 @@
 <?php
 
-/**
- * Deprecated
- */
-
 namespace Sailthru\MageSail\Helper;
 
 use Magento\Framework\App\Helper\Context;
@@ -17,6 +13,12 @@ use Sailthru\MageSail\MageClient;
 use Sailthru\MageSail\Model\Config\Template\Data as TemplateConfig;
 use Sailthru\MageSail\Model\Template as TemplateModel;
 
+/**
+ * @deprecated its functionality not in use anymore
+ *
+ * Class Api
+ * @package Sailthru\MageSail\Helper
+ */
 class Api extends AbstractHelper
 {
     // Source models
@@ -53,7 +55,7 @@ class Api extends AbstractHelper
 
     const UNKNOWN_TEMPLATE_ERROR_CODE = 14;
 
-    public static $unusedVarKeys = [
+    public static $essentialAttributeCodes = [
         'status',
         'row_id',
         'type_id',
@@ -96,8 +98,6 @@ class Api extends AbstractHelper
 
     /** @var ClientManager */
     private $clientManager;
-
-    private $sailthruTemplates = [];
 
     /** @var \Magento\Framework\App\Request\Http */
     protected $request;
@@ -152,9 +152,14 @@ class Api extends AbstractHelper
         return self::SOURCE_MODEL_VALIDATION_MSG;
     }
 
+    /**
+     * @deprecated not used anymore
+     *
+     * @return string
+     */
     public function getClientID()
     {
-        return $this->getSettingsVal(self::XML_CLIENT_ID);
+        return '';
     }
 
     public function logger($message)
@@ -228,12 +233,11 @@ class Api extends AbstractHelper
 
     public function getProductAttributeValues($product)
     {
-        $setId = $product->getAttributeSetId();
         $attributeSet = $product->getAttributes();
         $data = [];
         foreach ($attributeSet as $attribute) {
             $label = $attribute->getName();
-            if (!in_array($label, self::$unusedVarKeys)) {
+            if (!in_array($label, self::$essentialAttributeCodes)) {
                 $value = $attribute->getFrontend()->getValue($product);
                 if ($value && $label && $value != "No" && $value != " ") {
                     $data[$label] = $value;

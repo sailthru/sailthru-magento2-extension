@@ -40,7 +40,7 @@ class TaggableAttributes extends AbstractSource
 
     protected function getDisplayData()
     {
-        $allAttributes = $this->eavConfig->getEntityType(Product::ENTITY)->getAttributeCollection()->addFilter('is_visible', 1);
+        $allAttributes = $this->eavConfig->getEntityType(Product::ENTITY)->getAttributeCollection();//->addFilter('is_visible', 1);
         $defaultAttributeSetId = $this->product->getDefaultAttributeSetId();
         $defaultAttributes = $this->eavConfig->getEntityType(Product::ENTITY)->getAttributeCollection($defaultAttributeSetId);
 
