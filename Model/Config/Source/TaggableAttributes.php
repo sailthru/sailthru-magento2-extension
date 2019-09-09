@@ -40,15 +40,8 @@ class TaggableAttributes extends AbstractSource
 
     protected function getDisplayData()
     {
-        $allAttributes = $this->eavConfig->getEntityType(Product::ENTITY)->getAttributeCollection();//->addFilter('is_visible', 1);
-        $defaultAttributeSetId = $this->product->getDefaultAttributeSetId();
-        $defaultAttributes = $this->eavConfig->getEntityType(Product::ENTITY)->getAttributeCollection($defaultAttributeSetId);
-
-        $allAttributeSet = $this->buildArray($allAttributes, true);
-        $defaultSet =  $this->buildArray($defaultAttributes);
-        $keys = array_diff_key($allAttributeSet, $defaultSet);
-        asort($keys);
-        return $keys;
+        $allAttributes = $this->buildArray($this->eavConfig->getEntityType(Product::ENTITY)->getAttributeCollection(), true);
+        return $allAttributes;
     }
 
     private function buildArray(Collection $collection, $log = false)
@@ -56,6 +49,9 @@ class TaggableAttributes extends AbstractSource
         $array = array();
         foreach ($collection as $attribute) {
             /** @var $attribute Attribute */
+            if(in_array($attribute->getAttributeCode(), Api::$essentialAttributeCodes)) {
+                continue;
+            }
             if (!$label = $this->getAttributeLabel($attribute)) {
                 continue;
             }
