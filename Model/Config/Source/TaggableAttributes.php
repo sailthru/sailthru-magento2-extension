@@ -9,6 +9,7 @@ use Magento\Eav\Model\Entity\Attribute;
 use Magento\Eav\Model\ResourceModel\Entity\Attribute\Collection;
 use Sailthru\MageSail\Helper\Api;
 use Sailthru\MageSail\Logger;
+use Sailthru\MageSail\Helper\ProductData;
 
 class TaggableAttributes extends AbstractSource
 {
@@ -40,22 +41,21 @@ class TaggableAttributes extends AbstractSource
 
     protected function getDisplayData()
     {
-        $allAttributes = $this->eavConfig->getEntityType(Product::ENTITY)->getAttributeCollection()->addFilter('is_visible', 1);
-        $defaultAttributeSetId = $this->product->getDefaultAttributeSetId();
-        $defaultAttributes = $this->eavConfig->getEntityType(Product::ENTITY)->getAttributeCollection($defaultAttributeSetId);
-
-        $allAttributeSet = $this->buildArray($allAttributes, true);
-        $defaultSet =  $this->buildArray($defaultAttributes);
-        $keys = array_diff_key($allAttributeSet, $defaultSet);
-        asort($keys);
-        return $keys;
+        $attributeCollection = $this->buildArray($this->eavConfig->getEntityType(Product::ENTITY)->getAttributeCollection());
+        usort($attributeCollection, function ($a, $b) {
+            return $a['label'] <=> $b['label'];
+        });
+        return $attributeCollection;
     }
 
-    private function buildArray(Collection $collection, $log = false)
+    private function buildArray(Collection $collection)
     {
         $array = array();
         foreach ($collection as $attribute) {
             /** @var $attribute Attribute */
+            if (in_array($attribute->getAttributeCode(), ProductData::$essentialAttributeCodes)) {
+                continue;
+            }
             if (!$label = $this->getAttributeLabel($attribute)) {
                 continue;
             }

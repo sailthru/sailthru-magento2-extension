@@ -18,40 +18,6 @@ use Sailthru\MageSail\Helper\Settings;
 
 class ProductIntercept
 {
-    // Need some things from EAV attributes which seems more intensive. Attributes below,
-    // we'd rather get from Product.
-    public static $unusedVarKeys = [
-        'status',
-        'row_id',
-        'type_id',
-        'attribute_set_id',
-        'media_gallery',
-        'thumbnail',
-        'shipment_type',
-        'url_key',
-        'price_view',
-        'msrp_display_actual_price_type',
-        'page_layout',
-        'options_container',
-        'custom_design',
-        'custom_layout',
-        'gift_message_available',
-        'category_ids',
-        'image',
-        'small_image',
-        'visibility',
-        'relatedProductIds',
-        'upSellProductIds',
-        'description',
-        'meta_keyword',
-        'name',
-        'created_at',
-        'updated_at',
-        'tax_class_id',
-        'quantity_and_stock_status',
-        'sku'
-    ];
-
     /** @var \Sailthru\MageSail\Helper\Settings */
     private $sailthruSettings;
 
@@ -69,16 +35,16 @@ class ProductIntercept
         Settings $sailthruSettings,
         Product $productModel
     ) {
-        $this->clientManager    = $clientManager;
-        $this->sailthruProduct  = $sailthruProduct;
-        $this->_storeManager    = $storeManager;
-        $this->productHelper    = $productHelper;
-        $this->imageHelper      = $imageHelper;
-        $this->cpModel          = $cpModel;
-        $this->context          = $context;
-        $this->request          = $context->getRequest();
+        $this->clientManager = $clientManager;
+        $this->sailthruProduct = $sailthruProduct;
+        $this->_storeManager = $storeManager;
+        $this->productHelper = $productHelper;
+        $this->imageHelper = $imageHelper;
+        $this->cpModel = $cpModel;
+        $this->context = $context;
+        $this->request = $context->getRequest();
         $this->sailthruSettings = $sailthruSettings;
-        $this->productModel     = $productModel;
+        $this->productModel = $productModel;
     }
 
     public function afterAfterSave(Product $productModel, $productResult)
@@ -97,9 +63,9 @@ class ProductIntercept
 
     /**
      * To send multiple requests to API.
-     * 
-     * @param  Product  $product
-     * @param  Product  $productResult
+     *
+     * @param  Product $product
+     * @param  Product $productResult
      */
     private function sendMultipleRequests(Product $product, $productResult)
     {
@@ -113,9 +79,9 @@ class ProductIntercept
 
     /**
      * To send single request to API.
-     * 
-     * @param  Product $productResult
-     * @param  string|null                   $storeId
+     *
+     * @param  Product     $productResult
+     * @param  string|null $storeId
      */
     public function sendRequest($productResult, $storeId = null)
     {
@@ -134,9 +100,9 @@ class ProductIntercept
 
     /**
      * To check if product is in "All Store Views" scope.
-     * 
+     *
      * @param  Product $product
-     * 
+     *
      * @return bool
      */
     private function isAllStoreViews(Product $product)
@@ -150,7 +116,8 @@ class ProductIntercept
      * Create Product array for Content API
      *
      * @param Product $product
-     * @param int $storeId
+     * @param int     $storeId
+     *
      * @return array|false
      */
     public function getProductData(Product $product, $storeId = null)
@@ -158,7 +125,7 @@ class ProductIntercept
         // scope fix for intercept launched from backoffice, which causes admin URLs for products
         if (!$storeId) {
             $storeScopes = $product->getStoreIds();
-            $storeId = $this->request->getParam('store') ?: $storeScopes[0];
+            $storeId = $this->request->getParam('store') ? : $storeScopes[0];
             if ($storeId) {
                 $product->setStoreId($storeId);
             }
@@ -187,45 +154,46 @@ class ProductIntercept
 
         try {
             $data = [
-                'url'   => $this->sailthruProduct->getProductUrl($product, $storeId),
-                'keys' => [
+                'url'         => $this->sailthruProduct->getProductUrl($product, $storeId),
+                'keys'        => [
                     'sku' => $product->getSku()
                 ],
-                'title' => htmlspecialchars($product->getName()),
-                'spider' => 0,
-                'price' => $price = ($product->getPrice() ? $product->getPrice() :
-                    $product->getPriceInfo()->getPrice('final_price')->getValue()) * 100,
+                'title'       => htmlspecialchars($product->getName()),
+                'spider'      => 0,
+                'price'       => $price = ($product->getPrice()
+                        ? $product->getPrice()
+                        : $product->getPriceInfo()->getPrice('final_price')->getValue()) * 100,
                 'description' => strip_tags($product->getDescription()),
-                'tags' => $this->sailthruProduct->getTags($product, $attributes, $categories),
-                'images' => [],
-                'vars' => [
-                    'isMaster' => (int) $isMaster,
-                    'isVariant' =>(int) $isVariant,
-                    'sku' => $product->getSku(),
-                    'weight'  => $product->getWeight(),
-                    'storeId' => $product->getStoreId(),
-                    'typeId' => $product->getTypeId(),
-                    'status' => $product->getStatus(),
-                    'categories' => $categories,
-                    'websiteIds' => $product->getWebsiteIds(),
-                    'storeIds'  => $product->getStoreIds(),
-                    'price' => $product->getPrice() * 100,
-                    'groupPrice' => $product->getGroupPrice(),
-                    'formatedPrice' => $product->getFormatedPrice(),
-                    'calculatedFinalPrice' => $product->getCalculatedFinalPrice(),
-                    'minimalPrice' => $product->getMinimalPrice(),
-                    'specialPrice' => $product->getSpecialPrice(),
-                    'specialFromDate' => $product->getSpecialFromDate(),
-                    'specialToDate'  => $product->getSpecialToDate(),
-                    'relatedProductIds' => $product->getRelatedProductIds(),
-                    'upSellProductIds' => $product->getUpSellProductIds(),
-                    'crossSellProductIds' => $product->getCrossSellProductIds(),
-                    'isConfigurable'  => (int) $product->canConfigure(),
-                    'isSalable' => (int) $product->isSalable(),
-                    'isAvailable'  => (int) $product->isAvailable(),
-                    'isVirtual'  => (int) $product->isVirtual(),
-                    'isInStock'  => (int) $product->isInStock(),
-                ] + $attributes,
+                'tags'        => $this->sailthruProduct->getTags($product, $attributes, $categories),
+                'images'      => [],
+                'vars'        => [
+                                     'isMaster'             => (int)$isMaster,
+                                     'isVariant'            => (int)$isVariant,
+                                     'sku'                  => $product->getSku(),
+                                     'weight'               => $product->getWeight(),
+                                     'storeId'              => $product->getStoreId(),
+                                     'typeId'               => $product->getTypeId(),
+                                     'status'               => $product->getStatus(),
+                                     'categories'           => $categories,
+                                     'websiteIds'           => $product->getWebsiteIds(),
+                                     'storeIds'             => $product->getStoreIds(),
+                                     'price'                => $product->getPrice() * 100,
+                                     'groupPrice'           => $product->getGroupPrice(),
+                                     'formatedPrice'        => $product->getFormatedPrice(),
+                                     'calculatedFinalPrice' => $product->getCalculatedFinalPrice(),
+                                     'minimalPrice'         => $product->getMinimalPrice(),
+                                     'specialPrice'         => $product->getSpecialPrice(),
+                                     'specialFromDate'      => $product->getSpecialFromDate(),
+                                     'specialToDate'        => $product->getSpecialToDate(),
+                                     'relatedProductIds'    => $product->getRelatedProductIds(),
+                                     'upSellProductIds'     => $product->getUpSellProductIds(),
+                                     'crossSellProductIds'  => $product->getCrossSellProductIds(),
+                                     'isConfigurable'       => (int)$product->canConfigure(),
+                                     'isSalable'            => (int)$product->isSalable(),
+                                     'isAvailable'          => (int)$product->isAvailable(),
+                                     'isVirtual'            => (int)$product->isVirtual(),
+                                     'isInStock'            => (int)$product->isInStock(),
+                                 ] + $attributes,
             ];
 
             if ($isVariant) {
@@ -245,14 +213,14 @@ class ProductIntercept
                     "url" => $this->imageHelper->init($product, 'sailthru_thumb')->getUrl()
                 ];
                 $data['images']['full'] = [
-                    "url"=> $this->sailthruProduct->getBaseImageUrl($product)
+                    "url" => $this->sailthruProduct->getBaseImageUrl($product)
                 ];
             }
 
             return $data;
-
         } catch (\Exception $e) {
             $this->clientManager->getClient()->logger($e->getMessage());
+
             return false;
         }
     }

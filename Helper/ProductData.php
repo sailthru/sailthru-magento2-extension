@@ -20,16 +20,16 @@ use Zend\View\Helper\Url;
 class ProductData extends AbstractHelper
 {
 
-    const XML_CONTENT_INTERCEPT        = "magesail_content/intercept/enable_intercept";
-    const XML_CONTENT_INTERCEPT_CRON   = "magesail_content/intercept/enable_intercept_cron";
-    const XML_CONTENT_SEND_MASTER      = "magesail_content/intercept/send_master";
-    const XML_CONTENT_SEND_VARIANTS    = "magesail_content/intercept/send_variants";
-    const XML_CONTENT_USE_KEYWORDS     = "magesail_content/tags/use_seo";
-    const XML_CONTENT_USE_CATEGORIES   = "magesail_content/tags/use_categories";
-    const XML_CONTENT_USE_ATTRIBUTES   = "magesail_content/tags/use_attributes";
-    const XML_CONTENT_ATTRIBUTES_LIST  = "magesail_content/tags/usable_attributes";
+    const XML_CONTENT_INTERCEPT       = "magesail_content/intercept/enable_intercept";
+    const XML_CONTENT_INTERCEPT_CRON  = "magesail_content/intercept/enable_intercept_cron";
+    const XML_CONTENT_SEND_MASTER     = "magesail_content/intercept/send_master";
+    const XML_CONTENT_SEND_VARIANTS   = "magesail_content/intercept/send_variants";
+    const XML_CONTENT_USE_KEYWORDS    = "magesail_content/tags/use_seo";
+    const XML_CONTENT_USE_CATEGORIES  = "magesail_content/tags/use_categories";
+    const XML_CONTENT_USE_ATTRIBUTES  = "magesail_content/tags/use_attributes";
+    const XML_CONTENT_ATTRIBUTES_LIST = "magesail_content/tags/usable_attributes";
 
-    public static $unusedVarKeys = [
+    public static $essentialAttributeCodes = [
         'status',
         'row_id',
         'type_id',
@@ -60,7 +60,7 @@ class ProductData extends AbstractHelper
         'quantity_and_stock_status',
         'sku'
     ];
-    
+
     /** @var ConfigurableProduct */
     private $configurableProduct;
 
@@ -81,7 +81,8 @@ class ProductData extends AbstractHelper
         ProductRepositoryInterface $productRepo,
         ImageBuilder $imageBuilder
     ) {
-        parent::__construct($context, $storeManager, $logger, $templateModel, $templateConfig, $objectManager, $scopeResolver);
+        parent::__construct($context, $storeManager, $logger, $templateModel, $templateConfig, $objectManager,
+            $scopeResolver);
         $this->configurableProduct = $configurableProduct;
         $this->productRepo = $productRepo;
         $this->imageBuilder = $imageBuilder;
@@ -89,8 +90,9 @@ class ProductData extends AbstractHelper
 
     /**
      * Is the Product-saving interceptor enabled
+     *
      * @param string|null $storeId
-     * 
+     *
      * @return bool
      */
     public function isProductInterceptOn($storeId = null)
@@ -100,6 +102,7 @@ class ProductData extends AbstractHelper
 
     /**
      * Is Synchtonization Product by Cron Enable
+     *
      * @param string|null $storeId
      *
      * @return bool
@@ -111,8 +114,9 @@ class ProductData extends AbstractHelper
 
     /**
      * Is the product-saving interceptor sync'ing master products to Sailthru
+     *
      * @param string|null $storeId
-     * 
+     *
      * @return bool
      */
     public function canSyncMasterProducts($storeId = null)
@@ -122,8 +126,9 @@ class ProductData extends AbstractHelper
 
     /**
      * Is the product-saving interceptor sync'ing variant products to Sailthru
+     *
      * @param string|null $storeId
-     * 
+     *
      * @return bool
      */
     public function canSyncVariantProducts($storeId = null)
@@ -133,8 +138,9 @@ class ProductData extends AbstractHelper
 
     /**
      * Is Sailthru building tags from meta keywords
+     *
      * @param string|null $storeId
-     * 
+     *
      * @return bool
      */
     public function tagsUseKeywords($storeId = null)
@@ -144,8 +150,9 @@ class ProductData extends AbstractHelper
 
     /**
      * Is Sailthru building tags from product attributes
+     *
      * @param string|null $storeId
-     * 
+     *
      * @return bool
      */
     public function tagsUseAttributes($storeId = null)
@@ -153,15 +160,23 @@ class ProductData extends AbstractHelper
         return boolval($this->getSettingsVal(self::XML_CONTENT_USE_ATTRIBUTES, $storeId));
     }
 
-    public function getUsableAttributes($storeId = null)
+    /**
+     * Get attributes list used for Sailthru product tags
+     *
+     * @param string|int|null $storeId
+     *
+     * @return array
+     */
+    public function getTagsUsableAttributes($storeId = null)
     {
         return explode(",", $this->getSettingsVal(self::XML_CONTENT_ATTRIBUTES_LIST, $storeId));
     }
 
     /**
      * Is Sailthru building tags from product categories
+     *
      * @param string|null $storeId
-     * 
+     *
      * @return bool
      */
     public function tagsUseCategories($storeId = null)
@@ -171,8 +186,9 @@ class ProductData extends AbstractHelper
 
     /**
      * Get string-concatenated tags for a product
-     * @param Product $product
-     * @param array|null $attributes
+     *
+     * @param Product       $product
+     * @param array|null    $attributes
      * @param string[]|null $categories
      *
      * @return string
@@ -211,34 +227,38 @@ class ProductData extends AbstractHelper
         } catch (\Exception $e) {
             $this->logger->err($e);
         }
+
         return $tags;
     }
 
     /**
      * Build product attributes for product vars and tags
+     *
      * @param \Magento\Catalog\Model\Product $product
      *
      * @return array
      */
     public function getProductAttributeValues(\Magento\Catalog\Model\Product $product)
     {
-        $setId = $product->getAttributeSetId();
+        $usableAttributes = $this->getTagsUsableAttributes($product->getStoreId());
         $attributeSet = $product->getAttributes();
         $data = [];
         foreach ($attributeSet as $attribute) {
             $label = $attribute->getName();
-            if (!in_array($label, self::$unusedVarKeys)) {
+            if (in_array($label, $usableAttributes) && !in_array($label, self::$essentialAttributeCodes)) {
                 $value = $attribute->getFrontend()->getValue($product);
                 if ($value and $label and $value != "No" and $value != " ") {
                     $data[$label] = $value;
                 }
             }
         }
+
         return $data;
     }
 
     /**
      * Get all the categories for a given product
+     *
      * @param Product $product
      *
      * @return string[]
@@ -251,11 +271,13 @@ class ProductData extends AbstractHelper
         foreach ($items as $item) {
             $categories[] = $item->getName();
         }
+
         return $categories;
     }
 
     /**
      * Checks whether a product is simple and has parents (a product "variant"). Can optionally return the parent IDs.
+     *
      * @param Product $product
      * @param bool    $returnParentIds
      *
@@ -270,6 +292,7 @@ class ProductData extends AbstractHelper
                 ? $parents
                 : true;
         }
+
         return false;
     }
 
@@ -279,7 +302,7 @@ class ProductData extends AbstractHelper
      * #<variant_sku> anchored at the end.
      *
      * @param  Product $product
-     * @param  int $storeId
+     * @param  int     $storeId
      *
      * @return string
      */
@@ -296,6 +319,7 @@ class ProductData extends AbstractHelper
 
     /**
      * Generate a product URL by a SKU
+     *
      * @param string   $sku
      * @param int|null $storeId
      *
@@ -305,11 +329,13 @@ class ProductData extends AbstractHelper
     {
         /** @var Product $product */
         $product = $this->productRepo->get($sku);
+
         return $this->getProductUrl($product, $storeId);
     }
 
     /**
      * Generates a Sailthru-safe URL for a variant product
+     *
      * @param Product $product
      * @param int     $parentId
      *
@@ -322,29 +348,41 @@ class ProductData extends AbstractHelper
         $parent->setStoreId($product->getStoreId());
         $parentUrl = $this->buildSafeUrl($parent);
         $pSku = $product->getSku();
+
         return "{$parentUrl}#{$pSku}";
     }
 
     /**
      * Generate a Sailthru-safe direct URL for a product
      * Shouldn't be used for variants.
+     *
      * @param Product $product
      *
      * @return string
      */
     protected function buildSafeUrl(Product $product)
     {
-        $product->getProductUrl(false); // generates the URL key
+        // generates the URL key
+        $product->getProductUrl(false);
+
         /** @var Store $store */
         $store = $this->storeManager->getStore($product->getStoreId());
+
         return $store->getBaseUrl(UrlInterface::URL_TYPE_WEB, true) . $product->getRequestPath();
     }
 
-    // Magento 2 getImage seems to add a strange slash, therefore this.
+    /**
+     * Magento 2 getImage seems to add a strange slash, therefore this
+     *
+     * @param Product $product
+     *
+     * @return string
+     */
     public function getBaseImageUrl(Product $product)
     {
         /** @var Store $store */
         $store = $this->storeManager->getStore($product->getStoreId());
+
         return $store->getBaseUrl(UrlInterface::URL_TYPE_MEDIA, true) . 'catalog/product' . $product->getImage();
     }
 
@@ -354,9 +392,17 @@ class ProductData extends AbstractHelper
         $imageHeight = 200;
 
         $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        /** @var Image $imageHelper */
-        $imageHelper  = $objectManager->get('\Magento\Catalog\Helper\Image');
-        $image_url = $imageHelper->init($product, 'product_page_image_small')->setImageFile($product->getFile())->resize($imageWidth, $imageHeight)->getUrl();
-        return $image_url;
+        try {
+            /** @var Image $imageHelper */
+            $imageHelper = $objectManager->get('\Magento\Catalog\Helper\Image');
+            $imageUrl = $imageHelper->init($product, 'product_page_image_small')
+                ->setImageFile($product->getFile())
+                ->resize($imageWidth, $imageHeight)
+                ->getUrl();
+        } catch (\Exception $e) {
+            $imageUrl = '';
+        }
+
+        return $imageUrl;
     }
 }
