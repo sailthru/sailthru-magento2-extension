@@ -189,7 +189,7 @@ class Api extends AbstractHelper
         return $this->getSettingsVal(self::XML_CONTENT_USE_KEYWORDS);
     }
 
-    public function tagsUseAttributes()
+    public function isProductAttributesUsedForTagsVars()
     {
         return $this->getSettingsVal(self::XML_CONTENT_USE_ATTRIBUTES);
     }
@@ -214,9 +214,9 @@ class Api extends AbstractHelper
         }
         try {
             $attribute_str = '';
-            if ($this->tagsUseAttributes()) {
+            if ($this->isProductAttributesUsedForTagsVars()) {
                 if ($attributes === null) {
-                    $attributes = $this->getProductAttributeValues($product);
+                    $attributes = $this->getProductAttributeValuesForTagsVars($product);
                 }
                 foreach ($attributes as $key => $value) {
                     if (!is_numeric($value)) {
@@ -231,7 +231,12 @@ class Api extends AbstractHelper
         return $tags;
     }
 
-    public function getProductAttributeValues($product)
+    /**
+     * @param $product
+     *
+     * @return array
+     */
+    public function getProductAttributeValuesForTagsVars($product)
     {
         $attributeSet = $product->getAttributes();
         $data = [];

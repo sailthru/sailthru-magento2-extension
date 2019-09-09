@@ -149,7 +149,7 @@ class ProductIntercept
             return false;
         }
 
-        $attributes = $this->sailthruProduct->getProductAttributeValues($product);
+        $attributes = $this->sailthruProduct->getProductAttributeValuesForTagsVars($product);
         $categories = $this->sailthruProduct->getCategories($product);
 
         try {

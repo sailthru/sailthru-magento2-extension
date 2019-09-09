@@ -3,51 +3,45 @@
 namespace Sailthru\MageSail\Model\Config\Source;
 
 use Magento\Catalog\Model\Product;
-use Magento\Eav\Api\AttributeSetRepositoryInterface as AttributeSetRepo;
 use Magento\Eav\Model\Config as EavConfig;
 use Magento\Eav\Model\Entity\Attribute;
 use Magento\Eav\Model\ResourceModel\Entity\Attribute\Collection;
 use Sailthru\MageSail\Helper\Api;
-use Sailthru\MageSail\Logger;
 use Sailthru\MageSail\Helper\ProductData;
 
 class TaggableAttributes extends AbstractSource
 {
-    /** @var EavConfig  */
+    /** @var EavConfig */
     private $eavConfig;
-
-    /** @var Product  */
-    private $product;
-
-    /** @var Logger  */
-    private $logger;
-
-    /** @var AttributeSetRepo  */
-    private $attributeSetRepo;
 
     public function __construct(
         Api $apiHelper,
-        EavConfig $eavConfig,
-        AttributeSetRepo $attributeSetRepo,
-        Product $product,
-        Logger $logger
+        EavConfig $eavConfig
     ) {
         parent::__construct($apiHelper);
         $this->eavConfig = $eavConfig;
-        $this->attributeSetRepo = $attributeSetRepo;
-        $this->product = $product;
-        $this->logger = $logger;
     }
 
+    /**
+     * @return array
+     */
     protected function getDisplayData()
     {
-        $attributeCollection = $this->buildArray($this->eavConfig->getEntityType(Product::ENTITY)->getAttributeCollection());
+        $attributeCollection = $this->buildArray(
+            $this->eavConfig->getEntityType(Product::ENTITY)->getAttributeCollection()
+        );
         usort($attributeCollection, function ($a, $b) {
             return $a['label'] <=> $b['label'];
         });
+
         return $attributeCollection;
     }
 
+    /**
+     * @param Collection $collection
+     *
+     * @return array
+     */
     private function buildArray(Collection $collection)
     {
         $array = array();
@@ -60,27 +54,28 @@ class TaggableAttributes extends AbstractSource
                 continue;
             }
             $array[] = [
-                "label" => $label,
-                "value" => $attribute->getAttributeCode()
+                'label' => $label,
+                'value' => $attribute->getAttributeCode()
             ];
         }
+
         return $array;
     }
 
+    /**
+     * @param Attribute $attribute
+     *
+     * @return string
+     */
     private function getAttributeLabel(Attribute $attribute)
     {
-        $attributeText =  $attribute->getStoreLabel() ?: $attribute->getData('frontend_label');
-        if (!$attributeText) {
-            return null;
+        $attributeLabel = $attribute->getStoreLabel() ? : $attribute->getData('frontend_label');
+        if (!$attributeLabel) {
+            $attributeLabel = $attribute->getAttributeCode();
         }
-        $lowercaseText = str_replace(" ", "_", strtolower($attributeText));
-        if (strpos($attribute->getAttributeCode(), $lowercaseText) !== false && strpos($attribute->getAttributeCode(), "_") !== false) {
-            $set = str_replace($lowercaseText, "", $attribute->getAttributeCode());
-            $set = str_replace("_", "", $set);
-            if ($set) {
-                $attributeText .= " ($set)";
-            }
-        }
-        return $attributeText;
+
+        $attributeLabel .= ' (' . $attribute->getAttributeCode() . ')';
+
+        return $attributeLabel;
     }
 }

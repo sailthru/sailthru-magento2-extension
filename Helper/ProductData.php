@@ -155,7 +155,7 @@ class ProductData extends AbstractHelper
      *
      * @return bool
      */
-    public function tagsUseAttributes($storeId = null)
+    public function isProductAttributesUsedForTagsVars($storeId = null)
     {
         return boolval($this->getSettingsVal(self::XML_CONTENT_USE_ATTRIBUTES, $storeId));
     }
@@ -167,7 +167,7 @@ class ProductData extends AbstractHelper
      *
      * @return array
      */
-    public function getTagsUsableAttributes($storeId = null)
+    public function getUsableAttributesForTagsVars($storeId = null)
     {
         return explode(",", $this->getSettingsVal(self::XML_CONTENT_ATTRIBUTES_LIST, $storeId));
     }
@@ -201,17 +201,19 @@ class ProductData extends AbstractHelper
             $keywords = htmlspecialchars($product->getData('meta_keyword'));
             $tags .= "$keywords,";
         }
+
         if ($this->tagsUseCategories($storeId)) {
             if ($categories === null) {
                 $categories = $this->getCategories($product);
             }
             $tags .= implode(",", $categories);
         }
+
         try {
             $attribute_str = '';
-            if ($this->tagsUseAttributes($storeId)) {
+            if ($this->isProductAttributesUsedForTagsVars($storeId)) {
                 if ($attributes === null) {
-                    $attributes = $this->getProductAttributeValues($product);
+                    $attributes = $this->getProductAttributeValuesForTagsVars($product);
                 }
                 foreach ($attributes as $key => $value) {
                     if (!is_numeric($value)) {
@@ -238,17 +240,24 @@ class ProductData extends AbstractHelper
      *
      * @return array
      */
-    public function getProductAttributeValues(\Magento\Catalog\Model\Product $product)
+    public function getProductAttributeValuesForTagsVars(\Magento\Catalog\Model\Product $product)
     {
-        $usableAttributes = $this->getTagsUsableAttributes($product->getStoreId());
+        if (!$this->isProductAttributesUsedForTagsVars($product->getStoreId())) {
+
+            return [];
+        }
+
+        $usableAttributes = $this->getUsableAttributesForTagsVars($product->getStoreId());
         $attributeSet = $product->getAttributes();
         $data = [];
         foreach ($attributeSet as $attribute) {
-            $label = $attribute->getName();
-            if (in_array($label, $usableAttributes) && !in_array($label, self::$essentialAttributeCodes)) {
+            $attributeCode = $attribute->getName();
+            if (in_array($attributeCode, $usableAttributes)
+                && !in_array($attributeCode, self::$essentialAttributeCodes)
+            ) {
                 $value = $attribute->getFrontend()->getValue($product);
-                if ($value and $label and $value != "No" and $value != " ") {
-                    $data[$label] = $value;
+                if ($value && $attributeCode && $value != 'No' && $value != ' ') {
+                    $data[$attributeCode] = $value;
                 }
             }
         }
