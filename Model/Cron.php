@@ -97,7 +97,7 @@ class Cron
                 $collection = $this->collectionFactory->create();
                 $collection->addAttributeToSelect('*');
                 $collection->getSelect()
-                    ->order('entity_id' . \Magento\Framework\Data\Collection::SORT_ORDER_ASC)
+                    ->order('entity_id ' . \Magento\Framework\Data\Collection::SORT_ORDER_ASC)
                     ->limit(self::BATCH_SIZE);
 
                 $collection->getSelect()->where('entity_id > ?', $collectionLastEntityId);
