@@ -74,14 +74,21 @@ class Cron
      */
     public function exportProducts()
     {
+        $shouldRunFlag = (int)$this->sailthruProduct->isProductScheduledSyncEnabled();
         $storeManagerDataList = $this->storeManager->getStores();
-        $storesCronStatus = [];
-        $storesCronStatus[0] = (int)$this->sailthruProduct->isProductScheduledSyncEnabled();
+        $storesCronStatus = [
+            \Magento\Store\Model\Store::DEFAULT_STORE_ID => $shouldRunFlag
+        ];
+
         foreach ($storeManagerDataList as $store) {
-            $storesCronStatus[$store->getStoreId()] = (int)$this->sailthruProduct->isProductScheduledSyncEnabled($store->getStoreId());
+            $shouldRunPerStoreFlag = (int)$this->sailthruProduct->isProductScheduledSyncEnabled($store->getStoreId());
+            $storesCronStatus[$store->getStoreId()] = $shouldRunPerStoreFlag;
+            if ($shouldRunPerStoreFlag) {
+                $shouldRunFlag = $shouldRunPerStoreFlag;
+            }
         }
 
-        if (empty($storesCronStatus)) {
+        if (!$shouldRunFlag) {
 
             return false;
         }

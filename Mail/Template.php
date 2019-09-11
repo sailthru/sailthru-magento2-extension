@@ -2,7 +2,6 @@
 
 namespace Sailthru\MageSail\Mail;
 
-use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Store\Model\StoreManagerInterface;
 use Sailthru\MageSail\Model\Template as TemplateModel;
@@ -11,7 +10,7 @@ class Template extends \Magento\Email\Model\Template
 {
     /**
      * List of the templeta variable directives.
-     * 
+     *
      * @var array
      */
     public $templateDirectives = [];
@@ -23,11 +22,6 @@ class Template extends \Magento\Email\Model\Template
 
     /** @var Template */
     private $templateModel;
-
-    /**
-     * @var \Magento\Config\Model\Config\Structure
-     */
-    private $structure;
 
     /**
      * Initialize dependencies.
@@ -46,8 +40,6 @@ class Template extends \Magento\Email\Model\Template
      * @param \Magento\Framework\UrlInterface                    $urlModel
      * @param Template\FilterFactory                             $filterFactory
      * @param TemplateModel                                      $templateModel
-     * @param \Magento\Config\Model\Config\Structure             $structure
-     *
      * @param array                                              $data
      *
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
@@ -67,11 +59,9 @@ class Template extends \Magento\Email\Model\Template
         \Magento\Framework\UrlInterface $urlModel,
         \Magento\Email\Model\Template\FilterFactory $filterFactory,
         TemplateModel $templateModel,
-        \Magento\Config\Model\Config\Structure $structure,
         array $data = []
     ) {
         $this->templateModel = $templateModel;
-        $this->structure = $structure;
         parent::__construct(
             $context,
             $design,
@@ -161,7 +151,7 @@ class Template extends \Magento\Email\Model\Template
 
             /**
              * Add variable key => value directives to templateDirectives
-             * 
+             *
              * @customization START
              */
             $parsedVars = explode('",', $matches[1]);
@@ -234,7 +224,7 @@ class Template extends \Magento\Email\Model\Template
         $processor->setVariables($variables);
         /**
          * Set template directives
-         * 
+         *
          * @customization START
          */
         $processor->setDirectives($this->templateDirectives);
@@ -244,7 +234,7 @@ class Template extends \Magento\Email\Model\Template
             $result = $processor->filter($this->getTemplateText());
             /**
              * Set template variables
-             * 
+             *
              * @customization START
              */
             $templateVariables = $processor->getTemplateVariables();
@@ -264,7 +254,7 @@ class Template extends \Magento\Email\Model\Template
 
     /**
      * To get template directives.
-     * 
+     *
      * @param int $templateId
      */
     private function processTemplateVarDirectives($templateId)
@@ -302,45 +292,5 @@ class Template extends \Magento\Email\Model\Template
                 $directiveString[0]
             );
         }
-    }
-
-    /**
-     * Collect all system config paths where current template is currently used
-     *
-     * @return array
-     */
-    public function getSystemConfigPathsWhereCurrentlyUsed()
-    {
-        $templateId = $this->getId();
-        if (!$templateId) {
-            return [];
-        }
-
-        $templatePaths = $this->structure->getFieldPathsByAttribute(
-            'source_model',
-            \Magento\Config\Model\Config\Source\Email\Template::class
-        );
-
-        if (!count($templatePaths)) {
-            return [];
-        }
-
-        $configData = $this->_getResource()->getSystemConfigByPathsAndTemplateId($templatePaths, $templateId);
-        foreach ($templatePaths as $path) {
-            if ($this->scopeConfig->getValue($path, ScopeConfigInterface::SCOPE_TYPE_DEFAULT) == $templateId) {
-                foreach ($configData as $data) {
-                    if ($data['path'] == $path) {
-                        continue 2;   // don't add final fallback value if it was found in stored config
-                    }
-                }
-
-                $configData[] = [
-                    'scope' => ScopeConfigInterface::SCOPE_TYPE_DEFAULT,
-                    'path' => $path
-                ];
-            }
-        }
-
-        return $configData;
     }
 }
