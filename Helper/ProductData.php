@@ -101,7 +101,7 @@ class ProductData extends AbstractHelper
     }
 
     /**
-     * Is Synchtonization Product by Cron Enable
+     * Is Synchronization Product by Cron Enable
      *
      * @param string|null $storeId
      *
