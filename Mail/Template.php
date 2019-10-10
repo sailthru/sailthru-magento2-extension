@@ -10,7 +10,7 @@ class Template extends \Magento\Email\Model\Template
 {
     /**
      * List of the templeta variable directives.
-     * 
+     *
      * @var array
      */
     public $templateDirectives = [];
@@ -151,7 +151,7 @@ class Template extends \Magento\Email\Model\Template
 
             /**
              * Add variable key => value directives to templateDirectives
-             * 
+             *
              * @customization START
              */
             $parsedVars = explode('",', $matches[1]);
@@ -224,7 +224,7 @@ class Template extends \Magento\Email\Model\Template
         $processor->setVariables($variables);
         /**
          * Set template directives
-         * 
+         *
          * @customization START
          */
         $processor->setDirectives($this->templateDirectives);
@@ -234,7 +234,7 @@ class Template extends \Magento\Email\Model\Template
             $result = $processor->filter($this->getTemplateText());
             /**
              * Set template variables
-             * 
+             *
              * @customization START
              */
             $templateVariables = $processor->getTemplateVariables();
@@ -254,7 +254,7 @@ class Template extends \Magento\Email\Model\Template
 
     /**
      * To get template directives.
-     * 
+     *
      * @param int $templateId
      */
     private function processTemplateVarDirectives($templateId)
