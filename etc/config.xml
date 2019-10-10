@@ -1,5 +1,20 @@
 <config>
     <default>
+        <magesail_config>
+            <js>
+                <enabled>0</enabled>
+            </js>
+        </magesail_config>
+        <magesail_content>
+            <intercept>
+                <enable_intercept>0</enable_intercept>
+                <enable_intercept_cron>0</enable_intercept_cron>
+            </intercept>
+            <tags>
+                <use_categories>1</use_categories>
+                <use_attributes>0</use_attributes>
+            </tags>
+        </magesail_content>
         <magesail_lists>
             <names>
                 <select_case>0</select_case>
