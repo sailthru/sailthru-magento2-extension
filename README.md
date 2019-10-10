@@ -4,6 +4,8 @@
 
 ## Installation Instructions
 
+1. Install composer: `brew install composer`
+
 1. Get the module
 	via composer  `composer require sailthru/sailthru-magento2-extension`
 
