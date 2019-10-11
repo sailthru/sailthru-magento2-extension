@@ -156,7 +156,9 @@ class ProductIntercept
             $data = [
                 'url'         => $this->sailthruProduct->getProductUrl($product, $storeId),
                 'keys'        => [
-                    'sku' => $product->getSku()
+                    'sku' => count($product->getStoreIds()) > 1
+                    ? $storeId . "-" . $product->getSku()
+                    : $product->getSku()
                 ],
                 'title'       => htmlspecialchars($product->getName()),
                 'spider'      => 0,
