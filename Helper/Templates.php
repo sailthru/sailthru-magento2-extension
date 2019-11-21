@@ -33,16 +33,20 @@ class Templates extends AbstractHelper {
 
     public function getSailthruTemplates($storeId = null)
     {
-        if (empty($this->sailthruTemplates) or !isset($this->sailthruTemplates[$storeId])) {
-            $client = $this->clientManager->getClient(true, $storeId);
-            try {
-                $this->templates[$storeId] = $client->getTemplates();
-            } catch (\Sailthru_Client_Exception $ex) {
-                $this->logger->err("Exception getting templates: {$ex->getMessage()}");
-            }
+        if (!empty($this->templates[$storeId])) {
+            return $this->templates[$storeId];
         }
 
-        return $this->templates[$storeId];
+        try {
+            $client = $this->clientManager->getClient(true, $storeId);
+            $this->templates[$storeId] = $client->getTemplates();
+
+            return $this->templates[$storeId];
+        } catch (\Sailthru_Client_Exception $ex) {
+            $this->logger->err("Exception getting templates: {$ex->getMessage()}");
+
+            return [];
+        }
     }
 
     public function templateExists($templateIdentifier, $storeId = null)
