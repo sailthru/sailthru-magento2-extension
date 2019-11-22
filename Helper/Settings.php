@@ -44,6 +44,8 @@ class Settings extends AbstractHelper
     const XML_ORDER_TEMPLATE           = "magesail_send/transactionals/purchase_template";
     const LO_ABANDONED_CART_ENABLED    = "1";
 
+    const XML_TEMPLATES_CACHE_LIFETIME = "magesail_send/transactionals/templates_cache_lifetime";
+
     /** Path to the `transactionals` tab. */
     const XML_TRANSACTIONALS_PATH = 'magesail_send/transactionals/';
 
@@ -154,6 +156,11 @@ class Settings extends AbstractHelper
     public function getTransactionalsEnabled($storeId = null)
     {
         return boolval($this->getSettingsVal(self::XML_TRANSACTIONALS_ENABLED, $storeId));
+    }
+
+    public function getTemplatesCacheLifetime($storeId = null)
+    {
+        return $this->getSettingsVal(self::XML_TEMPLATES_CACHE_LIFETIME, $storeId);
     }
 
     public function getSender($storeId = null)

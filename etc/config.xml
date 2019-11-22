@@ -20,5 +20,10 @@
                 <select_case>0</select_case>
             </names>
         </magesail_lists>
+        <magesail_send>
+            <transactionals>
+                <templates_cache_lifetime>3600</templates_cache_lifetime>
+            </transactionals>
+        </magesail_send>
     </default>
 </config>

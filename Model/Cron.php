@@ -34,6 +34,11 @@ class Cron
     private $sailthruIntercept;
 
     /**
+     * @var SailthruTemplates
+     */
+    protected $sailthruTemplates;
+
+    /**
      * @var StoreManagerInterface
      */
     private $storeManager;
@@ -48,6 +53,7 @@ class Cron
      * @param StoreManagerInterface    $storeManager
      * @param SailthruIntercept        $sailthruIntercept
      * @param SailthruProduct          $sailthruProduct
+     * @param SailthruTemplates        $sailthruTemplates
      * @param FlagManager              $flagManager
      * @param Logger                   $logger
      */
@@ -56,12 +62,14 @@ class Cron
         StoreManagerInterface $storeManager,
         SailthruIntercept $sailthruIntercept,
         SailthruProduct $sailthruProduct,
+        SailthruTemplates $sailthruTemplates,
         FlagManager $flagManager,
         Logger $logger
     ) {
         $this->collectionFactory = $collectionFactory;
         $this->sailthruProduct = $sailthruProduct;
         $this->sailthruIntercept = $sailthruIntercept;
+        $this->sailthruTemplates = $sailthruTemplates;
         $this->storeManager = $storeManager;
         $this->flagManager = $flagManager;
         $this->logger = $logger;
@@ -129,5 +137,22 @@ class Cron
 
             return false;
         }
+    }
+
+    /**
+     * Add Sailthru templates to cache
+     */
+    public function syncSailthruTemplates()
+    {
+        try {
+            $storeIds = array_merge([null], array_keys($this->storeManager->getStores()));
+            foreach ($storeIds as $storeId) {
+                $this->sailthruTemplates->getTemplatesByStoreId($storeId);
+            }
+        } catch (\Exception $e) {
+            $this->logger->err('Cron Job sailthru_sync_templates - ' . $e->getMessage());
+        }
+
+        return $this;
     }
 }

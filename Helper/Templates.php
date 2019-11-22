@@ -8,6 +8,7 @@ use Magento\Store\Model\StoreManager;
 use Sailthru\MageSail\Logger;
 use Sailthru\MageSail\Model\Config\Template\Data as TemplateConfig;
 use Sailthru\MageSail\Model\Template as TemplateModel;
+use Sailthru\MageSail\Model\SailthruTemplates;
 
 class Templates extends AbstractHelper {
 
@@ -17,6 +18,9 @@ class Templates extends AbstractHelper {
     /** @var ClientManager  */
     private $clientManager;
 
+    /** @var SailthruTemplates  */
+    protected $sailthruTemplates;
+
     public function __construct(
         Context $context,
         StoreManager $storeManager,
@@ -25,10 +29,12 @@ class Templates extends AbstractHelper {
         TemplateConfig $templateConfig,
         ObjectManagerInterface $objectManager,
         ScopeResolver $scopeResolver,
-        ClientManager $clientManager
+        ClientManager $clientManager,
+        SailthruTemplates $sailthruTemplates
     ) {
         parent::__construct($context, $storeManager, $logger, $templateModel, $templateConfig, $objectManager, $scopeResolver);
         $this->clientManager = $clientManager;
+        $this->sailthruTemplates = $sailthruTemplates;
     }
 
     public function getSailthruTemplates($storeId = null)
@@ -38,8 +44,7 @@ class Templates extends AbstractHelper {
         }
 
         try {
-            $client = $this->clientManager->getClient(true, $storeId);
-            $this->templates[$storeId] = $client->getTemplates();
+            $this->templates[$storeId] = $this->sailthruTemplates->getTemplatesByStoreId($storeId);
 
             return $this->templates[$storeId];
         } catch (\Sailthru_Client_Exception $ex) {
