@@ -95,13 +95,10 @@ class SailthruTemplates
         $cacheKey = $this->getCacheKey($storeId);
         $templates = $this->cache->load($cacheKey);
         if (!empty($templates)) {
-            $this->logger->debug('Cache: ' . $cacheKey);
-
             return unserialize($templates);
         }
 
         $templates = $this->loadTemplates($storeId);
-        $this->logger->debug('Loaded: ' . $cacheKey);
         if (empty($templates)) {
             return [];
         }
