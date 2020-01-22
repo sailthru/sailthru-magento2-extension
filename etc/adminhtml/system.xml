@@ -205,6 +205,12 @@
                         <field id="*/*/send_through_sailthru">1</field>
                     </depends>
                 </field>
+                <field id="templates_cache_lifetime" type="text" translate="label" sortOrder="3" showInDefault="1" showInWebsite="1">
+                    <label>Templates Cache Lifetime</label>
+                    <depends>
+                        <field id="*/*/send_through_sailthru">1</field>
+                    </depends>
+                </field>
             </group>
         </section>
     </system>

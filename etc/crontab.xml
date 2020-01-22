@@ -4,5 +4,8 @@
         <job instance="Sailthru\MageSail\Model\Cron" method="exportProducts" name="sailthru_export_products">
             <schedule>0 1 * * *</schedule>
         </job>
+        <job instance="Sailthru\MageSail\Model\Cron" method="syncSailthruTemplates" name="sailthru_sync_templates">
+            <schedule>*/5 * * * *</schedule>
+        </job>
     </group>
 </config>
