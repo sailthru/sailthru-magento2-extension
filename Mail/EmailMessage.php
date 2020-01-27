@@ -46,6 +46,8 @@ class EmailMessage extends \Magento\Framework\Mail\EmailMessage
      */
     public function getDecodedBodyText()
     {
-        return $this->getBody()->getParts()[0]->getRawContent();
+        return !empty($this->getBody()) && !empty($this->getBody()->getParts()[0])
+            ? $this->getBody()->getParts()[0]->getRawContent()
+            : '';
     }
 }

@@ -15,6 +15,9 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
     /** @var array */
     protected $templateData;
 
+    /** @var TemplateInterface */
+    protected $template;
+
     /**
      * Get template
      *
@@ -25,9 +28,26 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
     protected function getTemplate()
     {
         /** @var Template $template */
-        $template = parent::getTemplate();
+        $this->template = parent::getTemplate();
+
+        return $this->template;
+    }
+    /** @customization END */
+
+    /**
+     * Prepare message.
+     *
+     * @return TransportBuilder
+     *
+     * @throws \Magento\Framework\Exception\LocalizedException
+     *
+     * @customization START
+     */
+    protected function prepareMessage()
+    {
+        parent::prepareMessage();
         $this->templateData = [
-            'variables' => $template->templateVariables ?: [],
+            'variables'  => $this->template->templateVariables ?: [],
             'identifier' => $this->templateIdentifier,
         ];
 
@@ -44,23 +64,6 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
             $storeId = $subscriber->getStoreId();
             $this->templateData['storeId'] = $storeId;
         }
-
-        return $template;
-    }
-    /** @customization END */
-
-    /**
-     * Prepare message.
-     *
-     * @return TransportBuilder
-     *
-     * @throws \Magento\Framework\Exception\LocalizedException
-     *
-     * @customization START
-     */
-    protected function prepareMessage()
-    {
-        parent::prepareMessage();
         $this->message->setTemplateInfo($this->templateData);
 
         return $this;
