@@ -2,36 +2,31 @@
 
 namespace Sailthru\MageSail\Mail;
 
-use Magento\Framework\App\TemplateTypesInterface;
-use Magento\Framework\Mail\MessageInterface;
+use Sailthru\MageSail\Mail\EmailMessage;
+use Magento\Framework\Mail\TemplateInterface;
 use Magento\Newsletter\Model\Subscriber;
 use Magento\Store\Api\Data\StoreInterface;
 
 class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
 {
-    /** @var Message */
+    /** @var EmailMessage */
     protected $message;
 
+    /** @var array */
+    protected $templateData;
+
     /**
-     * Prepare message
+     * Get template
      *
-     * @return $this
-     * @throws \Magento\Framework\Exception\MailException
-     * @throws \Zend_Mail_Exception
+     * @return TemplateInterface
+     *
+     * @customization START
      */
-    protected function prepareMessage()
+    protected function getTemplate()
     {
         /** @var Template $template */
-        $template = $this->getTemplate();
-        $types = [
-            TemplateTypesInterface::TYPE_TEXT => MessageInterface::TYPE_TEXT,
-            TemplateTypesInterface::TYPE_HTML => MessageInterface::TYPE_HTML,
-        ];
-
-        $body = $template->processTemplate();
-
-        /** @customization START */
-        $templateData = [
+        $template = parent::getTemplate();
+        $this->templateData = [
             'variables' => $template->templateVariables ?: [],
             'identifier' => $this->templateIdentifier,
         ];
@@ -39,7 +34,7 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
         if (isset($this->templateVars['store'])){
             /** @var StoreInterface $store */
             $store = $this->templateVars['store'];
-            $templateData['storeId'] = $store->getId();
+            $this->templateData['storeId'] = $store->getId();
         }
 
         // Newsletter admin patch
@@ -47,16 +42,28 @@ class TransportBuilder extends \Magento\Framework\Mail\Template\TransportBuilder
             /** @var Subscriber $subscriber */
             $subscriber = $this->templateVars['subscriber'];
             $storeId = $subscriber->getStoreId();
-            $templateData['storeId'] = $storeId;
+            $this->templateData['storeId'] = $storeId;
         }
 
-        $this->message->setTemplateInfo($templateData);
-        /** @customization END */
+        return $template;
+    }
+    /** @customization END */
 
-        $this->message->setMessageType($types[$template->getType()])
-            ->setBody($body)
-            ->setSubject($template->getSubject());
+    /**
+     * Prepare message.
+     *
+     * @return TransportBuilder
+     *
+     * @throws \Magento\Framework\Exception\LocalizedException
+     *
+     * @customization START
+     */
+    protected function prepareMessage()
+    {
+        parent::prepareMessage();
+        $this->message->setTemplateInfo($this->templateData);
 
         return $this;
     }
+    /** @customization END */
 }

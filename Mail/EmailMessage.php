@@ -2,7 +2,7 @@
 
 namespace Sailthru\MageSail\Mail;
 
-class Message extends \Magento\Framework\Mail\Message
+class EmailMessage extends \Magento\Framework\Mail\EmailMessage
 {
     /**
      * Template info.

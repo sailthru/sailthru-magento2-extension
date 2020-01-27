@@ -25,7 +25,7 @@
     </type>
     <preference for="Magento\Framework\Mail\TransportInterface" type="Sailthru\MageSail\Mail\Transport"/>
     <preference for="\Magento\Framework\Mail\Template\TransportBuilder" type="Sailthru\MageSail\Mail\TransportBuilder"/>
-    <preference for="\Magento\Framework\Mail\Message" type="Sailthru\MageSail\Mail\Message"/>
+    <preference for="\Magento\Framework\Mail\EmailMessage" type="Sailthru\MageSail\Mail\EmailMessage"/>
     <preference for="\Magento\Email\Model\Template" type="Sailthru\MageSail\Mail\Template"/>
     <preference for="\Magento\Email\Model\BackendTemplate" type="Sailthru\MageSail\Mail\BackendTemplate"/>
     <preference for="\Magento\Email\Model\Template\Filter" type="Sailthru\MageSail\Mail\Filter"/>
