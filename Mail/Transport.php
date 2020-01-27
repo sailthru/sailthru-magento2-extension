@@ -103,13 +103,13 @@ class Transport extends \Magento\Email\Model\Transport
     public function sendViaAPI($templateData, $storeId)
     {
         $client = $this->clientManager->getClient(true, $storeId);
-        if (version_compare($this->sailthruSettings->getMagentoVersion(), '2.3.0', '<')) {
+        if ($this->sailthruSettings->compareMagentoVersion($this->sailthruSettings::MAGENTO_VERSION_2_3_0, '<')) {
             $message = $this->getMessage();
             $to      = $this->cleanEmails(implode(',', $message->getRecipients()));
             $subject = $message->getSubject();
             $body    = $message->getBody()->getRawContent();
         }
-        else if (version_compare($this->sailthruSettings->getMagentoVersion(), '2.3.3', '<')) {
+        else if ($this->sailthruSettings->compareMagentoVersion($this->sailthruSettings::MAGENTO_VERSION_2_3_3, '<')) {
             $message = ZendMessage::fromString($this->getMessage()->getRawMessage());
             $to      = $this->prepareRecipients($message);
             $subject = $this->prepareSubject($message);
