@@ -16,12 +16,6 @@ use Zend\Mail\Message as ZendMessage;
 use Zend\Mail\Address\AddressInterface;
 use Zend\Mail\Header\HeaderInterface;
 
-/**
- * Class Transport
- * @package Sailthru\MageSail\Mail
- *
- * @method EmailMessage getMessage()
- */
 class Transport extends \Magento\Email\Model\Transport
 {
     /** @var ClientManager */
@@ -114,11 +108,17 @@ class Transport extends \Magento\Email\Model\Transport
             $to      = $this->cleanEmails(implode(',', $message->getRecipients()));
             $subject = $message->getSubject();
             $body    = $message->getBody()->getRawContent();
-        } else {
+        }
+        else if (version_compare($this->sailthruSettings->getMagentoVersion(), '2.3.3', '<')) {
             $message = ZendMessage::fromString($this->getMessage()->getRawMessage());
             $to      = $this->prepareRecipients($message);
             $subject = $this->prepareSubject($message);
             $body    = $this->prepareBody($message);
+        } else {
+            $message = ZendMessage::fromString($this->getMessage()->getRawMessage());
+            $to      = $this->prepareRecipients($message);
+            $subject = $this->prepareSubject($message);
+            $body    = $this->getMessage()->getDecodedBodyText();
         }
         $vars = [
             "subj" => $subject,
