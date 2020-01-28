@@ -2,7 +2,7 @@
 
 namespace Sailthru\MageSail\Mail;
 
-class Message extends \Magento\Framework\Mail\Message
+class EmailMessage extends \Magento\Framework\Mail\EmailMessage
 {
     /**
      * Template info.
@@ -37,5 +37,17 @@ class Message extends \Magento\Framework\Mail\Message
         }
 
         return false;
+    }
+
+    /**
+     * Get decoded MIME body text
+     *
+     * @return string
+     */
+    public function getDecodedBodyText()
+    {
+        return !empty($this->getBody()) && !empty($this->getBody()->getParts()[0])
+            ? $this->getBody()->getParts()[0]->getRawContent()
+            : '';
     }
 }
