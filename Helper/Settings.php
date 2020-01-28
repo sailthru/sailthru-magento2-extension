@@ -23,10 +23,6 @@ class Settings extends AbstractHelper
     // Source models
     const SOURCE_MODEL_VALIDATION_MSG  = "Please Enter Valid Sailthru Credentials";
 
-    // Magento Versions
-    const MAGENTO_VERSION_2_3_3 = '2.3.3';
-    const MAGENTO_VERSION_2_3_0 = '2.3.0';
-
     // TODO
     // const XML_CUSTOMER_ID              = "magesail_"
 
