@@ -360,17 +360,4 @@ class Settings extends AbstractHelper
     {
         return $this->productMetadataInterface->getVersion();
     }
-
-    /**
-     * Compare magento version
-     *
-     * @param $version
-     * @param $operator
-     *
-     * @return mixed
-     */
-    public function compareMagentoVersion($version, $operator)
-    {
-        return version_compare($this->getMagentoVersion(), $version, $operator);
-    }
 }

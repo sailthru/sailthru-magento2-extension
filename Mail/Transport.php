@@ -103,26 +103,10 @@ class Transport extends \Magento\Email\Model\Transport
     public function sendViaAPI($templateData, $storeId)
     {
         $client = $this->clientManager->getClient(true, $storeId);
-        if ($this->sailthruSettings->compareMagentoVersion($this->sailthruSettings::MAGENTO_VERSION_2_3_0, '<')) {
-            $message = $this->getMessage();
-            $to      = $this->cleanEmails(implode(',', $message->getRecipients()));
-            $subject = $message->getSubject();
-            $body    = $message->getBody()->getRawContent();
-        }
-        else if ($this->sailthruSettings->compareMagentoVersion($this->sailthruSettings::MAGENTO_VERSION_2_3_3, '<')) {
-            $message = ZendMessage::fromString($this->getMessage()->getRawMessage());
-            $to      = $this->prepareRecipients($message);
-            $subject = $this->prepareSubject($message);
-            $body    = $this->prepareBody($message);
-        } else {
-            $message = ZendMessage::fromString($this->getMessage()->getRawMessage());
-            $to      = $this->prepareRecipients($message);
-            $subject = $this->prepareSubject($message);
-            $body    = $this->getMessage()->getDecodedBodyText();
-        }
+        $message = ZendMessage::fromString($this->getMessage()->getRawMessage());
         $vars = [
-            "subj" => $subject,
-            "content" => $body,
+            "subj"    => $this->prepareSubject($message),
+            "content" => $this->getMessage()->getDecodedBodyText(),
         ];
 
         try {
@@ -141,8 +125,8 @@ class Transport extends \Magento\Email\Model\Transport
 
             $params = [
                 "template" => $templateName,
-                "email" => $to,
-                "vars" => $vars,
+                "email"    => $this->prepareRecipients($message),
+                "vars"     => $vars,
             ];
 
             $response = $client->apiPost('send', $params);
