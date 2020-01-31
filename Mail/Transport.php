@@ -1,9 +1,11 @@
 <?php
 namespace Sailthru\MageSail\Mail;
 
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Exception\MailException;
-use Magento\Framework\Mail\MessageInterface;
+use Magento\Framework\Exception\RuntimeException;
+use Magento\Framework\Mail\EmailMessageInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Sailthru\MageSail\Helper\ClientManager;
 use Sailthru\MageSail\Helper\Settings;
@@ -14,7 +16,7 @@ use Zend\Mail\Message as ZendMessage;
 use Zend\Mail\Address\AddressInterface;
 use Zend\Mail\Header\HeaderInterface;
 
-class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Framework\Mail\TransportInterface
+class Transport extends \Magento\Email\Model\Transport
 {
     /** @var ClientManager */
     protected $clientManager;
@@ -39,7 +41,8 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
      *
      * @param ClientManager $clientManager
      * @param Settings $sailthruSettings
-     * @param MessageInterface $message
+     * @param EmailMessageInterface $message
+     * @param ScopeConfigInterface $scopeConfig
      * @param SailthruTemplates $sailthruTemplates
      * @param StoreManagerInterface $storeManager
      * @param RequestInterface $request
@@ -48,7 +51,8 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
     public function __construct(
         ClientManager $clientManager,
         Settings $sailthruSettings,
-        MessageInterface $message,
+        EmailMessageInterface $message,
+        ScopeConfigInterface $scopeConfig,
         SailthruTemplates $sailthruTemplates,
         StoreManagerInterface $storeManager,
         RequestInterface $request,
@@ -59,7 +63,7 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
         $this->sailthruTemplates = $sailthruTemplates;
         $this->storeManager = $storeManager;
         $this->request = $request;
-        parent::__construct($message, $parameters);
+        parent::__construct($message, $scopeConfig, $parameters);
     }
 
     /**
@@ -99,20 +103,10 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
     public function sendViaAPI($templateData, $storeId)
     {
         $client = $this->clientManager->getClient(true, $storeId);
-        if (version_compare($this->sailthruSettings->getMagentoVersion(), '2.3.0', '<')) {
-            $message = $this->getMessage();
-            $to      = $this->cleanEmails(implode(',', $message->getRecipients()));
-            $subject = $message->getSubject();
-            $body    = $message->getBody()->getRawContent();
-        } else {
-            $message = ZendMessage::fromString($this->getMessage()->getRawMessage());
-            $to      = $this->prepareRecipients($message);
-            $subject = $this->prepareSubject($message);
-            $body    = $this->prepareBody($message);
-        }
+        $message = ZendMessage::fromString($this->getMessage()->getRawMessage());
         $vars = [
-            "subj" => $subject,
-            "content" => $body,
+            "subj"    => $this->prepareSubject($message),
+            "content" => $this->getMessage()->getDecodedBodyText(),
         ];
 
         try {
@@ -131,8 +125,8 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
 
             $params = [
                 "template" => $templateName,
-                "email" => $to,
-                "vars" => $vars,
+                "email"    => $this->prepareRecipients($message),
+                "vars"     => $vars,
             ];
 
             $response = $client->apiPost('send', $params);
@@ -149,8 +143,11 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
      * Prepare recipients list
      *
      * @param  \Zend\Mail\Message $message
-     * @throws \Zend\Mail\Transport\Exception\RuntimeException
+     * @throws RuntimeException
+     *
      * @return string
+     *
+     * @throws RuntimeException
      */
     protected function prepareRecipients(\Zend\Mail\Message $message)
     {
@@ -158,7 +155,7 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
 
         $hasTo = $headers->has('to');
         if (!$hasTo && !$headers->has('cc') && !$headers->has('bcc')) {
-            throw new Exception\RuntimeException(
+            throw new RuntimeException(
                 'Invalid email; contains no at least one of "To", "Cc", and "Bcc" header'
             );
         }
@@ -171,11 +168,11 @@ class Transport extends \Magento\Framework\Mail\Transport implements \Magento\Fr
         $to   = $headers->get('to');
         $list = $to->getAddressList();
         if (count($list) == 0) {
-            throw new Exception\RuntimeException('Invalid "To" header; contains no addresses');
+            throw new RuntimeException('Invalid "To" header; contains no addresses');
         }
 
         // If not on Windows, return normal string
-        if (! $this->isWindowsOs()) {
+        if (!$this->isWindowsOs() && version_compare($this->sailthruSettings->getMagentoVersion(), '2.3.3', '<')) {
             return $to->getFieldValue(HeaderInterface::FORMAT_ENCODED);
         }
 

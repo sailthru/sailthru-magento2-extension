@@ -168,7 +168,7 @@ class Template extends \Magento\Email\Model\Template
                     if (count($directiveString) < 2) {
                         continue;
                     }
-                    
+
                     $directiveString[0] = trim(preg_replace('/(]\)|")/', '', $directiveString[0]));
 
                     $this->templateDirectives[strtolower(str_replace(' ', '_', $directiveString[1]))] = str_replace(
