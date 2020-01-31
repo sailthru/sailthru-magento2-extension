@@ -21,8 +21,7 @@
 ## Javascript Setup
 The Sailthru MageSail module comes ready to use Sailthru's new PersonalizeJs javascript. To add page-tracking and gather onsite data like pageviews and clicks: 
 
-1. Set your "Site Domain" [here][3].
-2. Add your Customer ID (found [here][4]) to vendor/sailthru/sailthru-magento2-extension/view/frontend/web/spm.js 
+1. Add your Customer ID (found [here][4]) to vendor/sailthru/sailthru-magento2-extension/view/frontend/web/spm.js 
 
 **Please contact Sailthru to learn more about and enable Site Personalization Manager.**
 
