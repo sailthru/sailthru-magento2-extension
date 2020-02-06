@@ -1,10 +1,10 @@
 <?php
 
-namespace Sailthru\MageSail\Mail;
+namespace Sailthru\MageSail\Mail\Queue;
 
 use Magento\Framework\MessageQueue\PublisherInterface;
 
-class Queue
+class EmailSendPublisher
 {
     const TOPIC_NAME = 'sailthru.email.send';
 
@@ -16,14 +16,14 @@ class Queue
         $this->publisher = $publisher;
     }
 
-    public function publishEmail($templateData, $emailData, $storeId)
+    public function execute($templateData, $emailData, $storeId)
     {
         $this->publisher->publish(
             self::TOPIC_NAME,
             json_encode([
-                'templateData' => $templateData,
-                'emailData'    => $emailData,
-                'storeId'      => $storeId,
+                'template_data' => $templateData,
+                'email_data'    => $emailData,
+                'store_id'      => $storeId,
             ])
         );
 

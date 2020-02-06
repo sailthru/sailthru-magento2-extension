@@ -12,6 +12,8 @@ use Sailthru\MageSail\Helper\Settings;
 use Sailthru\MageSail\Helper\Api;
 use Sailthru\MageSail\Helper\Templates as SailthruTemplates;
 use Sailthru\MageSail\MageClient;
+use Sailthru\MageSail\Mail\Transport\SailthruFactory as SailthruTransportFactory;
+use Sailthru\MageSail\Mail\Queue\EmailSendPublisher;
 use Zend\Mail\Message as ZendMessage;
 use Zend\Mail\Address\AddressInterface;
 use Zend\Mail\Header\HeaderInterface;
@@ -30,8 +32,11 @@ class Transport extends \Magento\Email\Model\Transport
     /** @var StoreManagerInterface */
     protected $storeManager;
 
-    /** @var Queue */
-    protected $mailQueue;
+    /** @var SailthruTransportFactory */
+    protected $sailthruTransportFactory;
+
+    /** @var EmailSendPublisher */
+    protected $emailSendPublisher;
 
     /** @var RequestInterface  */
     protected $request;
@@ -48,7 +53,8 @@ class Transport extends \Magento\Email\Model\Transport
      * @param ScopeConfigInterface $scopeConfig
      * @param SailthruTemplates $sailthruTemplates
      * @param StoreManagerInterface $storeManager
-     * @param Queue $mailQueue
+     * @param SailthruTransportFactory $sailthruTransportFactory
+     * @param EmailSendPublisher $emailSendPublisher
      * @param RequestInterface $request
      * @param null|array
      */
@@ -59,7 +65,8 @@ class Transport extends \Magento\Email\Model\Transport
         ScopeConfigInterface $scopeConfig,
         SailthruTemplates $sailthruTemplates,
         StoreManagerInterface $storeManager,
-        Queue $mailQueue,
+        SailthruTransportFactory $sailthruTransportFactory,
+        EmailSendPublisher $emailSendPublisher,
         RequestInterface $request,
         $parameters = null
     ) {
@@ -67,7 +74,8 @@ class Transport extends \Magento\Email\Model\Transport
         $this->sailthruSettings = $sailthruSettings;
         $this->sailthruTemplates = $sailthruTemplates;
         $this->storeManager = $storeManager;
-        $this->mailQueue = $mailQueue;
+        $this->sailthruTransportFactory = $sailthruTransportFactory;
+        $this->emailSendPublisher = $emailSendPublisher;
         $this->request = $request;
         parent::__construct($message, $scopeConfig, $parameters);
     }
@@ -94,7 +102,7 @@ class Transport extends \Magento\Email\Model\Transport
             if ($this->sailthruSettings->getTransactionalsEnabled($storeId) && $template['name'] != 'disableSailthru') {
                 $emailData = $this->getEmailData();
                 if ($this->sailthruSettings->getTransactionalsProcessQueueEnabled($storeId)) {
-                    $this->mailQueue->publishEmail($templateData, $emailData, $storeId);
+                    $this->emailSendPublisher->execute($templateData, $emailData, $storeId);
 
                     return $this;
                 }
