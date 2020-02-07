@@ -30,12 +30,13 @@ class Sailthru extends \Magento\Framework\DataObject
      * @param ClientManagerHelper $clientManagerHelper
      * @param SettingsHelper $settingsHelper
      * @param TemplatesHelper $templatesHelper
+     * @param array $data
      */
     public function __construct(
         ClientManagerHelper $clientManagerHelper,
         SettingsHelper $settingsHelper,
         TemplatesHelper $templatesHelper,
-        $data
+        array $data
     ) {
         $this->clientManagerHelper = $clientManagerHelper;
         $this->settingsHelper = $settingsHelper;
@@ -60,8 +61,8 @@ class Sailthru extends \Magento\Framework\DataObject
             'content' => $emailData['content'],
         ];
 
-        $template = $this->templatesHelper->getTemplateName($templateData['identifier'], $storeId);
-        $vars += $this->templatesHelper->getTemplateAdditionalVariables(
+        $template = $this->settingsHelper->getTemplateName($templateData['identifier'], $storeId);
+        $vars += $this->settingsHelper->getTemplateAdditionalVariables(
             $template['orig_template_code'],
             $templateData['variables']
         );
@@ -88,6 +89,8 @@ class Sailthru extends \Magento\Framework\DataObject
      * Validate data params
      *
      * @return Sailthru
+     *
+     * @throws MailException
      */
     protected function validate()
     {
@@ -109,6 +112,8 @@ class Sailthru extends \Magento\Framework\DataObject
      * Send mail via Sailthru API
      *
      * @return Sailthru
+     *
+     * @throws \Exception
      */
     public function sendMessage()
     {
@@ -125,7 +130,7 @@ class Sailthru extends \Magento\Framework\DataObject
                 throw new MailException(__($response['errormsg']));
             }
         } catch (\Exception $e) {
-            throw new MailException(__("Couldn't send the mail {$e->getMessage()}"));
+            throw new MailException("Couldn't send the mail {$e->getMessage()}");
         }
 
         return $this;

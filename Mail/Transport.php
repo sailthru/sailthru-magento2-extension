@@ -106,10 +106,20 @@ class Transport extends \Magento\Email\Model\Transport
 
                     return $this;
                 }
-                $this->sendViaAPI($templateData, $emailData, $storeId);
-            } else {
-                parent::sendMessage();
+                /** @var Transport\Sailthru $transport */
+                $transport = $this->sailthruTransportFactory->create([
+                    'data' => [
+                        'template_data' => $templateData,
+                        'email_data'    => $emailData,
+                        'store_id'      => $storeId,
+                    ],
+                ]);
+                $transport->sendMessage();
+
+                return $this;
             }
+
+            parent::sendMessage();
         } catch (\Exception $e) {
             throw new \Magento\Framework\Exception\MailException(new \Magento\Framework\Phrase($e->getMessage()), $e);
         }
@@ -131,57 +141,6 @@ class Transport extends \Magento\Email\Model\Transport
             'subject' => $this->prepareSubject($message),
             'content' => $this->getMessage()->getDecodedBodyText()
         ];
-    }
-
-    /**
-     * To send `Magento Generic` or `Magento Specific` template.
-     *
-     * @param array $templateData
-     * @param array $emailData
-     * @param int $storeId
-     *
-     * @throws MailException
-     */
-    public function sendViaAPI($templateData, $emailData, $storeId)
-    {
-        $vars = [
-            "subj"    => $emailData['subject'],
-            "content" => $emailData['content'],
-        ];
-
-        try {
-            # Get template name
-            $template = $this->sailthruSettings->getTemplateName($templateData['identifier'], $storeId);
-            # Vars used in Sailthru Magento 1 extension and template file.
-            $vars += $this->sailthruSettings->getTemplateAdditionalVariables(
-                $template['orig_template_code'],
-                $templateData['variables']
-            );
-
-            $templateName = $template['name'];
-            if (!$this->sailthruTemplates->templateExists($templateName, $storeId)) {
-                $this->sailthruTemplates->saveTemplate(
-                    $templateName,
-                    $this->sailthruSettings->getSender($storeId),
-                    $storeId
-                );
-            }
-
-            $params = [
-                "template" => $templateName,
-                "email"    => $emailData['to'],
-                "vars"     => $vars,
-            ];
-
-            $client = $this->clientManager->getClient(true, $storeId);
-            $response = $client->apiPost('send', $params);
-            if (isset($response["error"])) {
-                $client->logger($response['errormsg']);
-                throw new MailException(__($response['errormsg']));
-            }
-        } catch (\Exception $e) {
-            throw new MailException(__("Couldn't send the mail {$e->getMessage()}"));
-        }
     }
 
     /**

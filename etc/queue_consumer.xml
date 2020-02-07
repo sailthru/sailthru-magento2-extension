@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework-message-queue:etc/consumer.xsd">
-    <consumer name="sailthru.send.email.consumer.amqp"
+    <consumer name="sailthru.send.email.consumer"
               queue="sailthru_email_send"
               handler="Sailthru\MageSail\Mail\Queue\EmailSendConsumer::execute"
               connection="amqp"/>

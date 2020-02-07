@@ -10,6 +10,11 @@ use Sailthru\MageSail\Mail\Transport\SailthruFactory as SailthruTransportFactory
 class EmailSendConsumer
 {
     /**
+     * @var EmailSendPublisher
+     */
+    protected $publisher;
+
+    /**
      * @var LoggerInterface
      */
     protected $logger;
@@ -25,10 +30,12 @@ class EmailSendConsumer
     protected $sailthruTransportFactory;
 
     public function __construct(
+        EmailSendPublisher $publisher,
         LoggerInterface $logger,
         Settings $settingsHelper,
         SailthruTransportFactory $sailthruTransportFactory
     ) {
+        $this->publisher = $publisher;
         $this->logger = $logger;
         $this->settingsHelper = $settingsHelper;
         $this->sailthruTransportFactory = $sailthruTransportFactory;
@@ -52,22 +59,13 @@ class EmailSendConsumer
      * @param string $data
      *
      * @return $this
+     *
+     * @throws \Exception
      */
     public function execute($data)
     {
         $data = json_decode($data, true);
-        /** @var \Sailthru\MageSail\Mail\Transport\Sailthru $transport */
-        $transport = $this->getTransport($data);
-        $countAttempt = $this->settingsHelper->getTransactionalsProcessQueueAttempts($transport->getStoreId());
-        while ($countAttempt) {
-            try {
-                $transport->sendMessage();
-                break;
-            } catch (\Exception $e) {
-                $this->logger->error($e->getMessage());
-                $countAttempt--;
-            }
-        }
+        $this->getTransport($data)->sendMessage();
 
         return $this;
     }

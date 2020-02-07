@@ -23,6 +23,10 @@
     <type name="\Magento\Config\Model\Config\Structure\Element\Group">
         <plugin name="MageSail_Config_Fields" type="Sailthru\MageSail\Plugin\GroupIntercept"/>
     </type>
+    <type name="Magento\MessageQueue\Model\ResourceModel\Lock">
+        <plugin name="MageSail_Queue_Lock_ResourceModel"
+                type="Sailthru\MageSail\Plugin\Queue\LockResourceModelIntercept"/>
+    </type>
     <preference for="Magento\Framework\Mail\TransportInterface" type="Sailthru\MageSail\Mail\Transport"/>
     <preference for="\Magento\Framework\Mail\Template\TransportBuilder" type="Sailthru\MageSail\Mail\TransportBuilder"/>
     <preference for="\Magento\Framework\Mail\EmailMessage" type="Sailthru\MageSail\Mail\EmailMessage"/>
