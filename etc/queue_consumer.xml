@@ -3,6 +3,7 @@
         xsi:noNamespaceSchemaLocation="urn:magento:framework-message-queue:etc/consumer.xsd">
     <consumer name="sailthru.send.email.consumer"
               queue="sailthru_email_send"
-              handler="Sailthru\MageSail\Mail\Queue\EmailSendConsumer::execute"
+              handler="Sailthru\MageSail\Mail\Queue\EmailSendProcessor::execute"
+              consumerInstance="Sailthru\MageSail\Mail\Queue\Consumer"
               connection="amqp"/>
 </config>

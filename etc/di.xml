@@ -33,6 +33,7 @@
     <preference for="\Magento\Email\Model\Template" type="Sailthru\MageSail\Mail\Template"/>
     <preference for="\Magento\Email\Model\BackendTemplate" type="Sailthru\MageSail\Mail\BackendTemplate"/>
     <preference for="\Magento\Email\Model\Template\Filter" type="Sailthru\MageSail\Mail\Filter"/>
+    <preference for="\Magento\MysqlMq\Model\Driver\Queue" type="Sailthru\MageSail\Model\Driver\MysqlMq"/>
     <type name="Sailthru\MageSail\Mail\BackendTemplate">
         <arguments>
             <argument name="urlModel" xsi:type="object" shared="false">Magento\Backend\Model\Url</argument>

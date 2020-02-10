@@ -16,16 +16,16 @@ class EmailSendPublisher
         $this->publisher = $publisher;
     }
 
-    public function execute($templateData, $emailData, $storeId)
+    /**
+     * Add message to queue
+     *
+     * @param array $messageData
+     *
+     * @return $this
+     */
+    public function execute(array $messageData)
     {
-        $this->publisher->publish(
-            self::TOPIC_NAME,
-            json_encode([
-                'template_data' => $templateData,
-                'email_data'    => $emailData,
-                'store_id'      => $storeId,
-            ])
-        );
+        $this->publisher->publish(self::TOPIC_NAME, json_encode($messageData));
 
         return $this;
     }

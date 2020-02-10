@@ -40,7 +40,6 @@ class LockResourceModelIntercept
         $object->save();
         /**
          * Temporary fix: https://github.com/magento/magento2/issues/18140
-         *
          * @customization START
          */
         $lock->setId($object->getId());

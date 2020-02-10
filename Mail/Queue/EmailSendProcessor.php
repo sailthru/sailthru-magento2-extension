@@ -7,7 +7,7 @@ use Sailthru\MageSail\Helper\Settings;
 use Sailthru\MageSail\Mail\Transport\Sailthru as SailthruTransport;
 use Sailthru\MageSail\Mail\Transport\SailthruFactory as SailthruTransportFactory;
 
-class EmailSendConsumer
+class EmailSendProcessor
 {
     /**
      * @var EmailSendPublisher
@@ -48,7 +48,7 @@ class EmailSendConsumer
      *
      * @return SailthruTransport
      */
-    public function getTransport($data)
+    public function getTransport(array $data)
     {
         return $this->sailthruTransportFactory->create(['data' => $data]);
     }
@@ -56,16 +56,16 @@ class EmailSendConsumer
     /**
      * Consumer handler of send Sailthru email
      *
-     * @param string $data
+     * @param string $messageData
      *
      * @return $this
      *
      * @throws \Exception
      */
-    public function execute($data)
+    public function execute($messageData)
     {
-        $data = json_decode($data, true);
-        $this->getTransport($data)->sendMessage();
+        $decodedData = json_decode($messageData, true);
+        $this->getTransport($decodedData)->sendMessage();
 
         return $this;
     }
