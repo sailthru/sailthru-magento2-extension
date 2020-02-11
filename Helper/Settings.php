@@ -42,10 +42,13 @@ class Settings extends AbstractHelper
     const XML_TRANSACTIONALS_SENDER         = "magesail_send/transactionals/from_sender";
     const XML_TEMPLATES_CACHE_LIFETIME      = "magesail_send/transactionals/templates_cache_lifetime";
     const XML_TRANSACTIONALS_QUEUE_ENABLED  = "magesail_send/transactionals/process_queue";
-    const XML_TRANSACTIONALS_QUEUE_ATTEMPTS = "magesail_send/transactionals/process_queue_attempts";
     const XML_ORDER_ENABLED                 = "magesail_send/transactionals/purchase_enabled";
     const XML_ORDER_TEMPLATE                = "magesail_send/transactionals/purchase_template";
     const LO_ABANDONED_CART_ENABLED         = "1";
+
+    const QUEUE_ATTEMPTS_COUNT   = 3;
+    const QUEUE_DRIVER_TYPE_DB   = 'db';
+    const QUEUE_DRIVER_TYPE_AMQP = 'amqp';
 
     /** Path to the `transactionals` tab. */
     const XML_TRANSACTIONALS_PATH = 'magesail_send/transactionals/';
@@ -167,11 +170,6 @@ class Settings extends AbstractHelper
     public function getTransactionalsProcessQueueEnabled($storeId = null)
     {
         return $this->getSettingsVal(self::XML_TRANSACTIONALS_QUEUE_ENABLED, $storeId);
-    }
-
-    public function getTransactionalsProcessQueueAttempts($storeId = null)
-    {
-        return $this->getSettingsVal(self::XML_TRANSACTIONALS_QUEUE_ATTEMPTS, $storeId);
     }
 
     public function getSender($storeId = null)

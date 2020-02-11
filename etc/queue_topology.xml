@@ -1,7 +1,14 @@
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework-message-queue:etc/topology.xsd">
-    <exchange name="sailthru.email" type="topic" connection="amqp">
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework-message-queue:etc/topology.xsd">
+    <exchange name="sailthru.email.amqp" type="topic" connection="amqp">
         <binding id="SailthruEmailSend"
-                 topic="sailthru.email.send"
+                 topic="sailthru.email.send.amqp"
+                 destinationType="queue"
+                 destination="sailthru_email_send"/>
+    </exchange>
+    <exchange name="sailthru.email.db" type="topic" connection="db">
+        <binding id="SailthruEmailSend"
+                 topic="sailthru.email.send.db"
                  destinationType="queue"
                  destination="sailthru_email_send"/>
     </exchange>

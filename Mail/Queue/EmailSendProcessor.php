@@ -65,7 +65,12 @@ class EmailSendProcessor
     public function execute($messageData)
     {
         $decodedData = json_decode($messageData, true);
-        $this->getTransport($decodedData)->sendMessage();
+        try {
+            $this->getTransport($decodedData)->sendMessage();
+        } catch (\Throwable $t) {
+            $this->logger->critical($t->getMessage());
+            $this->publisher->execute($decodedData, ($decodedData['attempt'] ?? 0) + 1);
+        }
 
         return $this;
     }

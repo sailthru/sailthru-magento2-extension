@@ -219,12 +219,6 @@
                         <field id="*/*/send_through_sailthru">1</field>
                     </depends>
                 </field>
-                <field id="process_queue_attempts" type="text" translate="label comment" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Count of Attempts to Process Queue</label>
-                    <depends>
-                        <field id="*/*/process_queue">1</field>
-                    </depends>
-                </field>
             </group>
         </section>
     </system>
