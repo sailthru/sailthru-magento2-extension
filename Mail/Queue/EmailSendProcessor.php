@@ -64,6 +64,9 @@ class EmailSendProcessor
      */
     public function execute($messageData)
     {
+        if (!$this->settingsHelper->getTransactionalsProcessQueueEnabled()) {
+            return $this;
+        }
         $decodedData = json_decode($messageData, true);
         try {
             $this->getTransport($decodedData)->sendMessage();

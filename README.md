@@ -18,24 +18,6 @@
 
 *__Note__: If sync'ing variant products with no visible individual URL, you should enable "Preserve Fragments" in Sailthru [here][2].*
 
-## Queue Setting
-
-1. Upgrade the database and generate queue
-    `bin/magento setup:upgrade`
-    *(Depending on Magento mode, you may need to run `magento setup:di:compile`)*
-
-2. Edit the `/app/etc/env.php` file to configure the cron job consumers_runner. If you use RabbitMQ then add `sailthru.send.email.consumer.amqp` to consumers array else if you use database then add `sailthru.send.email.consumer.db`. After edit restart cron.
-    ```
-    'cron_consumers_runner' => [
-        'max_messages' => 0,
-        'consumers' => [
-            'sailthru.send.email.consumer.amqp',
-        ],
-    ],
-    ```
-
-3. Go to *Admin > Stores > Configuration > Sailthru > Messaging* to configure and set *Yes* for *Process Sailthru Emails By Queue*
-
 ## Javascript Setup
 The Sailthru MageSail module comes ready to use Sailthru's new PersonalizeJs javascript. To add page-tracking and gather onsite data like pageviews and clicks: 
 
@@ -58,6 +40,15 @@ Required parameters are:
 After updating the `./etc/template_config.xml` file run `php bin/magento cache:clean config` to clean Config cache.
 To extend or change structure of a transactional email templates override config file use `./etc/template_list.xsd` file.
 
+## Queue Setting
+
+1. Upgrade the database and generate queue
+    `bin/magento setup:upgrade`
+    *(Depending on Magento mode, you may need to run `magento setup:di:compile`)*
+
+2. Run cron `bin/magento cron:run`
+
+3. Go to *Admin > Stores > Configuration > Sailthru > Messaging* to configure and set *Yes* for *Process Sailthru Emails By Queue*
 
 [1]: https://getstarted.sailthru.com/integrations/overview/
 [2]: https://my.sailthru.com/settings/spider

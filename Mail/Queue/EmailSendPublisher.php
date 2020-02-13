@@ -40,7 +40,7 @@ class EmailSendPublisher
     public function getTopicName()
     {
         try {
-            $driverType = $this->amqpConfig->getValue(AmqpConfig::HOST)
+            $driverType = $this->isAmqpConfigured()
                 ? SettingsHelper::QUEUE_DRIVER_TYPE_AMQP
                 : SettingsHelper::QUEUE_DRIVER_TYPE_DB;
         } catch (\LogicException $exception) {
@@ -48,6 +48,18 @@ class EmailSendPublisher
         }
 
         return 'sailthru.email.send.' . $driverType;
+    }
+
+    /**
+     * Check Amqp is configured.
+     *
+     * @return bool
+     *
+     * @throws \LogicException
+     */
+    protected function isAmqpConfigured()
+    {
+        return $this->amqpConfig->getValue(AmqpConfig::HOST) ? true : false;
     }
 
     /**
