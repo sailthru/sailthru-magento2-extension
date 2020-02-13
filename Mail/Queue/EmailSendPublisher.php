@@ -9,6 +9,12 @@ use Sailthru\MageSail\Helper\Settings as SettingsHelper;
 class EmailSendPublisher
 {
     /**
+     * Topic names
+     */
+    const TOPIC_NAME_DB   = 'sailthru.email.send.db';
+    const TOPIC_NAME_AMQP = 'sailthru.email.send.amqp';
+
+    /**
      * @var AmqpConfig
      */
     protected $amqpConfig;
@@ -40,14 +46,10 @@ class EmailSendPublisher
     public function getTopicName()
     {
         try {
-            $driverType = $this->isAmqpConfigured()
-                ? SettingsHelper::QUEUE_DRIVER_TYPE_AMQP
-                : SettingsHelper::QUEUE_DRIVER_TYPE_DB;
+            return $this->isAmqpConfigured() ? self::TOPIC_NAME_AMQP : self::TOPIC_NAME_DB;
         } catch (\LogicException $exception) {
-            $driverType = SettingsHelper::QUEUE_DRIVER_TYPE_DB;
+            return self::TOPIC_NAME_DB;
         }
-
-        return 'sailthru.email.send.' . $driverType;
     }
 
     /**

@@ -46,9 +46,8 @@ class Settings extends AbstractHelper
     const XML_ORDER_TEMPLATE                = "magesail_send/transactionals/purchase_template";
     const LO_ABANDONED_CART_ENABLED         = "1";
 
+    // Queue settings
     const QUEUE_ATTEMPTS_COUNT   = 3;
-    const QUEUE_DRIVER_TYPE_DB   = 'db';
-    const QUEUE_DRIVER_TYPE_AMQP = 'amqp';
 
     /** Path to the `transactionals` tab. */
     const XML_TRANSACTIONALS_PATH = 'magesail_send/transactionals/';
