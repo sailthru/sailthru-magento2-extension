@@ -23,6 +23,7 @@
         <magesail_send>
             <transactionals>
                 <templates_cache_lifetime>3600</templates_cache_lifetime>
+                <process_queue>0</process_queue>
             </transactionals>
         </magesail_send>
     </default>

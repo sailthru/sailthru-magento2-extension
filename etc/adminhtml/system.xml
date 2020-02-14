@@ -211,6 +211,14 @@
                         <field id="*/*/send_through_sailthru">1</field>
                     </depends>
                 </field>
+                <field id="process_queue" type="select" translate="label comment" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Process Sailthru Emails By Queue</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Enable if you want messages to be processed by the queue.]]></comment>
+                    <depends>
+                        <field id="*/*/send_through_sailthru">1</field>
+                    </depends>
+                </field>
             </group>
         </section>
     </system>

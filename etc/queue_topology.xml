@@ -1,0 +1,15 @@
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework-message-queue:etc/topology.xsd">
+    <exchange name="sailthru" type="topic" connection="amqp">
+        <binding id="SailthruEmailSend"
+                 topic="sailthru.email.send.amqp"
+                 destinationType="queue"
+                 destination="sailthru_email_send"/>
+    </exchange>
+    <exchange name="sailthru-db" type="topic" connection="db">
+        <binding id="SailthruEmailSend"
+                 topic="sailthru.email.send.db"
+                 destinationType="queue"
+                 destination="sailthru_email_send"/>
+    </exchange>
+</config>
