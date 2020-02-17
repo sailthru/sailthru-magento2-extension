@@ -205,18 +205,28 @@
                         <field id="*/*/send_through_sailthru">1</field>
                     </depends>
                 </field>
-                <field id="templates_cache_lifetime" type="text" translate="label" sortOrder="3" showInDefault="1" showInWebsite="1">
+            </group>
+            <group id="advanced" type="text" translate="label" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Advanced</label>
+                <field id="templates_cache_lifetime" type="text" translate="label" sortOrder="1" showInDefault="1" showInWebsite="1">
                     <label>Templates Cache Lifetime</label>
                     <depends>
-                        <field id="*/*/send_through_sailthru">1</field>
+                        <field id="*/transactionals/send_through_sailthru">1</field>
                     </depends>
                 </field>
-                <field id="process_queue" type="select" translate="label comment" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="1">
-                    <label>Process Sailthru Emails By Queue</label>
+                <field id="use_email_queue" type="select" translate="label comment" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Use Magento Email Queue</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[Enable if you want messages to be processed by the queue.]]></comment>
+                    <comment>
+                        <![CDATA[
+                            Reduce customer pageload times and increase reliability by leveraging Magento's native email queue system.<br/>
+                            <span style="font-size: 10px;">
+                                NOTE: Only use if you have cron enabled.
+                            </span>
+                        ]]>
+                    </comment>
                     <depends>
-                        <field id="*/*/send_through_sailthru">1</field>
+                        <field id="*/transactionals/send_through_sailthru">1</field>
                     </depends>
                 </field>
             </group>

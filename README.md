@@ -40,15 +40,24 @@ Required parameters are:
 After updating the `./etc/template_config.xml` file run `php bin/magento cache:clean config` to clean Config cache.
 To extend or change structure of a transactional email templates override config file use `./etc/template_list.xsd` file.
 
-## Queue Setting
+## Use Magento Email Queue
 
-1. Upgrade the database and generate queue
-    `bin/magento setup:upgrade`
-    *(Depending on Magento mode, you may need to run `magento setup:di:compile`)*
+Sailthru Magento 2 extension utilizes standard Magento queueing functionality. 
 
-2. Run cron `bin/magento cron:run`
+1. Go to *Admin > Stores > Configuration > Sailthru > Messaging > Advanced*
+2. Set flag "Use Magento Email Queue" to Yes and save configuration
+3. Make sure Magento cron is setup and running
+4. To test Sailthru messages queue consumer execute:
+```
+$ php bin/magento queue:consumers:start sailthru.email.send.consumer.db
+OR
+$ php bin/magento queue:consumers:start sailthru.email.send.consumer.amqp
+```
 
-3. Go to *Admin > Stores > Configuration > Sailthru > Messaging* to configure and set *Yes* for *Process Sailthru Emails By Queue*
+### RabbitMQ integrationa
+Instead of standard database based queue broker RabbitMQ can be used
+
+Refer to [Magento Guide: RabittMQ Setup](https://devdocs.magento.com/guides/v2.3/install-gde/prereq/install-rabbitmq.html)
 
 [1]: https://getstarted.sailthru.com/integrations/overview/
 [2]: https://my.sailthru.com/settings/spider
