@@ -21,10 +21,10 @@
             </names>
         </magesail_lists>
         <magesail_send>
-            <transactionals>
+            <advanced>
                 <templates_cache_lifetime>3600</templates_cache_lifetime>
-                <process_queue>0</process_queue>
-            </transactionals>
+                <use_email_queue>0</use_email_queue>
+            </advanced>
         </magesail_send>
     </default>
 </config>

@@ -101,7 +101,7 @@ class Transport extends \Magento\Email\Model\Transport
 
             if ($this->sailthruSettings->getTransactionalsEnabled($storeId) && $template['name'] != 'disableSailthru') {
                 $emailData = $this->getEmailData();
-                if ($this->sailthruSettings->getTransactionalsProcessQueueEnabled($storeId)) {
+                if ($this->sailthruSettings->getUseEmailQueue($storeId)) {
                     $this->emailSendPublisher->execute([
                         'template_data' => $templateData,
                         'email_data'    => $emailData,

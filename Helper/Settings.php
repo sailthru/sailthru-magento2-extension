@@ -34,20 +34,20 @@ class Settings extends AbstractHelper
     const XML_SELECT_CASE                   = "magesail_lists/names/select_case";
 
     // Transactional Emails
-    const XML_ABANDONED_CART_ENABLED        = "magesail_send/abandoned_cart/enabled";
-    const XML_ABANDONED_CART_TEMPLATE       = "magesail_send/abandoned_cart/template";
-    const XML_ABANDONED_CART_TIME           = "magesail_send/abandoned_cart/delay_time";
-    const XML_ABANDONED_CART_ANONYMOUS      = "magesail_send/abandoned_cart/anonymous_carts";
-    const XML_TRANSACTIONALS_ENABLED        = "magesail_send/transactionals/send_through_sailthru";
-    const XML_TRANSACTIONALS_SENDER         = "magesail_send/transactionals/from_sender";
-    const XML_TEMPLATES_CACHE_LIFETIME      = "magesail_send/transactionals/templates_cache_lifetime";
-    const XML_TRANSACTIONALS_QUEUE_ENABLED  = "magesail_send/transactionals/process_queue";
-    const XML_ORDER_ENABLED                 = "magesail_send/transactionals/purchase_enabled";
-    const XML_ORDER_TEMPLATE                = "magesail_send/transactionals/purchase_template";
-    const LO_ABANDONED_CART_ENABLED         = "1";
+    const XML_ABANDONED_CART_ENABLED   = "magesail_send/abandoned_cart/enabled";
+    const XML_ABANDONED_CART_TEMPLATE  = "magesail_send/abandoned_cart/template";
+    const XML_ABANDONED_CART_TIME      = "magesail_send/abandoned_cart/delay_time";
+    const XML_ABANDONED_CART_ANONYMOUS = "magesail_send/abandoned_cart/anonymous_carts";
+    const XML_TRANSACTIONALS_ENABLED   = "magesail_send/transactionals/send_through_sailthru";
+    const XML_TRANSACTIONALS_SENDER    = "magesail_send/transactionals/from_sender";
+    const XML_ORDER_ENABLED            = "magesail_send/transactionals/purchase_enabled";
+    const XML_ORDER_TEMPLATE           = "magesail_send/transactionals/purchase_template";
+    const XML_TEMPLATES_CACHE_LIFETIME = "magesail_send/advanced/templates_cache_lifetime";
+    const XML_USE_EMAIL_QUEUE          = "magesail_send/advanced/use_email_queue";
+    const LO_ABANDONED_CART_ENABLED    = "1";
 
     // Queue settings
-    const QUEUE_ATTEMPTS_COUNT   = 3;
+    const QUEUE_ATTEMPTS_COUNT = 3;
 
     /** Path to the `transactionals` tab. */
     const XML_TRANSACTIONALS_PATH = 'magesail_send/transactionals/';
@@ -166,9 +166,9 @@ class Settings extends AbstractHelper
         return $this->getSettingsVal(self::XML_TEMPLATES_CACHE_LIFETIME, $storeId);
     }
 
-    public function getTransactionalsProcessQueueEnabled($storeId = null)
+    public function getUseEmailQueue($storeId = null)
     {
-        return $this->getSettingsVal(self::XML_TRANSACTIONALS_QUEUE_ENABLED, $storeId);
+        return $this->getSettingsVal(self::XML_USE_EMAIL_QUEUE, $storeId);
     }
 
     public function getSender($storeId = null)
