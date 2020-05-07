@@ -85,6 +85,9 @@ class Shipment extends VariablesAbstractHelper
 
         foreach($items as $item) {
             $item = $item->getOrderItem();
+            if (empty($item)) {
+                continue;
+            }
             $itemsData[] = [
                 "title" => $item->getName(),
                 "options" => $item->getProductOptions(),
