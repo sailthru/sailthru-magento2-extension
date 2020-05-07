@@ -130,6 +130,9 @@ class OrderSave implements ObserverInterface {
                 if ($tags = $this->sailthruProduct->getTags($product)) {
                     $_item['tags'] = $tags;
                 }
+                $_item['vars'] += [
+                    'store_id' => $product->getStoreId(),
+                ];
                 $data[] = $_item;
             }
         }
