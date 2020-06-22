@@ -4,6 +4,7 @@ namespace Sailthru\MageSail\Mail;
 
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Store\Model\StoreManagerInterface;
+use Sailthru\MageSail\Helper\Settings;
 use Sailthru\MageSail\Model\Template as TemplateModel;
 
 class Template extends \Magento\Email\Model\Template
@@ -23,6 +24,9 @@ class Template extends \Magento\Email\Model\Template
     /** @var Template */
     private $templateModel;
 
+    /** @var Settings */
+    protected $sailthruSettings;
+
     /**
      * Initialize dependencies.
      *
@@ -40,6 +44,7 @@ class Template extends \Magento\Email\Model\Template
      * @param \Magento\Framework\UrlInterface                    $urlModel
      * @param Template\FilterFactory                             $filterFactory
      * @param TemplateModel                                      $templateModel
+     * @param Settings                                           $sailthruSettings
      * @param array                                              $data
      *
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
@@ -59,9 +64,11 @@ class Template extends \Magento\Email\Model\Template
         \Magento\Framework\UrlInterface $urlModel,
         \Magento\Email\Model\Template\FilterFactory $filterFactory,
         TemplateModel $templateModel,
+        Settings $sailthruSettings,
         array $data = []
     ) {
         $this->templateModel = $templateModel;
+        $this->sailthruSettings = $sailthruSettings;
         parent::__construct(
             $context,
             $design,
@@ -205,10 +212,18 @@ class Template extends \Magento\Email\Model\Template
     public function getProcessedTemplate(array $variables = [])
     {
         $processor = $this->getTemplateFilter()
-            ->setUseSessionInUrl(false)
             ->setPlainTemplateMode($this->isPlain())
             ->setIsChildTemplate($this->isChildTemplate())
             ->setTemplateProcessor([$this, 'getTemplateContent']);
+        /**
+         * Use session in url
+         *
+         * @customization START
+         */
+        if (version_compare($this->sailthruSettings->getMagentoVersion(), '2.3.5', '<')) {
+            $processor->setUseSessionInUrl(false);
+        }
+        /** @customization END */
 
         $variables['this'] = $this;
 

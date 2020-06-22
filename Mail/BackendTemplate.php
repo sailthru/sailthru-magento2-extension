@@ -4,6 +4,7 @@ namespace Sailthru\MageSail\Mail;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Sailthru\MageSail\Helper\Settings;
 use Sailthru\MageSail\Model\Template as TemplateModel;
 
 class BackendTemplate extends Template
@@ -30,6 +31,7 @@ class BackendTemplate extends Template
      * @param \Magento\Framework\UrlInterface                    $urlModel
      * @param Template\FilterFactory                             $filterFactory
      * @param TemplateModel                                      $templateModel
+     * @param Settings                                           $sailthruSettings
      * @param \Magento\Config\Model\Config\Structure             $structure
      *
      * @param array                                              $data
@@ -51,6 +53,7 @@ class BackendTemplate extends Template
         \Magento\Framework\UrlInterface $urlModel,
         \Magento\Email\Model\Template\FilterFactory $filterFactory,
         TemplateModel $templateModel,
+        Settings $sailthruSettings,
         \Magento\Config\Model\Config\Structure $structure,
         array $data = []
     ) {
@@ -71,6 +74,7 @@ class BackendTemplate extends Template
             $urlModel,
             $filterFactory,
             $templateModel,
+            $sailthruSettings,
             $data
         );
     }
