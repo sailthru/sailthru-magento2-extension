@@ -65,7 +65,8 @@ class Template extends \Magento\Email\Model\Template
         \Magento\Email\Model\Template\FilterFactory $filterFactory,
         TemplateModel $templateModel,
         Settings $sailthruSettings,
-        array $data = []
+        array $data = [],
+        \Magento\Framework\Serialize\Serializer\Json $serializer = null
     ) {
         $this->templateModel = $templateModel;
         $this->sailthruSettings = $sailthruSettings;
@@ -83,7 +84,8 @@ class Template extends \Magento\Email\Model\Template
             $filterManager,
             $urlModel,
             $filterFactory,
-            $data
+            $data,
+            $serializer
         );
     }
 
@@ -216,7 +218,7 @@ class Template extends \Magento\Email\Model\Template
             ->setIsChildTemplate($this->isChildTemplate())
             ->setTemplateProcessor([$this, 'getTemplateContent']);
         /**
-         * Use session in url
+         * After Magento v2.3.5 session_id is removed from URLs
          *
          * @customization START
          */
@@ -249,6 +251,18 @@ class Template extends \Magento\Email\Model\Template
         $processor->setDirectives($this->templateDirectives);
         /** @customization END */
 
+        /**
+         * After Magento v2.3.4 need set strict mode
+         *
+         * @customization START
+         */
+        if (version_compare($this->sailthruSettings->getMagentoVersion(), '2.3.4', '>=')) {
+            $previousStrictMode = $processor->setStrictMode(
+                !$this->getData('is_legacy') && is_numeric($this->getTemplateId())
+            );
+        }
+        /** @customization END */
+
         try {
             $result = $processor->filter($this->getTemplateText());
             /**
@@ -264,7 +278,18 @@ class Template extends \Magento\Email\Model\Template
         } catch (\Exception $e) {
             $this->cancelDesignConfig();
             throw new \LogicException(__($e->getMessage()), $e);
+        } finally {
+            /**
+             * After Magento v2.3.4 need set strict mode
+             *
+             * @customization START
+             */
+            if (version_compare($this->sailthruSettings->getMagentoVersion(), '2.3.4', '>=')) {
+                $processor->setStrictMode($previousStrictMode);
+            }
+            /** @customization END */
         }
+
         if ($isDesignApplied) {
             $this->cancelDesignConfig();
         }

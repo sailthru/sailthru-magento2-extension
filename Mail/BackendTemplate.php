@@ -55,7 +55,8 @@ class BackendTemplate extends Template
         TemplateModel $templateModel,
         Settings $sailthruSettings,
         \Magento\Config\Model\Config\Structure $structure,
-        array $data = []
+        array $data = [],
+        \Magento\Framework\Serialize\Serializer\Json $serializer = null
     ) {
         $this->structure = $structure;
 
@@ -75,7 +76,8 @@ class BackendTemplate extends Template
             $filterFactory,
             $templateModel,
             $sailthruSettings,
-            $data
+            $data,
+            $serializer
         );
     }
 
