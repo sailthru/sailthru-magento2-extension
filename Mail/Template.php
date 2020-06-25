@@ -4,6 +4,7 @@ namespace Sailthru\MageSail\Mail;
 
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Store\Model\StoreManagerInterface;
+use Sailthru\MageSail\Helper\Settings;
 use Sailthru\MageSail\Model\Template as TemplateModel;
 
 class Template extends \Magento\Email\Model\Template
@@ -23,6 +24,9 @@ class Template extends \Magento\Email\Model\Template
     /** @var Template */
     private $templateModel;
 
+    /** @var Settings */
+    protected $sailthruSettings;
+
     /**
      * Initialize dependencies.
      *
@@ -40,6 +44,7 @@ class Template extends \Magento\Email\Model\Template
      * @param \Magento\Framework\UrlInterface                    $urlModel
      * @param Template\FilterFactory                             $filterFactory
      * @param TemplateModel                                      $templateModel
+     * @param Settings                                           $sailthruSettings
      * @param array                                              $data
      *
      * @SuppressWarnings(PHPMD.ExcessiveParameterList)
@@ -59,9 +64,12 @@ class Template extends \Magento\Email\Model\Template
         \Magento\Framework\UrlInterface $urlModel,
         \Magento\Email\Model\Template\FilterFactory $filterFactory,
         TemplateModel $templateModel,
-        array $data = []
+        Settings $sailthruSettings,
+        array $data = [],
+        \Magento\Framework\Serialize\Serializer\Json $serializer = null
     ) {
         $this->templateModel = $templateModel;
+        $this->sailthruSettings = $sailthruSettings;
         parent::__construct(
             $context,
             $design,
@@ -76,7 +84,8 @@ class Template extends \Magento\Email\Model\Template
             $filterManager,
             $urlModel,
             $filterFactory,
-            $data
+            $data,
+            $serializer
         );
     }
 
@@ -205,10 +214,18 @@ class Template extends \Magento\Email\Model\Template
     public function getProcessedTemplate(array $variables = [])
     {
         $processor = $this->getTemplateFilter()
-            ->setUseSessionInUrl(false)
             ->setPlainTemplateMode($this->isPlain())
             ->setIsChildTemplate($this->isChildTemplate())
             ->setTemplateProcessor([$this, 'getTemplateContent']);
+        /**
+         * After Magento v2.3.5 session_id is removed from URLs
+         *
+         * @customization START
+         */
+        if (version_compare($this->sailthruSettings->getMagentoVersion(), '2.3.5', '<')) {
+            $processor->setUseSessionInUrl(false);
+        }
+        /** @customization END */
 
         $variables['this'] = $this;
 
@@ -234,6 +251,18 @@ class Template extends \Magento\Email\Model\Template
         $processor->setDirectives($this->templateDirectives);
         /** @customization END */
 
+        /**
+         * After Magento v2.3.4 need set strict mode
+         *
+         * @customization START
+         */
+        if (version_compare($this->sailthruSettings->getMagentoVersion(), '2.3.4', '>=')) {
+            $previousStrictMode = $processor->setStrictMode(
+                !$this->getData('is_legacy') && is_numeric($this->getTemplateId())
+            );
+        }
+        /** @customization END */
+
         try {
             $result = $processor->filter($this->getTemplateText());
             /**
@@ -249,7 +278,18 @@ class Template extends \Magento\Email\Model\Template
         } catch (\Exception $e) {
             $this->cancelDesignConfig();
             throw new \LogicException(__($e->getMessage()), $e);
+        } finally {
+            /**
+             * After Magento v2.3.4 need set strict mode
+             *
+             * @customization START
+             */
+            if (version_compare($this->sailthruSettings->getMagentoVersion(), '2.3.4', '>=')) {
+                $processor->setStrictMode($previousStrictMode);
+            }
+            /** @customization END */
         }
+
         if ($isDesignApplied) {
             $this->cancelDesignConfig();
         }
