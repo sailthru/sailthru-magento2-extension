@@ -218,7 +218,7 @@ class Template extends \Magento\Email\Model\Template
             ->setIsChildTemplate($this->isChildTemplate())
             ->setTemplateProcessor([$this, 'getTemplateContent']);
         /**
-         * After Magento v2.3.5 session_id is removed from URLs
+         * After Magento v2.3.5 setUseSessionInUrl is deprecated
          *
          * @customization START
          */
@@ -252,7 +252,7 @@ class Template extends \Magento\Email\Model\Template
         /** @customization END */
 
         /**
-         * After Magento v2.3.4 need set strict mode
+         * In Magento v2.3.4 and later, need set strict mode
          *
          * @customization START
          */
@@ -280,7 +280,7 @@ class Template extends \Magento\Email\Model\Template
             throw new \LogicException(__($e->getMessage()), $e);
         } finally {
             /**
-             * After Magento v2.3.4 need set strict mode
+             * In Magento v2.3.4 and later, need set strict mode
              *
              * @customization START
              */
@@ -297,9 +297,9 @@ class Template extends \Magento\Email\Model\Template
     }
 
     /**
-     * To get template directives.
+     * @param string|int $templateId
      *
-     * @param int $templateId
+     * @return bool
      */
     private function processTemplateVarDirectives($templateId)
     {
