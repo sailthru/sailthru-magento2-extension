@@ -70,8 +70,21 @@ class CustomerLoggedIn implements ObserverInterface
             $this->sailthruClient->logger($e);
         }
     }
-    private function shouldUpdateSubscriptionStatus($newsletterList, $userData)
+
+    /**
+     * Should update subscription status
+     *
+     * @param $newsletterList
+     * @param $userData
+     *
+     * @return bool
+     */
+    protected function shouldUpdateSubscriptionStatus($newsletterList, $userData)
     {
+        if (!isset($userData['optout_email']) || empty($newsletterList) || empty($userData['lists'])) {
+            return false;
+        }
+
         return $userData['optout_email'] != 'none' || !in_array($newsletterList, array_keys($userData['lists']));
     }
 }
