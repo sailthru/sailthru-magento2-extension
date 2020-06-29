@@ -95,7 +95,10 @@ class Filter extends \Magento\Email\Model\Template\Filter
             return $construction[0];
         }
 
-        list($directive, $modifiers) = $this->explodeModifiers($construction[2], 'escape');
+        list($directive, $modifiers) = $this->explodeModifiers(
+            $construction[2] . ($construction['filters'] ?? ''),
+            'escape'
+        );
 
         /**
          * Add parsed directive value to template variable list

@@ -70,14 +70,15 @@ class Customer extends VariablesAbstractHelper
 
     /**
      * To get Customer additional variables.
-     * 
-     * @param  MageCustomer $object
-     * @param  array        $data
-     * 
+     *
+     * @param MageCustomer $object
+     * @param array $data
+     *
      * @return array
+     * @throws \Exception
      */
     public function getCustomVariables($object, $data = [])
-    {        
+    {
         $dataModel = $object->getDataModel();
         $storeId = $dataModel->getStoreId();
         $store = $this->storeManager->getStore($storeId);
@@ -115,29 +116,42 @@ class Customer extends VariablesAbstractHelper
 
     /**
      * To get Customer model.
-     * 
-     * @param  string $param
-     * 
+     *
+     * @param string $param
+     *
      * @return \Magento\Customer\Model\Customer
+     *
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function getObject($param)
     {
         $this->customerModel->setWebsiteId($this->storeManager->getStore()->getWebsiteId());
-        $this->customerModel->loadByEmail($param);
+        try {
+            $this->customerModel->loadByEmail($param);
+        } catch (\Exception $e) {
+            throw new \Exception($e->getMessage() . "\n\n" . $e->getTraceAsString());
+        }
 
         return $this->customerModel;
     }
 
     /**
      * To get Customer model.
-     * 
-     * @param  string|int                        $id
+     *
+     * @param string|int $id
+     *
      * @return \Magento\Customer\Model\Customer
+     *
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function getObjectById($id)
     {
         $this->customerModel->setWebsiteId($this->storeManager->getStore()->getWebsiteId());
-        $this->customerModel->load($id);
+        try {
+            $this->customerModel->load($id);
+        } catch (\Exception $e) {
+            throw new \Exception($e->getMessage() . "\n\n" . $e->getTraceAsString());
+        }
 
         return $this->customerModel;
     }
