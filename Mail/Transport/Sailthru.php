@@ -12,7 +12,7 @@ class Sailthru extends \Magento\Framework\DataObject
     /**
      * @var ClientManagerHelper
      */
-    protected $clientManagerHelper;
+    protected $clientManager;
 
     /**
      * @var SettingsHelper
@@ -27,18 +27,18 @@ class Sailthru extends \Magento\Framework\DataObject
     /**
      * SailthruTransport constructor.
      *
-     * @param ClientManagerHelper $clientManagerHelper
+     * @param ClientManagerHelper $clientManager
      * @param SettingsHelper $settingsHelper
      * @param TemplatesHelper $templatesHelper
      * @param array $data
      */
     public function __construct(
-        ClientManagerHelper $clientManagerHelper,
+        ClientManagerHelper $clientManager,
         SettingsHelper $settingsHelper,
         TemplatesHelper $templatesHelper,
         array $data
     ) {
-        $this->clientManagerHelper = $clientManagerHelper;
+        $this->clientManager = $clientManager;
         $this->settingsHelper = $settingsHelper;
         $this->templatesHelper = $templatesHelper;
 
@@ -123,9 +123,9 @@ class Sailthru extends \Magento\Framework\DataObject
             $emailData = $this->getEmailData();
             $storeId = (int)$this->getStoreId();
 
-            $client = $this->clientManagerHelper->getClient(true, $storeId);
+            $client = $this->clientManager->getClient($storeId);
             $response = $client->apiPost('send', $this->prepareParams($templateData, $emailData, $storeId));
-            if (isset($response["error"])) {
+            if (isset($response['error'])) {
                 $client->logger($response['errormsg']);
                 throw new MailException(__($response['errormsg']));
             }

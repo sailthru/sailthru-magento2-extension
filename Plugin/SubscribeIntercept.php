@@ -2,10 +2,8 @@
 
 namespace Sailthru\MageSail\Plugin;
 
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Newsletter\Model\Subscriber;
 use Magento\Store\Model\StoreManagerInterface;
-use Psr\Log\LoggerInterface;
 use Sailthru\MageSail\Helper\ClientManager;
 use Sailthru\MageSail\Helper\ScopeResolver;
 use Sailthru\MageSail\Helper\Settings as SailthruSettings;
@@ -17,7 +15,7 @@ class SubscribeIntercept
         Subscriber::STATUS_UNSUBSCRIBED,
         Subscriber::STATUS_SUBSCRIBED
     ];
-    
+
     /** @var ClientManager  */
     private $clientManager;
 
@@ -109,7 +107,7 @@ class SubscribeIntercept
                 ];
             }
 
-            $client = $this->clientManager->getClient(true, $storeId);
+            $client = $this->clientManager->getClient($storeId);
             $client->_eventType = $isSubscribed ? 'CustomerSubscribe' : 'CustomerUnsubscribe';
             try {
                 $client->apiPost('user', $data);

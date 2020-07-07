@@ -3,7 +3,6 @@
 namespace Sailthru\MageSail\Model;
 
 use Magento\Framework\App\Cache;
-use Magento\Framework\App\Cache\State;
 use Psr\Log\LoggerInterface;
 use Sailthru\MageSail\Helper\ClientManager;
 use Sailthru\MageSail\Helper\Settings;
@@ -122,7 +121,7 @@ class SailthruTemplates
         }
 
         try {
-            $client = $this->clientManager->getClient(true, $storeId);
+            $client = $this->clientManager->getClient($storeId);
 
             return $client->getTemplates();
         } catch (\Exception $e) {
