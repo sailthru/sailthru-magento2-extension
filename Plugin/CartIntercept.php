@@ -60,9 +60,7 @@ class CartIntercept
     {
         $customer = $cart->getCustomerSession()->getCustomer();
         $email = $customer->getEmail();
-        if (empty($this->client)) {
-            $this->client = $this->clientManager->getClient(true, $storeId);
-        }
+        $this->client = $this->clientManager->getClient(true, $storeId);
         if ($email || $anonymousEmail = $this->isAnonymousReady($storeId)) {
             $items = $this->_getItems($cart);
             $data = [
