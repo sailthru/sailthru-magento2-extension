@@ -17,7 +17,6 @@ use Sailthru\MageSail\Cookie\Hid as SailthruCookie;
 
 class CartIntercept
 {
-
     public function __construct(
         ClientManager $clientManager,
         SailthruSettings $sailthruSettings,
@@ -56,37 +55,37 @@ class CartIntercept
             return $cart;
         }
     }
+
     public function sendCart(Cart $cart, $storeId)
     {
         $customer = $cart->getCustomerSession()->getCustomer();
         $email = $customer->getEmail();
-        $this->client = $this->clientManager->getClient(true, $storeId);
+        $client = $this->clientManager->getClient($storeId);
         if ($email || $anonymousEmail = $this->isAnonymousReady($storeId)) {
             $items = $this->_getItems($cart);
             $data = [
-                'email'             => $email,
-                'items'             => $items,
-                'incomplete'        => 1,
-                'message_id'        => $this->sailthruCookie->getBid(),
+                'email'      => $email,
+                'items'      => $items,
+                'incomplete' => 1,
+                'message_id' => $this->sailthruCookie->getBid(),
             ];
-            $email = $email ? $email : $anonymousEmail;
             try {
-                $this->client->_eventType = "CartUpdate";
-                $items = $this->_getItems($cart);
-                if(!$this->isLoEnabled($storeId)) {
+                $client->_eventType = 'CartUpdate';
+                if (!$this->isLoEnabled($storeId)) {
                     $data['reminder_time'] = $this->sailthruSettings->getAbandonedTime($storeId);
                     $data['reminder_template'] = $this->sailthruSettings->getAbandonedTemplate($storeId);
                 }
-                $this->client->apiPost("purchase", $data);
+                $client->apiPost('purchase', $data);
             } catch (\Sailthru_Client_Exception $e) {
-                $this->client->logger($e);
+                $client->logger($e);
             } catch (\Exception $e) {
-                $this->client->logger($e);
+                $client->logger($e);
                 throw $e;
             } finally {
                 return $cart;
             }
         }
+
         return $cart;
     }
 
@@ -118,19 +117,21 @@ class CartIntercept
     public function isAnonymousReady($storeId = null)
     {
         if ($this->sailthruSettings->canAbandonAnonymous($storeId) && $hid = $this->sailthruCookie->get()) {
-            $response = $this->client->getUserByKey($hid, 'cookie', ['keys' => 1]);
-            if (array_key_exists("keys", $response)) {
-                $email = $response["keys"]["email"];
+            $response = $this->clientManager->getClient($storeId)->getUserByKey($hid, 'cookie', ['keys' => 1]);
+            if (array_key_exists('keys', $response)) {
+                $email = $response['keys']['email'];
+
                 return $email;
             }
         }
+
         return false;
     }
 
     /**
      * Prepare data on items in cart or order.
      *
-     * @param  Cart $cart
+     * @param Cart $cart
      *
      * @return array|false
      */
@@ -159,20 +160,18 @@ class CartIntercept
                     $_item['id'] = null;
                 }
                 if ($_item['id']) {
-                    $_item['qty'] = (int) $item->getQty();
+                    $_item['qty'] = (int)$item->getQty();
                     $_item['url'] = $item->getProduct()->getProductUrl();
-                    $_item['image']=$this->productHelper->getSmallImageUrl($product);
+                    $_item['image'] = $this->productHelper->getSmallImageUrl($product);
                     $current_price = null;
-                    $price_used = "reg";
                     $reg_price = $product->getPrice();
                     $special_price = $product->getSpecialPrice();
                     $special_from = $product->getSpecialFromDate();
                     $special_to = $product->getSpecialToDate();
                     if ($special_price &&
-                        ($special_from === null || (strtotime($special_from) < strtotime("Today"))) &&
-                        ($special_to === null || (strtotime($special_to) > strtotime("Today")))) {
+                        ($special_from === null || (strtotime($special_from) < strtotime('Today'))) &&
+                        ($special_to === null || (strtotime($special_to) > strtotime('Today')))) {
                         $current_price = $special_price;
-                        $price_used = "special";
                     } else {
                         $current_price = $reg_price;
                     }
@@ -183,16 +182,20 @@ class CartIntercept
                     $data[] = $_item;
                 }
             }
+
             return $data;
         } catch (\Exception $e) {
-            $this->client->logger($e);
+            $this->clientManager->getClient()->logger($e);
+
             return false;
         }
     }
 
     /**
      * Get product meta keywords
+     *
      * @param Product $product
+     *
      * @return string
      */
     public function _getTags(Product $product)
@@ -203,6 +206,7 @@ class CartIntercept
     /**
      *
      * @param array $options
+     *
      * @return array
      */
     public function _getVars($options)
@@ -212,6 +216,7 @@ class CartIntercept
         foreach ($data as $attribute) {
             $vars[$attribute['label']] = $attribute['value'];
         }
+
         return $vars;
     }
 }

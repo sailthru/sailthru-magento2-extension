@@ -13,24 +13,20 @@ use Sailthru\MageSail\Model\Config\Template\Data as TemplateConfig;
 
 class ClientManager extends AbstractHelper
 {
+    const XML_API_KEY         = 'magesail_config/service/api_key';
+    const XML_API_SECRET      = 'magesail_config/service/secret_key';
+    const XML_JS_ENABLED      = 'magesail_config/js/enabled';
+    const XML_JS_CUSTOMER_ID  = 'magesail_config/js/customer_id';
+    const API_SUCCESS_MESSAGE = 'Successfully Validated!';
 
-    const XML_API_KEY         = "magesail_config/service/api_key";
-    const XML_API_SECRET      = "magesail_config/service/secret_key";
-    const XML_JS_ENABLED      = "magesail_config/js/enabled";
-    const XML_JS_CUSTOMER_ID  = "magesail_config/js/customer_id";
-    const API_SUCCESS_MESSAGE = "Successfully Validated!";
-
-    /** @var  MageClient */
-    protected $client;
+    /** @var  MageClient[] */
+    protected $clientsRegistry = [];
 
     /** @var ModuleListInterface */
     private $moduleList;
 
     /** @var  array */
     private $settings;
-
-    /** @var  string */
-    private $customerId;
 
     public function __construct(
         Context $context,
@@ -54,19 +50,30 @@ class ClientManager extends AbstractHelper
         $this->moduleList = $moduleList;
     }
 
-    public function initClient($storeId = null)
+    public function getClient($storeId = null)
     {
-        $apiKey = $this->getSettingsVal(self::XML_API_KEY, $storeId);
-        $apiSecret = $this->getSettingsVal(self::XML_API_SECRET, $storeId);
-        $this->client = new MageClient($apiKey, $apiSecret, $this->getSetupVersion(), $this->logger, $this->scopeResolver);
+        $cacheKey = (int)$storeId;
+        if (!isset($this->clientsRegistry[$cacheKey])) {
+            $this->clientsRegistry[$cacheKey] = $this->initClient($storeId);
+        }
+
+        return $this->clientsRegistry[$cacheKey];
     }
 
-    public function getClient($update=false, $storeId = null)
+    /**
+     * @param null|int|string $storeId
+     *
+     * @return MageClient
+     */
+    public function initClient($storeId = null)
     {
-        if ($update or !$this->client) {
-            $this->initClient($storeId);
-        }
-        return $this->client;
+        return new MageClient(
+            $this->getSettingsVal(self::XML_API_KEY, $storeId),
+            $this->getSettingsVal(self::XML_API_SECRET, $storeId),
+            $this->getSetupVersion(),
+            $this->logger,
+            $this->scopeResolver
+        );
     }
 
     public function getSettings($update = false)
@@ -74,6 +81,7 @@ class ClientManager extends AbstractHelper
         if ($update || empty($this->settings)) {
             $this->settings = $this->getClient()->getSettings();
         }
+
         return $this->settings;
     }
 
@@ -96,7 +104,7 @@ class ClientManager extends AbstractHelper
     {
         try {
             $result = $this->getSettings(true);
-            if (!array_key_exists("error", $result)) {
+            if (!array_key_exists('error', $result)) {
                 return [1, self::API_SUCCESS_MESSAGE];
             } else {
                 return 0;
@@ -109,15 +117,17 @@ class ClientManager extends AbstractHelper
     public function isValid()
     {
         $check = $this->apiValidate();
+
         return $check[0];
     }
 
     private function getSetupVersion()
     {
         $moduleData = $this->moduleList->getOne('Sailthru_MageSail');
+
         return isset($moduleData['setup_version'])
             ? $moduleData['setup_version']
-            : "";
+            : '';
     }
 
 }

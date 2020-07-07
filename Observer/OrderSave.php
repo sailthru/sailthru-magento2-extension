@@ -19,7 +19,7 @@ class OrderSave implements ObserverInterface {
     private $productHelper;
 
     /** @var ClientManager  */
-    private $sailthruClient;
+    private $clientManager;
 
     /** @var SailthruSettings  */
     private $sailthruSettings;
@@ -33,7 +33,7 @@ class OrderSave implements ObserverInterface {
     /** @var SailthruOrder */
     private $sailthruOrder;
 
-    /** @var  Logger */
+    /** @var Logger */
     private $logger;
 
     public function __construct(
@@ -46,7 +46,7 @@ class OrderSave implements ObserverInterface {
         Logger $logger
     ) {
         $this->productHelper = $productHelper;
-        $this->sailthruClient = $clientManager;
+        $this->clientManager = $clientManager;
         $this->sailthruSettings = $sailthruSettings;
         $this->sailthruCookie = $sailthruCookie;
         $this->sailthruProduct = $sailthruProduct;
@@ -59,10 +59,10 @@ class OrderSave implements ObserverInterface {
         /** @var Order $order */
         $order = $observer->getOrder();
         $storeId = $order->getStoreId();
-        $this->sailthruClient = $this->sailthruClient->getClient(true, $storeId);
+        $client = $this->clientManager->getClient($storeId);
         $orderData = $this->build($order);
         try {
-            $this->sailthruClient->apiPost("purchase", $orderData);
+            $client->apiPost('purchase', $orderData);
         } catch (\Sailthru_Client_Exception $e) {
             $this->logger->err("Error sync'ing purchase #{$order->getIncrementId()} - ({$e->getCode()}) {$e->getMessage()}");
         }
@@ -90,8 +90,8 @@ class OrderSave implements ObserverInterface {
     {
         /** @var \Magento\Sales\Model\Order\Item[] $items */
         $items = $order->getAllVisibleItems();
-        $bundleIds = $this->getIdsOfType($items, "bundle");
-        $configurableIds = $this->getIdsOfType($items, "configurable");
+        $bundleIds = $this->getIdsOfType($items, 'bundle');
+        $configurableIds = $this->getIdsOfType($items, 'configurable');
         $storeId = $order->getStoreId();
 
         $data = [];
