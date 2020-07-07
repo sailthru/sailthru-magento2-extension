@@ -30,7 +30,7 @@ class CartIntercept
         Configurable $configProduct,
         SwatchModel $swatchModel
     ) {
-        $this->client = $clientManager;
+        $this->clientManager = $clientManager;
         $this->sailthruSettings = $sailthruSettings;
         $this->sailthruCookie = $sailthruCookie;
         $this->productRepo = $productRepo;
@@ -60,7 +60,9 @@ class CartIntercept
     {
         $customer = $cart->getCustomerSession()->getCustomer();
         $email = $customer->getEmail();
-        $this->client = $this->client->getClient(true, $storeId);
+        if (empty($this->client)) {
+            $this->client = $this->clientManager->getClient(true, $storeId);
+        }
         if ($email || $anonymousEmail = $this->isAnonymousReady($storeId)) {
             $items = $this->_getItems($cart);
             $data = [
@@ -68,7 +70,7 @@ class CartIntercept
                 'items'             => $items,
                 'incomplete'        => 1,
                 'message_id'        => $this->sailthruCookie->getBid(),
-            ];    
+            ];
             $email = $email ? $email : $anonymousEmail;
             try {
                 $this->client->_eventType = "CartUpdate";
@@ -131,7 +133,7 @@ class CartIntercept
      * Prepare data on items in cart or order.
      *
      * @param  Cart $cart
-     * 
+     *
      * @return array|false
      */
     public function _getItems(Cart $cart)
@@ -199,7 +201,7 @@ class CartIntercept
     {
         return $product->getData('meta_keyword');
     }
-    
+
     /**
      *
      * @param array $options
