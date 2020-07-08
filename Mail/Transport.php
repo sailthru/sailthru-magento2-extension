@@ -1,4 +1,5 @@
 <?php
+
 namespace Sailthru\MageSail\Mail;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -9,9 +10,7 @@ use Magento\Framework\Mail\EmailMessageInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Sailthru\MageSail\Helper\ClientManager;
 use Sailthru\MageSail\Helper\Settings;
-use Sailthru\MageSail\Helper\Api;
 use Sailthru\MageSail\Helper\Templates as SailthruTemplates;
-use Sailthru\MageSail\MageClient;
 use Zend\Mail\Message as ZendMessage;
 use Zend\Mail\Address\AddressInterface;
 use Zend\Mail\Header\HeaderInterface;
@@ -30,7 +29,7 @@ class Transport extends \Magento\Email\Model\Transport
     /** @var StoreManagerInterface */
     protected $storeManager;
 
-    /** @var RequestInterface  */
+    /** @var RequestInterface */
     protected $request;
 
     /** @var string */
@@ -39,13 +38,13 @@ class Transport extends \Magento\Email\Model\Transport
     /**
      * Transport constructor.
      *
-     * @param ClientManager $clientManager
-     * @param Settings $sailthruSettings
+     * @param ClientManager         $clientManager
+     * @param Settings              $sailthruSettings
      * @param EmailMessageInterface $message
-     * @param ScopeConfigInterface $scopeConfig
-     * @param SailthruTemplates $sailthruTemplates
+     * @param ScopeConfigInterface  $scopeConfig
+     * @param SailthruTemplates     $sailthruTemplates
      * @param StoreManagerInterface $storeManager
-     * @param RequestInterface $request
+     * @param RequestInterface      $request
      * @param null|array
      */
     public function __construct(
@@ -97,16 +96,18 @@ class Transport extends \Magento\Email\Model\Transport
     /**
      * To send `Magento Generic` or `Magento Specific` template.
      *
-     * @param  array $templateData
+     * @param array           $templateData
+     * @param int|string|null $storeId
+     *
      * @throws MailException
      */
     public function sendViaAPI($templateData, $storeId)
     {
-        $client = $this->clientManager->getClient(true, $storeId);
+        $client = $this->clientManager->getClient($storeId);
         $message = ZendMessage::fromString($this->getMessage()->getRawMessage());
         $vars = [
-            "subj"    => $this->prepareSubject($message),
-            "content" => $this->getMessage()->getDecodedBodyText(),
+            'subj'    => $this->prepareSubject($message),
+            'content' => $this->getMessage()->getDecodedBodyText(),
         ];
 
         try {
@@ -120,17 +121,18 @@ class Transport extends \Magento\Email\Model\Transport
 
             $templateName = $template['name'];
             if (!$this->sailthruTemplates->templateExists($templateName, $storeId)) {
-                $this->sailthruTemplates->saveTemplate($templateName, $this->sailthruSettings->getSender($storeId), $storeId);
+                $this->sailthruTemplates->saveTemplate($templateName, $this->sailthruSettings->getSender($storeId),
+                    $storeId);
             }
 
             $params = [
-                "template" => $templateName,
-                "email"    => $this->prepareRecipients($message),
-                "vars"     => $vars,
+                'template' => $templateName,
+                'email'    => $this->prepareRecipients($message),
+                'vars'     => $vars,
             ];
 
             $response = $client->apiPost('send', $params);
-            if (isset($response["error"])) {
+            if (isset($response['error'])) {
                 $client->logger($response['errormsg']);
                 throw new MailException(__($response['errormsg']));
             }
@@ -142,10 +144,11 @@ class Transport extends \Magento\Email\Model\Transport
     /**
      * Prepare recipients list
      *
-     * @param  \Zend\Mail\Message $message
-     * @throws RuntimeException
+     * @param \Zend\Mail\Message $message
      *
      * @return string
+     *
+     * @throws RuntimeException
      *
      * @throws RuntimeException
      */
@@ -160,12 +163,12 @@ class Transport extends \Magento\Email\Model\Transport
             );
         }
 
-        if (! $hasTo) {
+        if (!$hasTo) {
             return '';
         }
 
         /** @var Mail\Header\To $to */
-        $to   = $headers->get('to');
+        $to = $headers->get('to');
         $list = $to->getAddressList();
         if (count($list) == 0) {
             throw new RuntimeException('Invalid "To" header; contains no addresses');
@@ -182,34 +185,38 @@ class Transport extends \Magento\Email\Model\Transport
             $addresses[] = $address->getEmail();
         }
         $addresses = implode(', ', $addresses);
+
         return $addresses;
     }
 
     /**
      * Prepare the subject line string
      *
-     * @param  \Zend\Mail\Message $message
+     * @param \Zend\Mail\Message $message
+     *
      * @return string
      */
     protected function prepareSubject(\Zend\Mail\Message $message)
     {
         $headers = $message->getHeaders();
-        if (! $headers->has('subject')) {
+        if (!$headers->has('subject')) {
             return;
         }
         $header = $headers->get('subject');
+
         return $header->getFieldValue(HeaderInterface::FORMAT_ENCODED);
     }
 
     /**
      * Prepare the body string
      *
-     * @param  \Zend\Mail\Message $message
+     * @param \Zend\Mail\Message $message
+     *
      * @return string
      */
     protected function prepareBody(\Zend\Mail\Message $message)
     {
-        if (! $this->isWindowsOs()) {
+        if (!$this->isWindowsOs()) {
             // *nix platforms can simply return the body text
             return $message->getBodyText();
         }
@@ -217,6 +224,7 @@ class Transport extends \Magento\Email\Model\Transport
         // On windows, lines beginning with a full stop need to be fixed
         $text = $message->getBodyText();
         $text = str_replace("\n.", "\n..", $text);
+
         return $text;
     }
 
@@ -227,9 +235,10 @@ class Transport extends \Magento\Email\Model\Transport
      */
     protected function isWindowsOs()
     {
-        if (! $this->operatingSystem) {
+        if (!$this->operatingSystem) {
             $this->operatingSystem = strtoupper(substr(PHP_OS, 0, 3));
         }
+
         return ($this->operatingSystem == 'WIN');
     }
 
@@ -241,11 +250,17 @@ class Transport extends \Magento\Email\Model\Transport
         }
         $email = substr($str, $startPart + 1);
         $email = substr($email, 0, -1);
+
         return $email;
     }
 
+    /**
+     * @param string $emailStr
+     *
+     * @return string
+     */
     public function cleanEmails($emailStr)
     {
-        return implode(",", array_map([ $this, 'cleanEmail' ], explode(",", $emailStr)));
+        return implode(',', array_map([$this, 'cleanEmail'], explode(',', $emailStr)));
     }
 }
