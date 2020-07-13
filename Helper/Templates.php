@@ -10,15 +10,16 @@ use Sailthru\MageSail\Model\Config\Template\Data as TemplateConfig;
 use Sailthru\MageSail\Model\Template as TemplateModel;
 use Sailthru\MageSail\Model\SailthruTemplates;
 
-class Templates extends AbstractHelper {
+class Templates extends AbstractHelper
+{
 
-    /** @var array  */
+    /** @var array */
     private $templates = [];
 
-    /** @var ClientManager  */
+    /** @var ClientManager */
     private $clientManager;
 
-    /** @var SailthruTemplates  */
+    /** @var SailthruTemplates */
     protected $sailthruTemplates;
 
     public function __construct(
@@ -32,7 +33,15 @@ class Templates extends AbstractHelper {
         ClientManager $clientManager,
         SailthruTemplates $sailthruTemplates
     ) {
-        parent::__construct($context, $storeManager, $logger, $templateModel, $templateConfig, $objectManager, $scopeResolver);
+        parent::__construct(
+            $context,
+            $storeManager,
+            $logger,
+            $templateModel,
+            $templateConfig,
+            $objectManager,
+            $scopeResolver
+        );
         $this->clientManager = $clientManager;
         $this->sailthruTemplates = $sailthruTemplates;
     }
@@ -59,36 +68,38 @@ class Templates extends AbstractHelper {
         $templates = $this->getSailthruTemplates($storeId);
         if (isset($templates['templates'])) {
             $templates = array_column($templates['templates'], 'name');
+
             return in_array($templateIdentifier, $templates);
         }
+
         return false;
     }
 
     /**
      * To create template in Sailthru.
      *
-     * @param   string $templateIdentifier
-     * @param   string $sender
+     * @param string   $templateIdentifier
+     * @param string   $sender
      * @param null|int $storeId
      */
     public function saveTemplate($templateIdentifier, $sender, $storeId = null)
     {
         $data = [
-            "content_html" => "{content} {beacon}",
-            "subject" => "{subj}",
-            "from_email" => $sender,
-            "is_link_tracking" => 1
+            'content_html'     => '{content} {beacon}',
+            'subject'          => '{subj}',
+            'from_email'       => $sender,
+            'is_link_tracking' => 1
         ];
 
-        $client = $this->clientManager->getClient(true, $storeId);
+        $client = $this->clientManager->getClient($storeId);
         try {
             $response = $client->saveTemplate($templateIdentifier, $data);
-            if (isset($response['error']))
+            if (isset($response['error'])) {
                 $client->logger($response['errormsg']);
+            }
         } catch (\Exception $e) {
             $client->logger($e->getMessage());
         }
     }
-
 
 }

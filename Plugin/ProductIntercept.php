@@ -85,7 +85,7 @@ class ProductIntercept
      */
     public function sendRequest($productResult, $storeId = null)
     {
-        $client = $this->clientManager->getClient(true, $storeId);
+        $client = $this->clientManager->getClient($storeId);
         $data = $this->getProductData($productResult, $storeId);
         if ($data) {
             try {
@@ -221,7 +221,7 @@ class ProductIntercept
 
             return $data;
         } catch (\Exception $e) {
-            $this->clientManager->getClient()->logger($e->getMessage());
+            $this->clientManager->getClient($storeId)->logger($e->getMessage());
 
             return false;
         }
