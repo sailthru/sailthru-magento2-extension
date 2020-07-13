@@ -14,13 +14,13 @@ class CustomerLoggedIn implements ObserverInterface
 {
 
     const GET_FIELDS = [
-        "keys" => 1,
-        "lists" => 1,
-        "optout_email" => 1
+        'keys'         => 1,
+        'lists'        => 1,
+        'optout_email' => 1
     ];
 
     private $sailthruCookie;
-    private $sailthruClient;
+    private $clientManager;
     private $sailthruSettings;
     private $subscriber;
 
@@ -31,7 +31,7 @@ class CustomerLoggedIn implements ObserverInterface
         Subscriber $subscriber
     ) {
         $this->sailthruCookie = $sailthruCookie;
-        $this->sailthruClient = $clientManager;
+        $this->clientManager = $clientManager;
         $this->sailthruSettings = $sailthruSettings;
         $this->subscriber = $subscriber;
     }
@@ -42,18 +42,18 @@ class CustomerLoggedIn implements ObserverInterface
         $customer = $observer->getData('customer');
         $storeId = $customer->getStore()->getId();
         $newsletterList = $this->sailthruSettings->getNewsletterList($storeId);
-        $this->sailthruClient = $this->sailthruClient->getClient(true, $storeId);
+        $client = $this->clientManager->getClient($storeId);
 
         $sid = $customer->getData('sailthru_id');
         $email = $customer->getEmail();
         $data = [
-            "id" => $sid ?: $email,
-            "fields" => $this::GET_FIELDS
+            'id'     => $sid ? : $email,
+            'fields' => $this::GET_FIELDS
         ];
 
         try {
-            $this->sailthruClient->_eventType = 'CustomerLogin';
-            $response = $this->sailthruClient->apiGet('user', $data);
+            $client->_eventType = 'CustomerLogin';
+            $response = $client->apiGet('user', $data);
             $shouldUpdateSubscriptionStatus = $this->shouldUpdateSubscriptionStatus($newsletterList, $response);
             if ($shouldUpdateSubscriptionStatus) {
                 $this->subscriber->loadByEmail($customer->getEmail());
@@ -65,9 +65,9 @@ class CustomerLoggedIn implements ObserverInterface
                 $customer->updateData($customerData);
                 $customer->save();
             }
-            $this->sailthruCookie->set($response["keys"]["cookie"]);
+            $this->sailthruCookie->set($response['keys']['cookie']);
         } catch (\Exception $e) {
-            $this->sailthruClient->logger($e);
+            $client->logger($e);
         }
     }
 

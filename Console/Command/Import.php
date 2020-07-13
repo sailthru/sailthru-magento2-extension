@@ -3,8 +3,6 @@
 namespace Sailthru\MageSail\Console\Command;
 
 use Magento\Catalog\Api\ProductRepositoryInterface\Proxy as ProductRepositoryInterface;
-use Magento\Catalog\Block\Product\AbstractProduct;
-use Magento\Catalog\Helper\Image;
 use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\Product\Attribute\Source\Status;
 use Magento\Catalog\Model\ResourceModel\Product\Collection\Proxy as Collection;
@@ -98,8 +96,8 @@ class Import extends Command
         $storeName = $this->storeManager->getStore($storeId)->getName();
         $output->writeln("Checking {$this->productCollection->getSize()} products to import for Store #$storeId $storeName");
 
-        $sailClient = $this->clientManager->getClient(true, $storeId);
-        $sailClient->_eventType = $this::EVENT_NAME;
+        $client = $this->clientManager->getClient($storeId);
+        $client->_eventType = $this::EVENT_NAME;
 
         $actionId = time();
         $checkedProducts = 0;
@@ -122,7 +120,7 @@ class Import extends Command
                     if ($status == Status::STATUS_ENABLED and $payload = $this->productIntercept->getProductData($product, $storeId)) {
                         $payload['integration_action'] = $this::EVENT_NAME;
                         $payload['integration_action_id'] = $actionId;
-                        $sailClient->apiPost('content', $payload);
+                        $client->apiPost('content', $payload);
                         $syncedProducts++;
                     } else {
                         $skippedProducts[] = $product;

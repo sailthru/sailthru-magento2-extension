@@ -9,38 +9,36 @@ use Sailthru\MageSail\Helper\Customer as SailthruCustomer;
 
 class AddressIntercept
 {
-
     public function __construct(
         ClientManager $clientManager,
         SailthruSettings $sailthruSettings,
         SailthruCustomer $sailthruCustomer
     ) {
-        $this->client = $clientManager;
+        $this->clientManager = $clientManager;
         $this->sailthruSettings = $sailthruSettings;
         $this->sailthruCustomer = $sailthruCustomer;
     }
 
     public function afterSave(Address $subject, Address $addressResult)
     {
-        $customerId = $addressResult->getCustomerId();
         $billing = $addressResult->getDataModel()->isDefaultBilling();
         if ($billing) {
             $customer = $addressResult->getCustomer();
-            $sid      = $customer->getData('sailthru_id');
-            $email    = $customer->getEmail();
-            $addressVars  = $this->sailthruCustomer->getAddressVars($addressResult);
+            $sid = $customer->getData('sailthru_id');
+            $email = $customer->getEmail();
+            $addressVars = $this->sailthruCustomer->getAddressVars($addressResult);
             $data = [
-                'id' => $sid ? $sid : $email,
+                'id'   => $sid ? $sid : $email,
                 'vars' => $addressVars,
             ];
             try {
-                $this->client = $this->client->getClient(true, $customer->getStore()->getId());
-                $this->client->_eventType = 'CustomerAddressUpdate';
-                $this->client->apiPost('user', $data);
+                $client = $this->clientManager->getClient($customer->getStore()->getId());
+                $client->_eventType = 'CustomerAddressUpdate';
+                $client->apiPost('user', $data);
             } catch (\Sailthru_Client_Exception $e) {
-                $this->client->logger($e->getMessage());
+                $client->logger($e->getMessage());
             } catch (\Exception $e) {
-                $this->client->logger($e->getMessage());
+                $client->logger($e->getMessage());
             } finally {
                 return $addressResult;
             }
