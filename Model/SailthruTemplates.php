@@ -125,6 +125,9 @@ class SailthruTemplates
 
             return $client->getTemplates();
         } catch (\Exception $e) {
+            $this->logger->error($e->getMessage());
+            $this->logger->error($e->getTraceAsString());
+
             return $this->loadTemplates($storeId, $attempt + 1);
         }
     }
