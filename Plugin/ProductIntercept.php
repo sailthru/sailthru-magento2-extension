@@ -205,8 +205,10 @@ class ProductIntercept
                 }
             }
 
-            if ($inventory = $product->getStockData()["qty"] or $inventory = intval($product->getQty())) {
-                $data['inventory'] = $inventory > 0 ? $inventory : 0;
+            if (!empty($product->getStockData()) && !empty($product->getStockData()["qty"])) {
+                $data['inventory'] = $product->getStockData()["qty"];
+            } else if (!empty(intval($product->getQty()))) {
+                $data['inventory'] = intval($product->getQty());
             }
 
             // Add product images
