@@ -1,4 +1,5 @@
 <?php
+
 namespace Sailthru\MageSail\Mail;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
@@ -9,9 +10,7 @@ use Magento\Framework\Mail\EmailMessageInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use Sailthru\MageSail\Helper\ClientManager;
 use Sailthru\MageSail\Helper\Settings;
-use Sailthru\MageSail\Helper\Api;
 use Sailthru\MageSail\Helper\Templates as SailthruTemplates;
-use Sailthru\MageSail\MageClient;
 use Sailthru\MageSail\Mail\Transport\SailthruFactory as SailthruTransportFactory;
 use Sailthru\MageSail\Mail\Queue\EmailSendPublisher;
 use Zend\Mail\Message as ZendMessage;
@@ -47,11 +46,11 @@ class Transport extends \Magento\Email\Model\Transport
     /**
      * Transport constructor.
      *
-     * @param ClientManager $clientManager
-     * @param Settings $sailthruSettings
+     * @param ClientManager         $clientManager
+     * @param Settings              $sailthruSettings
      * @param EmailMessageInterface $message
-     * @param ScopeConfigInterface $scopeConfig
-     * @param SailthruTemplates $sailthruTemplates
+     * @param ScopeConfigInterface  $scopeConfig
+     * @param SailthruTemplates     $sailthruTemplates
      * @param StoreManagerInterface $storeManager
      * @param SailthruTransportFactory $sailthruTransportFactory
      * @param EmailSendPublisher $emailSendPublisher
@@ -150,10 +149,11 @@ class Transport extends \Magento\Email\Model\Transport
     /**
      * Prepare recipients list
      *
-     * @param  \Zend\Mail\Message $message
-     * @throws RuntimeException
+     * @param \Zend\Mail\Message $message
      *
      * @return string
+     *
+     * @throws RuntimeException
      *
      * @throws RuntimeException
      */
@@ -168,12 +168,12 @@ class Transport extends \Magento\Email\Model\Transport
             );
         }
 
-        if (! $hasTo) {
+        if (!$hasTo) {
             return '';
         }
 
         /** @var Mail\Header\To $to */
-        $to   = $headers->get('to');
+        $to = $headers->get('to');
         $list = $to->getAddressList();
         if (count($list) == 0) {
             throw new RuntimeException('Invalid "To" header; contains no addresses');
@@ -190,34 +190,38 @@ class Transport extends \Magento\Email\Model\Transport
             $addresses[] = $address->getEmail();
         }
         $addresses = implode(', ', $addresses);
+
         return $addresses;
     }
 
     /**
      * Prepare the subject line string
      *
-     * @param  \Zend\Mail\Message $message
+     * @param \Zend\Mail\Message $message
+     *
      * @return string
      */
     protected function prepareSubject(\Zend\Mail\Message $message)
     {
         $headers = $message->getHeaders();
-        if (! $headers->has('subject')) {
+        if (!$headers->has('subject')) {
             return;
         }
         $header = $headers->get('subject');
+
         return $header->getFieldValue(HeaderInterface::FORMAT_ENCODED);
     }
 
     /**
      * Prepare the body string
      *
-     * @param  \Zend\Mail\Message $message
+     * @param \Zend\Mail\Message $message
+     *
      * @return string
      */
     protected function prepareBody(\Zend\Mail\Message $message)
     {
-        if (! $this->isWindowsOs()) {
+        if (!$this->isWindowsOs()) {
             // *nix platforms can simply return the body text
             return $message->getBodyText();
         }
@@ -225,6 +229,7 @@ class Transport extends \Magento\Email\Model\Transport
         // On windows, lines beginning with a full stop need to be fixed
         $text = $message->getBodyText();
         $text = str_replace("\n.", "\n..", $text);
+
         return $text;
     }
 
@@ -235,9 +240,10 @@ class Transport extends \Magento\Email\Model\Transport
      */
     protected function isWindowsOs()
     {
-        if (! $this->operatingSystem) {
+        if (!$this->operatingSystem) {
             $this->operatingSystem = strtoupper(substr(PHP_OS, 0, 3));
         }
+
         return ($this->operatingSystem == 'WIN');
     }
 
@@ -249,11 +255,17 @@ class Transport extends \Magento\Email\Model\Transport
         }
         $email = substr($str, $startPart + 1);
         $email = substr($email, 0, -1);
+
         return $email;
     }
 
+    /**
+     * @param string $emailStr
+     *
+     * @return string
+     */
     public function cleanEmails($emailStr)
     {
-        return implode(",", array_map([ $this, 'cleanEmail' ], explode(",", $emailStr)));
+        return implode(',', array_map([$this, 'cleanEmail'], explode(',', $emailStr)));
     }
 }

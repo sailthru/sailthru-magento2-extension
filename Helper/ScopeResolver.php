@@ -18,21 +18,22 @@ use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Store\Model\Website;
 
-class ScopeResolver extends AbstractHelper {
+class ScopeResolver extends AbstractHelper
+{
 
-    /** @var State  */
+    /** @var State */
     protected $appState;
 
-    /** @var WebapiRequest  */
+    /** @var WebapiRequest */
     protected $webapiRequest;
 
-    /** @var StoreManagerInterface  */
+    /** @var StoreManagerInterface */
     protected $storeManager;
 
-    /** @var OrderRepositoryInterface  */
+    /** @var OrderRepositoryInterface */
     protected $orderRepo;
 
-    /** @var ShipmentRepositoryInterface  */
+    /** @var ShipmentRepositoryInterface */
     protected $shipmentRepo;
 
     private static $ADMIN_AREAS = [
@@ -61,7 +62,6 @@ class ScopeResolver extends AbstractHelper {
     {
         if ($store = $this->getStore()) {
             return [$store->getCode(), ScopeInterface::SCOPE_STORE];
-
         } elseif ($website = $this->getWebsite()) {
             return [$website->getCode(), ScopeInterface::SCOPE_WEBSITE];
         }
@@ -71,22 +71,20 @@ class ScopeResolver extends AbstractHelper {
 
     /**
      * @return StoreInterface|null
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function getStore()
     {
-        if ($this->isFrontendArea()){
-            $this->_logger->info("frontend");
+        if ($this->isFrontendArea()) {
+
             return $this->_getStore();
-
         } elseif ($storeId = $this->getRequestStoreScope()) {
-            $this->_logger->info("store request");
-            return $this->_getStore($storeId);
 
+            return $this->_getStore($storeId);
         } elseif ($this->isSalesRequest()) {
-            $this->_logger->info("sales request");
-            $storeId =  $this->getStoreIdFromSalesRequest();
-            return $this->_getStore($storeId);
+            $storeId = $this->getStoreIdFromSalesRequest();
 
+            return $this->_getStore($storeId);
         }
 
         return null;
@@ -99,7 +97,6 @@ class ScopeResolver extends AbstractHelper {
     {
         if ($this->isFrontendArea() and $website = $this->_getWebsite()) {
             return $website;
-
         } elseif ($wid = $this->getRequestWebsiteScope()) {
             return $this->_getWebsite($wid);
         }
@@ -116,13 +113,14 @@ class ScopeResolver extends AbstractHelper {
     {
         $orderId = $this->getRequestOrderId();
         $shipmentId = $this->getRequestShipmentId();
-        $entityId = $orderId ?: $shipmentId;
+        $entityId = $orderId ? : $shipmentId;
         $repository = $orderId ? $this->orderRepo : $this->shipmentRepo;
 
         try {
             $entity = $repository->get($entityId);
         } catch (\Exception $e) {
-            $this->_logger->error("Error resolving sales scope.", $e);
+            $this->_logger->error('Error resolving sales scope.', $e);
+
             return null;
         }
 
@@ -131,47 +129,49 @@ class ScopeResolver extends AbstractHelper {
 
     protected function isAdminArea()
     {
-            return in_array($this->getAreaCode(), self::$ADMIN_AREAS);
+        return in_array($this->getAreaCode(), self::$ADMIN_AREAS);
     }
 
     protected function isFrontendArea()
     {
-        return $this->getAreaCode() === "frontend";
+        return $this->getAreaCode() === Area::AREA_FRONTEND || $this->getAreaCode() === Area::AREA_WEBAPI_REST;
     }
 
     protected function getRequestStoreScope()
     {
-        return $this->_request->getParam("store");
+        return $this->_request->getParam('store');
     }
 
     protected function getRequestWebsiteScope()
     {
-        return $this->_request->getParam("website");
+        return $this->_request->getParam('website');
     }
-    
+
     protected function getRequestOrderId()
     {
-        return $this->_request->getParam('order_id') ?: $this->webapiRequest->getParam('orderId');
+        return $this->_request->getParam('order_id') ? : $this->webapiRequest->getParam('orderId');
     }
 
     protected function getRequestShipmentId()
     {
-        return $this->_request->getParam("shipment_id");
+        return $this->_request->getParam('shipment_id');
     }
 
     /**
      * @param WebsiteInterface $website
+     *
      * @return null|int
      */
     protected function getWebsiteSingleStore(WebsiteInterface $website)
     {
-       if ($website instanceof Website) {
-           $stores = $website->getStores();
-           if ($stores and count($stores) == 1) {
-               return array_values($stores)[0]; // getStores returns indexed by store ID
-           }
-       }
-       return null;
+        if ($website instanceof Website) {
+            $stores = $website->getStores();
+            if ($stores and count($stores) == 1) {
+                return array_values($stores)[0]; // getStores returns indexed by store ID
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -183,13 +183,16 @@ class ScopeResolver extends AbstractHelper {
             return $this->appState->getAreaCode();
         } catch (LocalizedException $e) {
             $this->_logger->error("Error getting area code: {$e->getMessage()}");
+
             return null;
         }
     }
 
     /**
-     * @param null|int $storeId
+     * @param null|int|string $storeId
+     *
      * @return StoreInterface
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     private function _getStore($storeId = null)
     {
@@ -198,6 +201,7 @@ class ScopeResolver extends AbstractHelper {
 
     /**
      * @param null|int $websiteId
+     *
      * @return null|WebsiteInterface
      */
     private function _getWebsite($websiteId = null)
@@ -206,6 +210,7 @@ class ScopeResolver extends AbstractHelper {
             return $this->storeManager->getWebsite($websiteId);
         } catch (LocalizedException $e) {
             $this->_logger->error("Error getting website: {$e->getMessage()}");
+
             return null;
         }
     }

@@ -70,14 +70,15 @@ class Customer extends VariablesAbstractHelper
 
     /**
      * To get Customer additional variables.
-     * 
-     * @param  MageCustomer $object
-     * @param  array        $data
-     * 
+     *
+     * @param MageCustomer $object
+     * @param array $data
+     *
      * @return array
+     * @throws \Exception
      */
     public function getCustomVariables($object, $data = [])
-    {        
+    {
         $dataModel = $object->getDataModel();
         $storeId = $dataModel->getStoreId();
         $store = $this->storeManager->getStore($storeId);
@@ -128,7 +129,7 @@ class Customer extends VariablesAbstractHelper
         try {
             $this->customerModel->loadByEmail($param);
         } catch (\Exception $e) {
-            throw new \Exception($e->getTraceAsString());
+            throw new \Exception($e->getMessage() . "\n\n" . $e->getTraceAsString());
         }
 
         return $this->customerModel;
@@ -149,7 +150,7 @@ class Customer extends VariablesAbstractHelper
         try {
             $this->customerModel->load($id);
         } catch (\Exception $e) {
-            throw new \Exception($e->getTraceAsString());
+            throw new \Exception($e->getMessage() . "\n\n" . $e->getTraceAsString());
         }
 
         return $this->customerModel;
