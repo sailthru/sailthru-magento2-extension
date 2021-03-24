@@ -205,19 +205,22 @@ class ProductIntercept
                 }
             }
 
-            if (!empty($product->getStockData()) && !empty($product->getStockData()["qty"])) {
-                $data['inventory'] = $product->getStockData()["qty"];
-            } else if (!empty(intval($product->getQty()))) {
-                $data['inventory'] = intval($product->getQty());
+            if (!empty($product->getStockData()) && !empty($product->getStockData()['qty'])) {
+                $qty = intval($product->getStockData()['qty']);
+            } else if (!empty($product->getQty())) {
+                $qty = intval($product->getQty());
+            }
+            if (isset($qty)) {
+                $data['inventory'] = $qty > 0 ? $qty : 0;
             }
 
             // Add product images
             if ($image = $product->getImage()) {
                 $data['images']['thumb'] = [
-                    "url" => $this->imageHelper->init($product, 'sailthru_thumb')->getUrl()
+                    'url' => $this->imageHelper->init($product, 'sailthru_thumb')->getUrl()
                 ];
                 $data['images']['full'] = [
-                    "url" => $this->sailthruProduct->getBaseImageUrl($product)
+                    'url' => $this->sailthruProduct->getBaseImageUrl($product)
                 ];
             }
 
