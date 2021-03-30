@@ -1,0 +1,9 @@
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework-message-queue:etc/publisher.xsd">
+    <publisher topic="sailthru.email.send.amqp">
+        <connection name="amqp" exchange="sailthru"/>
+    </publisher>
+    <publisher topic="sailthru.email.send.db">
+        <connection name="db" exchange="sailthru-db"/>
+    </publisher>
+</config>
