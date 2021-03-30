@@ -1,0 +1,9 @@
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework-message-queue:etc/queue.xsd">
+    <broker topic="sailthru.email.send.db" exchange="sailthru-db" type="db">
+        <queue name="sailthru_email_send"
+               consumer="sailthru.email.send.consumer.db"
+               consumerInstance="Magento\Framework\MessageQueue\Consumer"
+               handler="Sailthru\MageSail\Mail\Queue\EmailSendProcessor::execute"/>
+    </broker>
+</config>
