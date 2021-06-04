@@ -130,7 +130,7 @@ class Sailthru extends \Magento\Framework\DataObject
                 throw new MailException(__($response['errormsg']));
             }
         } catch (\Exception $e) {
-            throw new MailException("Couldn't send the mail {$e->getMessage()}");
+            throw new MailException(__("Couldn't send the mail {$e->getMessage()}"));
         }
 
         return $this;
