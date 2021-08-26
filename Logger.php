@@ -17,7 +17,6 @@ class Logger
 
     public function __construct(StoreManager $storeManager, LoggerInterface $logger)
     {
-        parent::__construct();
         $this->storeManager = $storeManager;
         $this->logger = $logger;
     }
