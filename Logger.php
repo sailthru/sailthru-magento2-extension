@@ -2,37 +2,23 @@
 
 namespace Sailthru\MageSail;
 
-use Magento\Store\Model\StoreManager;
-use Zend\Log\Logger as ZendLogger;
-use Zend\Log\Writer\Stream;
-
-class Logger extends ZendLogger
+class Logger extends \Monolog\Logger
 {
-
-    const SAILTHRU_PATH = '/var/log/sailthru.log';
-
-    /** @var StoreManager  */
-    private $storeManager;
-
-    public function __construct(StoreManager $storeManager)
+    /**
+     * Adds a log record.
+     *
+     * @param  int     $level   The logging level
+     * @param  string  $message The log message
+     * @param  array   $context The log context
+     *
+     * @return bool Whether the record has been processed
+     */
+    public function addRecord($level, $message, array $context = [])
     {
-        parent::__construct();
-        $streamWriter = new Stream(BP . self::SAILTHRU_PATH);
-        $this->addWriter($streamWriter);
-        $this->storeManager = $storeManager;
+        return parent::addRecord(
+            $level,
+            !is_string($message) ? var_export($message, true) : $message,
+            $context
+        );
     }
-
-    public function logApiRequest($eventType, $httpType, $method, $action, $payload)
-    {
-        $store = $this->storeManager->getStore();
-        $this->info([
-            'action'            => "{$method} /{$action}",
-            'event_type'        => $eventType,
-            'store_id'          => "{$store->getId()} | {$store->getName()}",
-            'http_request_type' => $httpType, // http request type (with or without curl)
-            'request'           => $payload
-        ]);
-    }
-
-
 }
