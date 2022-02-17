@@ -77,6 +77,16 @@ class Filter extends \Magento\Email\Model\Template\Filter
         /** @customization END */
 
         $text = __($text, $params)->render();
+        /**
+         * Security updates available for Adobe Commerce APSB22-12
+         *
+         * @customization START
+         */
+        $pattern = '/{{.*?}}/';
+        do {
+            $text = preg_replace($pattern, '', (string)$text);
+        } while (preg_match($pattern, $text));
+        /** @customization END */
         return $this->applyModifiers($text, $modifiers);
     }
 
