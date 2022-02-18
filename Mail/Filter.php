@@ -4,14 +4,14 @@ namespace Sailthru\MageSail\Mail;
 
 /**
  * Override of core Email Template Filter Model
- * 
+ *
  * TODO: override method for custom template variables.
  */
 class Filter extends \Magento\Email\Model\Template\Filter
 {
     /**
      * List of the template variables.
-     * 
+     *
      * @var array
      */
     protected $templateVariables = [];
@@ -24,7 +24,7 @@ class Filter extends \Magento\Email\Model\Template\Filter
 
     /**
      * To get list of the template variables.
-     * 
+     *
      * @return array
      */
     public function getTemplateVariables()
@@ -34,7 +34,7 @@ class Filter extends \Magento\Email\Model\Template\Filter
 
     /**
      * To set template directives.
-     * 
+     *
      * @param array $directives
      */
     public function setDirectives(array $directives)
@@ -66,7 +66,7 @@ class Filter extends \Magento\Email\Model\Template\Filter
 
         /**
          * Add params to template variable list
-         * 
+         *
          * @customization START
          */
         if ($params) {
@@ -77,6 +77,12 @@ class Filter extends \Magento\Email\Model\Template\Filter
         /** @customization END */
 
         $text = __($text, $params)->render();
+
+        $pattern = '/{{.*?}}/';
+        do {
+            $text = preg_replace($pattern, '', (string)$text);
+        } while (preg_match($pattern, $text));
+
         return $this->applyModifiers($text, $modifiers);
     }
 
@@ -102,7 +108,7 @@ class Filter extends \Magento\Email\Model\Template\Filter
 
         /**
          * Add parsed directive value to template variable list
-         * 
+         *
          * @customization START
          */
         if ($this->templateDirectives) {
