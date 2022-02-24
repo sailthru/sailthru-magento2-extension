@@ -75,6 +75,14 @@
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                     <comment><![CDATA[Sync Products also Nightly to Sailthru]]></comment>
                 </field>
+                <field id="remove_in_sailthru" type="select" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Remove Products in Sailthru</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Remove product in Sailthru after remove in Magento]]></comment>
+                    <depends>
+                        <field id="*/*/enable_intercept">1</field>
+                    </depends>
+                </field>
             </group>
             <group id="tags" type="text" translate="label" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Product Tags/Vars</label>
@@ -132,6 +140,14 @@
                     <tooltip><![CDATA[New a new list? Check my.sailthru.com to create it!]]></tooltip>
                     <depends>
                         <field id="*/*/enable_newsletter">1</field>
+                    </depends>
+                </field>
+                <field id="remove_in_sailthru" type="select" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Remove Customers in Sailthru</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment><![CDATA[Remove customer in Sailthru after remove in Magento]]></comment>
+                    <depends>
+                        <field id="*/*/enable_signup_list">1</field>
                     </depends>
                 </field>
             </group>

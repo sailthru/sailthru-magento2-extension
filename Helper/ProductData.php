@@ -20,14 +20,15 @@ use Zend\View\Helper\Url;
 class ProductData extends AbstractHelper
 {
 
-    const XML_CONTENT_INTERCEPT       = "magesail_content/intercept/enable_intercept";
-    const XML_CONTENT_INTERCEPT_CRON  = "magesail_content/intercept/enable_intercept_cron";
-    const XML_CONTENT_SEND_MASTER     = "magesail_content/intercept/send_master";
-    const XML_CONTENT_SEND_VARIANTS   = "magesail_content/intercept/send_variants";
-    const XML_CONTENT_USE_KEYWORDS    = "magesail_content/tags/use_seo";
-    const XML_CONTENT_USE_CATEGORIES  = "magesail_content/tags/use_categories";
-    const XML_CONTENT_USE_ATTRIBUTES  = "magesail_content/tags/use_attributes";
-    const XML_CONTENT_ATTRIBUTES_LIST = "magesail_content/tags/usable_attributes";
+    const XML_CONTENT_INTERCEPT          = "magesail_content/intercept/enable_intercept";
+    const XML_CONTENT_INTERCEPT_CRON     = "magesail_content/intercept/enable_intercept_cron";
+    const XML_CONTENT_SEND_MASTER        = "magesail_content/intercept/send_master";
+    const XML_CONTENT_SEND_VARIANTS      = "magesail_content/intercept/send_variants";
+    const XML_CONTENT_REMOVE_IN_SAILTHRU = "magesail_content/intercept/remove_in_sailthru";
+    const XML_CONTENT_USE_KEYWORDS       = "magesail_content/tags/use_seo";
+    const XML_CONTENT_USE_CATEGORIES     = "magesail_content/tags/use_categories";
+    const XML_CONTENT_USE_ATTRIBUTES     = "magesail_content/tags/use_attributes";
+    const XML_CONTENT_ATTRIBUTES_LIST    = "magesail_content/tags/usable_attributes";
 
     public static $essentialAttributeCodes = [
         'status',
@@ -182,6 +183,18 @@ class ProductData extends AbstractHelper
     public function tagsUseCategories($storeId = null)
     {
         return boolval($this->getSettingsVal(self::XML_CONTENT_USE_CATEGORIES, $storeId));
+    }
+
+    /**
+     * Is remove product in sailthru
+     *
+     * @param string|null $storeId
+     *
+     * @return bool
+     */
+    public function isRemoveInSailthru($storeId = null)
+    {
+        return boolval($this->getSettingsVal(self::XML_CONTENT_REMOVE_IN_SAILTHRU, $storeId));
     }
 
     /**

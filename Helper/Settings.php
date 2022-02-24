@@ -31,6 +31,7 @@ class Settings extends AbstractHelper
     const XML_ONREGISTER_LIST_VALUE         = "magesail_lists/lists/signup_list";
     const XML_NEWSLETTER_LIST_ENABLED       = "magesail_lists/lists/enable_newsletter";
     const XML_NEWSLETTER_LIST_VALUE         = "magesail_lists/lists/newsletter_list";
+    const XML_REMOVE_USER_IN_SAILTHRU       = "magesail_lists/lists/remove_in_sailthru";
     const XML_SELECT_CASE                   = "magesail_lists/names/select_case";
 
     // Transactional Emails
@@ -209,6 +210,18 @@ class Settings extends AbstractHelper
     public function getNewsletterList($storeId = null)
     {
         return $this->getSettingsVal(self::XML_NEWSLETTER_LIST_VALUE, $storeId);
+    }
+
+    /**
+     * Is remove customer in sailthru
+     *
+     * @param $storeId
+     *
+     * @return mixed
+     */
+    public function isRemoveUserInSailthru($storeId = null)
+    {
+        return $this->getSettingsVal(self::XML_REMOVE_USER_IN_SAILTHRU, $storeId);
     }
 
     public function getSelectCase($storeId = null)
