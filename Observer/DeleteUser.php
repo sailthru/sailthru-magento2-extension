@@ -42,7 +42,7 @@ class DeleteUser implements ObserverInterface
     {
         $customer = $observer->getData('customer');
         $storeId = $customer->getStoreId();
-        if (empty($this->sailthruSettings->isRemoveUserInSailthru())) {
+        if (empty($this->sailthruSettings->shouldRemoveCustomerDataInSaulthru($storeId))) {
             return;
         }
         $client = $this->clientManager->getClient($storeId);

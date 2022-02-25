@@ -213,15 +213,15 @@ class Settings extends AbstractHelper
     }
 
     /**
-     * Is remove customer in sailthru
+     * Should remove customer data in sailthru
      *
      * @param $storeId
      *
-     * @return mixed
+     * @return bool
      */
-    public function isRemoveUserInSailthru($storeId = null)
+    public function shouldRemoveCustomerDataInSaulthru($storeId = null)
     {
-        return $this->getSettingsVal(self::XML_REMOVE_USER_IN_SAILTHRU, $storeId);
+        return (bool)$this->getSettingsVal(self::XML_REMOVE_USER_IN_SAILTHRU, $storeId);
     }
 
     public function getSelectCase($storeId = null)

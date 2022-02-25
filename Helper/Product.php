@@ -169,7 +169,7 @@ class Product extends AbstractHelper
             return $this;
         }
         if ($eventType == self::EVENT_TYPE_DELETE_PRODUCT
-            && empty($this->sailthruProduct->isRemoveInSailthru($storeId))
+            && empty($this->sailthruProduct->shouldRemoveProductDataInSailthru($storeId))
         ) {
             return $this;
         }

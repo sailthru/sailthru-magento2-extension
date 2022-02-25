@@ -186,15 +186,15 @@ class ProductData extends AbstractHelper
     }
 
     /**
-     * Is remove product in sailthru
+     * Should remove product data in sailthru
      *
      * @param string|null $storeId
      *
      * @return bool
      */
-    public function isRemoveInSailthru($storeId = null)
+    public function shouldRemoveProductDataInSailthru($storeId = null)
     {
-        return boolval($this->getSettingsVal(self::XML_CONTENT_REMOVE_IN_SAILTHRU, $storeId));
+        return (bool)$this->getSettingsVal(self::XML_CONTENT_REMOVE_IN_SAILTHRU, $storeId);
     }
 
     /**
