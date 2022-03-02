@@ -2,6 +2,8 @@
 
 namespace Sailthru\MageSail;
 
+use Magento\Framework\DataObject;
+
 class Logger extends \Monolog\Logger
 {
     /**
@@ -15,6 +17,13 @@ class Logger extends \Monolog\Logger
      */
     public function addRecord($level, $message, array $context = [])
     {
+        if ($message instanceof \Throwable) {
+            return parent::addRecord($level, $message->getMessage(), $message->getTrace());
+        }
+        if ($message instanceof DataObject) {
+            return parent::addRecord($level, var_export($message->debug(), true), $context);
+        }
+
         return parent::addRecord(
             $level,
             !is_string($message) ? var_export($message, true) : $message,
