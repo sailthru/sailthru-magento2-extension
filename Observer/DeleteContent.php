@@ -6,7 +6,8 @@ use Magento\Catalog\Model\Product;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Sailthru\MageSail\Helper\ClientManager;
-use Sailthru\MageSail\Helper\Product as ProductHelper;
+use Sailthru\MageSail\Helper\Product\DeleteContent as DeleteContentHelper;
+use Magento\Store\Model\StoreManagerInterface;
 
 class DeleteContent implements ObserverInterface
 {
@@ -16,20 +17,28 @@ class DeleteContent implements ObserverInterface
     protected $clientManager;
 
     /**
-     * @var ProductHelper
+     * @var DeleteContentHelper
      */
-    protected $productHelper;
+    protected $deleteContentHelper;
+
+    /**
+     * @var StoreManagerInterface
+     */
+    protected $storeManager;
 
     /**
      * @param ClientManager $clientManager
-     * @param ProductHelper $productHelper
+     * @param DeleteContentHelper $deleteContentHelper
+     * @param StoreManagerInterface $storeManager
      */
     public function __construct(
         ClientManager $clientManager,
-        ProductHelper $productHelper
+        DeleteContentHelper $deleteContentHelper,
+        StoreManagerInterface $storeManager
     ) {
         $this->clientManager = $clientManager;
-        $this->productHelper = $productHelper;
+        $this->deleteContentHelper = $deleteContentHelper;
+        $this->storeManager = $storeManager;
     }
 
     /**
@@ -44,7 +53,11 @@ class DeleteContent implements ObserverInterface
         /** @var Product $product */
         $product = $observer->getEvent()->getProduct();
         try {
-            $this->productHelper->deleteContent($product);
+            if ($this->storeManager->getStore($product->getStoreId())->getCode() == 'admin') {
+                $this->deleteContentHelper->sendMultipleRequests($product);
+            } else {
+                $this->deleteContentHelper->sendRequest($product);
+            }
         } catch (\Throwable $t) {
             $client = $this->clientManager->getClient($product->getStoreId());
             $client->logger(__('Error of remove product data from Sailthru'));
