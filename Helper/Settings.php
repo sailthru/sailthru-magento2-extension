@@ -4,8 +4,6 @@ namespace Sailthru\MageSail\Helper;
 
 use Magento\Framework\App\Helper\Context;
 use Magento\Store\Model\StoreManager;
-use Magento\Framework\App\ObjectManager;
-use Sailthru\MageSail\Cookie\Hid;
 use Sailthru\MageSail\Logger;
 use Sailthru\MageSail\Model\Template as TemplateModel;
 use Sailthru\MageSail\Model\Config\Template\Data as TemplateConfig;
@@ -16,36 +14,36 @@ class Settings extends AbstractHelper
 {
     protected $_apiKey;
     protected $_apiSecret;
-    public $client;
-    public $hid;
+    public    $client;
+    public    $hid;
     protected $productMetadataInterface;
 
     // Source models
-    const SOURCE_MODEL_VALIDATION_MSG  = "Please Enter Valid Sailthru Credentials";
+    const SOURCE_MODEL_VALIDATION_MSG = 'Please Enter Valid Sailthru Credentials';
 
     // TODO
-    // const XML_CUSTOMER_ID              = "magesail_"
+    // const XML_CUSTOMER_ID              = 'magesail_'
 
     // Lists
-    const XML_ONREGISTER_LIST_ENABLED       = "magesail_lists/lists/enable_signup_list";
-    const XML_ONREGISTER_LIST_VALUE         = "magesail_lists/lists/signup_list";
-    const XML_NEWSLETTER_LIST_ENABLED       = "magesail_lists/lists/enable_newsletter";
-    const XML_NEWSLETTER_LIST_VALUE         = "magesail_lists/lists/newsletter_list";
-    const XML_REMOVE_USER_IN_SAILTHRU       = "magesail_lists/lists/remove_in_sailthru";
-    const XML_SELECT_CASE                   = "magesail_lists/names/select_case";
+    const XML_ONREGISTER_LIST_ENABLED = 'magesail_lists/lists/enable_signup_list';
+    const XML_ONREGISTER_LIST_VALUE   = 'magesail_lists/lists/signup_list';
+    const XML_NEWSLETTER_LIST_ENABLED = 'magesail_lists/lists/enable_newsletter';
+    const XML_NEWSLETTER_LIST_VALUE   = 'magesail_lists/lists/newsletter_list';
+    const XML_REMOVE_USER_IN_SAILTHRU = 'magesail_lists/lists/remove_in_sailthru';
+    const XML_SELECT_CASE             = 'magesail_lists/names/select_case';
 
     // Transactional Emails
-    const XML_ABANDONED_CART_ENABLED   = "magesail_send/abandoned_cart/enabled";
-    const XML_ABANDONED_CART_TEMPLATE  = "magesail_send/abandoned_cart/template";
-    const XML_ABANDONED_CART_TIME      = "magesail_send/abandoned_cart/delay_time";
-    const XML_ABANDONED_CART_ANONYMOUS = "magesail_send/abandoned_cart/anonymous_carts";
-    const XML_TRANSACTIONALS_ENABLED   = "magesail_send/transactionals/send_through_sailthru";
-    const XML_TRANSACTIONALS_SENDER    = "magesail_send/transactionals/from_sender";
-    const XML_ORDER_ENABLED            = "magesail_send/transactionals/purchase_enabled";
-    const XML_ORDER_TEMPLATE           = "magesail_send/transactionals/purchase_template";
-    const XML_TEMPLATES_CACHE_LIFETIME = "magesail_send/advanced/templates_cache_lifetime";
-    const XML_USE_EMAIL_QUEUE          = "magesail_send/advanced/use_email_queue";
-    const LO_ABANDONED_CART_ENABLED    = "1";
+    const XML_ABANDONED_CART_ENABLED   = 'magesail_send/abandoned_cart/enabled';
+    const XML_ABANDONED_CART_TEMPLATE  = 'magesail_send/abandoned_cart/template';
+    const XML_ABANDONED_CART_TIME      = 'magesail_send/abandoned_cart/delay_time';
+    const XML_ABANDONED_CART_ANONYMOUS = 'magesail_send/abandoned_cart/anonymous_carts';
+    const XML_TRANSACTIONALS_ENABLED   = 'magesail_send/transactionals/send_through_sailthru';
+    const XML_TRANSACTIONALS_SENDER    = 'magesail_send/transactionals/from_sender';
+    const XML_ORDER_ENABLED            = 'magesail_send/transactionals/purchase_enabled';
+    const XML_ORDER_TEMPLATE           = 'magesail_send/transactionals/purchase_template';
+    const XML_TEMPLATES_CACHE_LIFETIME = 'magesail_send/advanced/templates_cache_lifetime';
+    const XML_USE_EMAIL_QUEUE          = 'magesail_send/advanced/use_email_queue';
+    const LO_ABANDONED_CART_ENABLED    = '1';
 
     // Queue settings
     const QUEUE_ATTEMPTS_COUNT = 3;
@@ -60,7 +58,7 @@ class Settings extends AbstractHelper
             'customer_create_account_email_confirmation_template',
             'customer_create_account_email_confirmed_template',
         ],
-        'Sailthru\MageSail\Helper\Order' => [
+        'Sailthru\MageSail\Helper\Order'    => [
             'sales_email_order_guest_template',
             'sales_email_order_template',
         ],
@@ -97,7 +95,15 @@ class Settings extends AbstractHelper
         ScopeResolver $scopeResolver,
         ProductMetadataInterface $productMetadataInterface
     ) {
-        parent::__construct($context, $storeManager, $logger, $templateModel, $templateConfig, $objectManager, $scopeResolver);
+        parent::__construct(
+            $context,
+            $storeManager,
+            $logger,
+            $templateModel,
+            $templateConfig,
+            $objectManager,
+            $scopeResolver
+        );
         $this->productMetadataInterface = $productMetadataInterface;
     }
 
@@ -118,18 +124,20 @@ class Settings extends AbstractHelper
             return false;
         }
         $vars = [
-            "countryCode"   => $address->getCountry(),
-            "state"         => $address->getRegion(),
-            "stateCode"     => $address->getRegionCode(),
-            "city"          => $address->getCity(),
-            "postal"        => $address->getPostcode(),
+            'countryCode' => $address->getCountry(),
+            'state'       => $address->getRegion(),
+            'stateCode'   => $address->getRegionCode(),
+            'city'        => $address->getCity(),
+            'postal'      => $address->getPostcode(),
         ];
+
         return $vars;
     }
 
     public function getAddressVarsByCustomer($customer)
     {
         $address = $customer->getPrimaryBillingAddress();
+
         return $this->getAddressVars($address);
     }
 
@@ -184,6 +192,7 @@ class Settings extends AbstractHelper
             $this->getSettingsVal(self::XML_ORDER_TEMPLATE, $storeId)) {
             return true;
         }
+
         return false;
     }
 
@@ -228,12 +237,13 @@ class Settings extends AbstractHelper
     {
         return $this->getSettingsVal(self::XML_SELECT_CASE, $storeId);
     }
+
     /**
      * To get template name.
-     * 
-     * @param  string      $templateId
-     * @param  string|null $storeId
-     * 
+     *
+     * @param string      $templateId
+     * @param string|null $storeId
+     *
      * @return array
      */
     public function getTemplateName($templateId, $storeId = null)
@@ -252,16 +262,16 @@ class Settings extends AbstractHelper
                 $ids = [];
                 foreach ($templates as $template) {
                     if ($templateData['template_id'] == $this->getSettingsVal(
-                        $template['custom_template_source'],
-                        $storeId
-                    )) {
+                            $template['custom_template_source'],
+                            $storeId
+                        )) {
                         $ids[] = $template['id'];
                     }
                 }
 
                 if (count($ids) > 1) {
                     return [
-                        'name' => self::MAGENTO_GENERIC_TEMPLATE,
+                        'name'               => self::MAGENTO_GENERIC_TEMPLATE,
                         'orig_template_code' => self::MAGENTO_GENERIC_TEMPLATE,
                     ];
                 }
@@ -279,17 +289,17 @@ class Settings extends AbstractHelper
         }
 
         return [
-            'name' => $name,
+            'name'               => $name,
             'orig_template_code' => $origCode,
         ];
     }
 
     /**
      * To get template value.
-     * 
-     * @param  string      $id
-     * @param  string|null $storeId
-     * 
+     *
+     * @param string      $id
+     * @param string|null $storeId
+     *
      * @return string|null
      */
     public function getTemplateValue($id, $storeId = null)
@@ -299,10 +309,10 @@ class Settings extends AbstractHelper
 
     /**
      * To get additional variables for given template.
-     * 
-     * @param  string  $id
-     * @param  array   $currentVars
-     * 
+     *
+     * @param string $id
+     * @param array  $currentVars
+     *
      * @return array
      */
     public function getTemplateAdditionalVariables($id, $currentVars = [])
@@ -329,7 +339,7 @@ class Settings extends AbstractHelper
             if (isset($currentVars['increment_id'])) {
                 $order = $helper->getObject($currentVars['increment_id']);
                 $currentVars += $helper->getCustomVariables($order);
-                
+
                 if (in_array($id, self::TEMPLATES_WITH_IS_GUEST_VAR)) {
                     $currentVars += $helper->getIsGuestVariable($order);
                 }
@@ -352,9 +362,9 @@ class Settings extends AbstractHelper
 
     /**
      * To get helper by template identifier.
-     * 
-     * @param  string $templateId
-     * 
+     *
+     * @param string $templateId
+     *
      * @return mixed
      */
     public function getHelperByTemplateId($templateId)

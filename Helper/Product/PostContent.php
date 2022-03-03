@@ -35,9 +35,9 @@ class PostContent extends RequestAbstract
      *
      * @return boolean
      */
-    public function validationProductData(ProductModel $product, int $storeId = null)
+    public function validateProduct(ProductModel $product, int $storeId = null)
     {
-        return parent::validationProductData($product, $storeId)
+        return parent::validateProduct($product, $storeId)
             && (!empty($this->sailthruProduct->isVariant($product)) || !empty($this->productHelper->canShow($product)));
     }
 

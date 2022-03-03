@@ -129,7 +129,7 @@ abstract class RequestAbstract extends AbstractHelper
         $client = $this->clientManager->getClient($storeId);
         $client->_eventType = $this->eventType;
         try {
-            if (empty($this->validationProductData($product, $storeId))) {
+            if (empty($this->validateProduct($product, $storeId))) {
                 return $this;
             }
             $data = $this->getProductData($product, $storeId);
@@ -162,7 +162,7 @@ abstract class RequestAbstract extends AbstractHelper
      *
      * @return boolean
      */
-    public function validationProductData(ProductModel $product, int $storeId = null)
+    public function validateProduct(ProductModel $product, int $storeId = null)
     {
         if (empty($this->sailthruProduct->isProductInterceptOn($storeId))) {
             return false;

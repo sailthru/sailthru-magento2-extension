@@ -120,7 +120,7 @@ class Import extends Command
                 try {
                     $status = $product->getStatus();
                     if ($status == Status::STATUS_ENABLED
-                        && $this->postContentHelper->validationProductData($product, $storeId)
+                        && $this->postContentHelper->validateProduct($product, $storeId)
                     ) {
                         $productData = $this->postContentHelper->getProductData($product, $storeId);
                         $productData['integration_action'] = $this::EVENT_NAME;

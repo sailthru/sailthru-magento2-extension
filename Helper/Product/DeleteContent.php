@@ -35,10 +35,10 @@ class DeleteContent extends RequestAbstract
      *
      * @return boolean
      */
-    public function validationProductData(ProductModel $product, int $storeId = null)
+    public function validateProduct(ProductModel $product, int $storeId = null)
     {
         return $this->sailthruProduct->shouldRemoveProductDataInSailthru($storeId)
-            && parent::validationProductData($product, $storeId);
+            && parent::validateProduct($product, $storeId);
     }
 
     /**

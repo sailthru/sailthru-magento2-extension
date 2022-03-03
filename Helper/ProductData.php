@@ -3,7 +3,6 @@
 namespace Sailthru\MageSail\Helper;
 
 use Magento\Catalog\Api\ProductRepositoryInterface;
-use Magento\Catalog\Block\Product\AbstractProduct;
 use Magento\Catalog\Block\Product\ImageBuilder;
 use Magento\Catalog\Model\Product;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable as ConfigurableProduct;
@@ -15,20 +14,18 @@ use Magento\Store\Model\StoreManager;
 use Sailthru\MageSail\Logger;
 use Sailthru\MageSail\Model\Config\Template\Data as TemplateConfig;
 use Sailthru\MageSail\Model\Template as TemplateModel;
-use Zend\View\Helper\Url;
 
 class ProductData extends AbstractHelper
 {
-
-    const XML_CONTENT_INTERCEPT          = "magesail_content/intercept/enable_intercept";
-    const XML_CONTENT_INTERCEPT_CRON     = "magesail_content/intercept/enable_intercept_cron";
-    const XML_CONTENT_SEND_MASTER        = "magesail_content/intercept/send_master";
-    const XML_CONTENT_SEND_VARIANTS      = "magesail_content/intercept/send_variants";
-    const XML_CONTENT_REMOVE_IN_SAILTHRU = "magesail_content/intercept/remove_in_sailthru";
-    const XML_CONTENT_USE_KEYWORDS       = "magesail_content/tags/use_seo";
-    const XML_CONTENT_USE_CATEGORIES     = "magesail_content/tags/use_categories";
-    const XML_CONTENT_USE_ATTRIBUTES     = "magesail_content/tags/use_attributes";
-    const XML_CONTENT_ATTRIBUTES_LIST    = "magesail_content/tags/usable_attributes";
+    const XML_CONTENT_INTERCEPT          = 'magesail_content/intercept/enable_intercept';
+    const XML_CONTENT_INTERCEPT_CRON     = 'magesail_content/intercept/enable_intercept_cron';
+    const XML_CONTENT_SEND_MASTER        = 'magesail_content/intercept/send_master';
+    const XML_CONTENT_SEND_VARIANTS      = 'magesail_content/intercept/send_variants';
+    const XML_CONTENT_REMOVE_IN_SAILTHRU = 'magesail_content/intercept/remove_in_sailthru';
+    const XML_CONTENT_USE_KEYWORDS       = 'magesail_content/tags/use_seo';
+    const XML_CONTENT_USE_CATEGORIES     = 'magesail_content/tags/use_categories';
+    const XML_CONTENT_USE_ATTRIBUTES     = 'magesail_content/tags/use_attributes';
+    const XML_CONTENT_ATTRIBUTES_LIST    = 'magesail_content/tags/usable_attributes';
 
     public static $essentialAttributeCodes = [
         'status',
@@ -82,8 +79,15 @@ class ProductData extends AbstractHelper
         ProductRepositoryInterface $productRepo,
         ImageBuilder $imageBuilder
     ) {
-        parent::__construct($context, $storeManager, $logger, $templateModel, $templateConfig, $objectManager,
-            $scopeResolver);
+        parent::__construct(
+            $context,
+            $storeManager,
+            $logger,
+            $templateModel,
+            $templateConfig,
+            $objectManager,
+            $scopeResolver
+        );
         $this->configurableProduct = $configurableProduct;
         $this->productRepo = $productRepo;
         $this->imageBuilder = $imageBuilder;
@@ -323,8 +327,8 @@ class ProductData extends AbstractHelper
      * For variants, will return the configurable product's url with
      * #<variant_sku> anchored at the end.
      *
-     * @param  Product $product
-     * @param  int     $storeId
+     * @param Product  $product
+     * @param int|null $storeId
      *
      * @return string
      */
