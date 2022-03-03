@@ -6,7 +6,7 @@ use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory as ProductColl
 use Magento\Framework\FlagManager;
 use Magento\Store\Model\StoreManagerInterface;
 use Sailthru\MageSail\Helper\ProductData as SailthruProduct;
-use \Sailthru\MageSail\Plugin\ProductIntercept as SailthruIntercept;
+use Sailthru\MageSail\Helper\Product\PostContent as PostContentHelper;
 use Sailthru\MageSail\Logger;
 
 class Cron
@@ -29,9 +29,9 @@ class Cron
     private $sailthruProduct;
 
     /**
-     * @var SailthruIntercept
+     * @var PostContentHelper
      */
-    private $sailthruIntercept;
+    private $postContentHelper;
 
     /**
      * @var SailthruTemplates
@@ -51,7 +51,7 @@ class Cron
      *
      * @param ProductCollectionFactory $collectionFactory
      * @param StoreManagerInterface    $storeManager
-     * @param SailthruIntercept        $sailthruIntercept
+     * @param PostContentHelper        $postContentHelper
      * @param SailthruProduct          $sailthruProduct
      * @param SailthruTemplates        $sailthruTemplates
      * @param FlagManager              $flagManager
@@ -60,7 +60,7 @@ class Cron
     public function __construct(
         ProductCollectionFactory $collectionFactory,
         StoreManagerInterface $storeManager,
-        SailthruIntercept $sailthruIntercept,
+        PostContentHelper $postContentHelper,
         SailthruProduct $sailthruProduct,
         SailthruTemplates $sailthruTemplates,
         FlagManager $flagManager,
@@ -68,7 +68,7 @@ class Cron
     ) {
         $this->collectionFactory = $collectionFactory;
         $this->sailthruProduct = $sailthruProduct;
-        $this->sailthruIntercept = $sailthruIntercept;
+        $this->postContentHelper = $postContentHelper;
         $this->sailthruTemplates = $sailthruTemplates;
         $this->storeManager = $storeManager;
         $this->flagManager = $flagManager;
@@ -119,7 +119,7 @@ class Cron
                 foreach ($collection as $product) {
                     foreach ($product->getStoreIds() as $storeId) {
                         if (!empty($storesCronStatus[$storeId])) {
-                            $this->sailthruIntercept->sendRequest($product, $storeId);
+                            $this->postContentHelper->sendRequest($product, $storeId);
                         }
                     }
                 }

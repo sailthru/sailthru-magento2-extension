@@ -12,4 +12,10 @@
     <event name="admin_system_config_changed_section_magesail_send">
         <observer name="sailthru_config_save_magesail_send" instance="Sailthru\MageSail\Observer\ConfigSave"/>
     </event>
+    <event name="catalog_product_delete_after">
+        <observer name="sailthru_content_delete" instance="Sailthru\MageSail\Observer\DeleteContent" />
+    </event>
+    <event name="customer_delete_after">
+        <observer name="sailthru_user_delete" instance="Sailthru\MageSail\Observer\DeleteUser" />
+    </event>
 </config>

@@ -12,7 +12,7 @@ use Magento\Framework\App\State\Proxy as State;
 use Magento\Store\Model\App\Emulation\Proxy as Emulation;
 use Magento\Store\Model\StoreManagerInterface\Proxy as StoreManagerInterface;
 use Sailthru\MageSail\Helper\ClientManager\Proxy as ClientManager;
-use Sailthru\MageSail\Plugin\ProductIntercept\Proxy as ProductIntercept;
+use Sailthru\MageSail\Helper\Product\PostContent as PostContentHelper;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -28,8 +28,10 @@ class Import extends Command
     /** @var \Sailthru\MageSail\Helper\ClientManager  */
     protected $clientManager;
 
-    /** @var \Sailthru\MageSail\Plugin\ProductIntercept  */
-    protected $productIntercept;
+    /**
+     * @var PostContentHelper
+     */
+    protected $postContentHelper;
 
     /** @var \Magento\Catalog\Model\ResourceModel\Product\Collection  */
     protected $productCollection;
@@ -51,7 +53,7 @@ class Import extends Command
 
     public function __construct(
         ClientManager $clientManager,
-        ProductIntercept $productIntercept,
+        PostContentHelper $postContentHelper,
         Collection $productCollection,
         Emulation $emulation,
         State $state,
@@ -61,7 +63,7 @@ class Import extends Command
     ) {
         parent::__construct();
         $this->clientManager = $clientManager;
-        $this->productIntercept = $productIntercept;
+        $this->postContentHelper = $postContentHelper;
         $this->productCollection = $productCollection;
         $this->emulation = $emulation;
         $this->state = $state;
@@ -117,10 +119,13 @@ class Import extends Command
 
                 try {
                     $status = $product->getStatus();
-                    if ($status == Status::STATUS_ENABLED and $payload = $this->productIntercept->getProductData($product, $storeId)) {
-                        $payload['integration_action'] = $this::EVENT_NAME;
-                        $payload['integration_action_id'] = $actionId;
-                        $client->apiPost('content', $payload);
+                    if ($status == Status::STATUS_ENABLED
+                        && $this->postContentHelper->validateProduct($product, $storeId)
+                    ) {
+                        $productData = $this->postContentHelper->getProductData($product, $storeId);
+                        $productData['integration_action'] = $this::EVENT_NAME;
+                        $productData['integration_action_id'] = $actionId;
+                        $client->apiPost('content', $productData);
                         $syncedProducts++;
                     } else {
                         $skippedProducts[] = $product;
