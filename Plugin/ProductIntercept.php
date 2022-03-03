@@ -2,9 +2,11 @@
 
 namespace Sailthru\MageSail\Plugin;
 
+use Magento\Catalog\Model\Product;
+use Magento\Framework\App\Area;
+use Magento\Store\Model\StoreManagerInterface;
 use Sailthru\MageSail\Helper\ClientManager;
 use Sailthru\MageSail\Helper\Product\PostContent as PostContentHelper;
-use Magento\Store\Model\StoreManagerInterface;
 
 class ProductIntercept
 {
@@ -41,7 +43,7 @@ class ProductIntercept
     public function afterAfterSave(Product $subject, Product $result)
     {
         try {
-            if ($this->storeManager->getStore($result->getStoreId())->getCode() == 'admin') {
+            if ($this->storeManager->getStore($result->getStoreId())->getCode() == Area::AREA_ADMINHTML) {
                 $this->postContentHelper->sendMultipleRequests($result);
             } else {
                 $this->postContentHelper->sendRequest($result);
