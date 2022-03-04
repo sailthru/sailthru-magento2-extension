@@ -60,7 +60,7 @@ class PostContent extends RequestAbstract
             'url'         => $this->sailthruProduct->getProductUrl($product, $storeId),
             'keys'        => [
                 'sku' => count($product->getStoreIds()) > 1
-                    ? $storeId . "-" . $product->getSku()
+                    ? $storeId . '-' . $product->getSku()
                     : $product->getSku()
             ],
             'title'       => htmlspecialchars($product->getName()),
