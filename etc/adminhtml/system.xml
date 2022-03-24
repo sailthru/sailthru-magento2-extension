@@ -78,7 +78,7 @@
                 <field id="remove_in_sailthru" type="select" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Remove Products in Sailthru</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[Remove product in Sailthru after remove in Magento]]></comment>
+                    <comment><![CDATA[Delete product and related meta data from Sailthru content library when product is deleted from Magento]]></comment>
                     <depends>
                         <field id="*/*/enable_intercept">1</field>
                     </depends>
@@ -145,7 +145,7 @@
                 <field id="remove_in_sailthru" type="select" translate="label" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>Remove Customers in Sailthru</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
-                    <comment><![CDATA[Remove customer in Sailthru after remove in Magento]]></comment>
+                    <comment><![CDATA[Delete customer user profile data from Sailthru when a user is deleted from Magento]]></comment>
                     <depends>
                         <field id="*/*/enable_signup_list">1</field>
                     </depends>
