@@ -68,7 +68,7 @@ class EmailSendProcessor
         try {
             $this->getTransport($decodedData)->sendMessage();
         } catch (\Throwable $t) {
-            $this->logger->critical($t->getMessage());
+            $this->logger->critical($t->getMessage(), $t->getTrace());
             $this->publisher->execute($decodedData, ($decodedData['attempt'] ?? 0) + 1);
         }
 

@@ -133,7 +133,7 @@ class Cron
 
             return true;
         } catch (\Exception $e) {
-            $this->logger->err($e);
+            $this->logger->error($e->getMessage(), $e->getTrace());
 
             return false;
         }
@@ -150,7 +150,7 @@ class Cron
                 $this->sailthruTemplates->getTemplatesByStoreId($storeId);
             }
         } catch (\Exception $e) {
-            $this->logger->err('Cron Job sailthru_sync_templates - ' . $e->getMessage());
+            $this->logger->error('Cron Job sailthru_sync_templates - ' . $e->getMessage());
         }
 
         return $this;
