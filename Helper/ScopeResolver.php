@@ -119,7 +119,7 @@ class ScopeResolver extends AbstractHelper
         try {
             $entity = $repository->get($entityId);
         } catch (\Exception $e) {
-            $this->_logger->error('Error resolving sales scope.', $e);
+            $this->_logger->error('Error resolving sales scope.', $e->getTrace());
 
             return null;
         }

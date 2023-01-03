@@ -162,11 +162,6 @@ class Api extends AbstractHelper
         return '';
     }
 
-    public function logger($message)
-    {
-        $this->logger->info($message);
-    }
-
     /* Content */
 
     public function isProductInterceptOn()
@@ -226,7 +221,7 @@ class Api extends AbstractHelper
                 $tags .= $attribute_str;
             }
         } catch (\Exception $e) {
-            $this->logger($e);
+            $this->logger->info($e->getMessage(), $e->getTrace());
         }
         return $tags;
     }

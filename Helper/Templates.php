@@ -57,7 +57,7 @@ class Templates extends AbstractHelper
 
             return $this->templates[$storeId];
         } catch (\Sailthru_Client_Exception $ex) {
-            $this->logger->err("Exception getting templates: {$ex->getMessage()}");
+            $this->logger->error("Exception getting templates: {$ex->getMessage()}");
 
             return [];
         }
