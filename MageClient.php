@@ -78,11 +78,18 @@ class MageClient extends \Sailthru_Client
         return parent::prepareJsonPayload($data, $binary_data);
     }
 
+    /**
+     * @return array
+     */
+
     public function getSettings()
     {
         return $this->apiGet('settings');
     }
 
+    /**
+     * @return array
+     */
     public function getVerifiedSenders()
     {
         $settings = $this->getSettings();
@@ -99,9 +106,13 @@ class MageClient extends \Sailthru_Client
     {
         if ($message instanceof \Throwable) {
             $this->logger->info($message->getMessage(), $message->getTrace());
+
+            return;
         }
         if ($message instanceof DataObject) {
             $this->logger->info(var_export($message->debug(), true));
+
+            return;
         }
 
         $this->logger->info(!is_string($message) ? var_export($message, true) : $message);

@@ -68,7 +68,7 @@ class PostContent extends RequestAbstract
             'price'       => ($product->getPrice()
                     ? $product->getPrice()
                     : $product->getPriceInfo()->getPrice('final_price')->getValue()) * 100,
-            'description' => strip_tags($product->getDescription()),
+            'description' => $product->getDescription() ? strip_tags($product->getDescription()) : '',
             'tags'        => $this->sailthruProduct->getTags($product, $attributes, $categories),
             'images'      => [],
             'vars'        => [
@@ -84,7 +84,7 @@ class PostContent extends RequestAbstract
                     'storeIds'             => $product->getStoreIds(),
                     'price'                => $product->getPrice() * 100,
                     'groupPrice'           => $product->getGroupPrice(),
-                    'formatedPrice'        => $product->getFormatedPrice(),
+                    'formatedPrice'        => $product->getFormattedPrice(),
                     'calculatedFinalPrice' => $product->getCalculatedFinalPrice(),
                     'minimalPrice'         => $product->getMinimalPrice(),
                     'specialPrice'         => $product->getSpecialPrice(),
