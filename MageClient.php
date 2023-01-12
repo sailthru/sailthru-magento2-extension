@@ -2,6 +2,7 @@
 
 namespace Sailthru\MageSail;
 
+use Magento\Framework\DataObject;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Store\Model\StoreManager;
 use Sailthru\MageSail\Helper\ScopeResolver;
@@ -44,29 +45,29 @@ class MageClient extends \Sailthru_Client
         $logAction = "{$method} /{$action}";
         $scope= $this->scopeResolver->getScope();
         $scopeString = "{$scope[0]} {$scope[1]}";
-        $this->logger->info([
+        $this->logger->info(var_export([
             'action'            => $logAction,
             'event_type'        => $this->_eventType,
             'scope'             => $scopeString,
             'http_request_type' => $this->http_request_type,
             'body'              => $data['json']
-        ]);
+        ], true));
         try {
             $response = parent::httpRequest($action, $data, $method, $options);
-            $this->logger->info([
+            $this->logger->info(var_export([
               'action_response'  => $logAction,
               'event_type '      => $this->_eventType,
               'scope'            => $scopeString,
               'response'         => !$this->truncateResponse($method, $action) ? $response : "<TRUNCATED>"
-            ]);
+            ], true));
             return $response;
         } catch (\Sailthru_Client_Exception $e) {
-            $this->logger->err([
+            $this->logger->error(var_export([
                 'error'    => $logAction,
                 'scope'    => $scopeString,
                 'code'     => $e->getCode(),
                 'message'  => $e->getMessage(),
-            ]);
+            ], true));
             throw $e;
         }
     }
@@ -77,11 +78,18 @@ class MageClient extends \Sailthru_Client
         return parent::prepareJsonPayload($data, $binary_data);
     }
 
+    /**
+     * @return array
+     */
+
     public function getSettings()
     {
         return $this->apiGet('settings');
     }
 
+    /**
+     * @return array
+     */
     public function getVerifiedSenders()
     {
         $settings = $this->getSettings();
@@ -96,7 +104,18 @@ class MageClient extends \Sailthru_Client
      */
     public function logger($message)
     {
-        $this->logger->info($message);
+        if ($message instanceof \Throwable) {
+            $this->logger->info($message->getMessage(), $message->getTrace());
+
+            return;
+        }
+        if ($message instanceof DataObject) {
+            $this->logger->info(var_export($message->debug(), true));
+
+            return;
+        }
+
+        $this->logger->info(!is_string($message) ? var_export($message, true) : $message);
     }
 
     private function truncateResponse($method, $action)

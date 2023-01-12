@@ -4,16 +4,9 @@
 
 ## Installation Instructions
 
-1. Get the module
-	via composer  `composer require sailthru/sailthru-magento2-extension`
-
-2. Enable the module
-    `bin/magento module:enable Sailthru_MageSail`
-
-3. Upgrade the database
-	`bin/magento setup:upgrade`
-   *(Depending on Magento mode, you may need to run `magento setup:di:compile`)*
-
+1. Get the module via composer  `composer require sailthru/sailthru-magento2-extension`
+2. Enable the module `bin/magento module:enable Sailthru_MageSail`
+3. Upgrade the database `bin/magento setup:upgrade` *(Depending on Magento mode, you may need to run `magento setup:di:compile`)*
 4. Go to Magento Admin > Stores > Configuration > Sailthru to configure. Visit the [Sailthru Documentation Site](https://getstarted.sailthru.com/integrations/magento/magento-2-extension/) for setup documentation.
 
 *__Note__: If sync'ing variant products with no visible individual URL, you should enable "Preserve Fragments" in Sailthru [here][2].*
@@ -53,7 +46,7 @@ OR
 $ php bin/magento queue:consumers:start sailthru.email.send.consumer.amqp
 ```
 
-### RabbitMQ integrationa
+### RabbitMQ integration
 Instead of standard database based queue broker RabbitMQ can be used
 
 Refer to [Magento Guide: RabittMQ Setup](https://devdocs.magento.com/guides/v2.3/install-gde/prereq/install-rabbitmq.html)

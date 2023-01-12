@@ -64,7 +64,7 @@ class OrderSave implements ObserverInterface {
         try {
             $client->apiPost('purchase', $orderData);
         } catch (\Sailthru_Client_Exception $e) {
-            $this->logger->err("Error sync'ing purchase #{$order->getIncrementId()} - ({$e->getCode()}) {$e->getMessage()}");
+            $this->logger->error("Error sync'ing purchase #{$order->getIncrementId()} - ({$e->getCode()}) {$e->getMessage()}");
         }
     }
 

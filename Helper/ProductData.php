@@ -244,7 +244,7 @@ class ProductData extends AbstractHelper
                 $tags .= $attribute_str;
             }
         } catch (\Exception $e) {
-            $this->logger->err($e);
+            $this->logger->error($e->getMessage(), $e->getTrace());
         }
 
         return $tags;
