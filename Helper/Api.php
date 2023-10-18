@@ -198,7 +198,7 @@ class Api extends AbstractHelper
     {
         $tags = '';
         if ($this->tagsUseKeywords()) {
-            $keywords = htmlspecialchars($product->getData('meta_keyword'));
+            $keywords = htmlspecialchars($product->getData('meta_keyword') ?? '');
             $tags .= "$keywords,";
         }
         if ($this->tagsUseCategories()) {

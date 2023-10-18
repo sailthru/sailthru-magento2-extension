@@ -3,7 +3,7 @@
 /** @var $block \Magento\Catalog\Block\Product\View */
 $product = $block->getProduct();
 ?>
-<meta name="sailthru.title" content="<?php echo htmlspecialchars($product->getName()); ?>" />
-<meta name="sailthru.tags" content="<?php echo htmlspecialchars($product->getMetaKeyword()); ?>" />
-<meta name="sailthru.description" content="<?php echo htmlspecialchars($product->getDescription()); ?>" />
-<meta name="sailthru.price" content="<?php echo htmlspecialchars($product->getPrice()*100); ?>" />
+<meta name="sailthru.title" content="<?php echo htmlspecialchars($product->getName() ?? ''); ?>" />
+<meta name="sailthru.tags" content="<?php echo htmlspecialchars($product->getMetaKeyword() ?? ''); ?>" />
+<meta name="sailthru.description" content="<?php echo htmlspecialchars($product->getDescription() ?? ''); ?>" />
+<meta name="sailthru.price" content="<?php echo htmlspecialchars(($product->getPrice() ?? 0) *100); ?>" />
