@@ -215,7 +215,7 @@ class ProductData extends AbstractHelper
         $storeId = $product->getStoreId();
         $tags = '';
         if ($this->tagsUseKeywords($storeId)) {
-            $keywords = htmlspecialchars($product->getData('meta_keyword'));
+            $keywords = htmlspecialchars($product->getData('meta_keyword') ?? '');
             $tags .= "$keywords,";
         }
 

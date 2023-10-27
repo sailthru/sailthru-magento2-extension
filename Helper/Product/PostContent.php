@@ -63,7 +63,7 @@ class PostContent extends RequestAbstract
                     ? $storeId . '-' . $product->getSku()
                     : $product->getSku()
             ],
-            'title'       => htmlspecialchars($product->getName()),
+            'title'       => htmlspecialchars($product->getName() ?? ''),
             'spider'      => 0,
             'price'       => ($product->getPrice()
                     ? $product->getPrice()
