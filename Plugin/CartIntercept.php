@@ -17,6 +17,17 @@ use Sailthru\MageSail\Cookie\Hid as SailthruCookie;
 
 class CartIntercept
 {
+    public ClientManager $clientManager;
+    public SailthruSettings $sailthruSettings;
+    public SailthruCookie $sailthruCookie;
+    public ProductRepositoryInterface $productRepo;
+    public Image $imageHelper;
+    public Config $mediaConfig;
+    public ProductHelper $productHelper;
+    public ConfigurableAttributeData $cpData;
+    public Configurable $cpModel;
+    public SwatchModel $swatchModel;
+
     public function __construct(
         ClientManager $clientManager,
         SailthruSettings $sailthruSettings,
