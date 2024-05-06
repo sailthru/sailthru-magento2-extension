@@ -11,7 +11,7 @@
             <resource>Sailthru_Magesail::config</resource>
             <group id="service" type="text" translate="label" sortOrder="0" showInDefault="1" showInWebsite="1" showInStore="1">
                 <label>Sailthru API</label>
-                <comment><![CDATA[Please enter your API credentials to sync users, orders, and products as well as send transactional emails with Sailthru. Find your API credentials <a href="https://my.sailthru.com/settings/api_postbacks" target="_blank">here</a>.]]></comment>
+                <comment><![CDATA[Please enter your API credentials to sync users, orders, and products as well as send transactional emails with Sailthru. Find your API credentials <a href="https://my.sailthru.com/settings/api_postbacks" target="_blank">here</a>. Version 2.4.2]]></comment>
                 <field id="api_key" type="text" translate="label" sortOrder="0" showInDefault="1" showInWebsite="1" showInStore="1">
                     <label>API Key</label>
                 </field>
