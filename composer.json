@@ -7,9 +7,9 @@
     "sailthru/sailthru-php5-client": "1.2.3"
   },
   "suggest": {
-    "magento/module-newsletter": "^101.*",
-    "magento/module-catalog": "^101.*",
-    "magento/module-customer": "^100.1.*"
+    "magento/module-newsletter": "^100.4.*",
+    "magento/module-catalog": "^104.0.*",
+    "magento/module-customer": "^103.0.*"
   },
   "version": "2.4.1",
   "autoload": {
