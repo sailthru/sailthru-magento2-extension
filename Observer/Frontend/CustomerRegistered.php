@@ -30,6 +30,9 @@ class CustomerRegistered implements ObserverInterface
 
     public function execute(Observer $observer)
     {
+        $requestParams = $_REQUEST;
+        $optout_email = isset($requestParams['is_subscribed']) ? $requestParams['is_subscribed'] : null;
+        $optout_email = $optout_email == 1 ? "none" : "basic";
         $customer = $observer->getData('customer');
         $storeId = $customer->getStoreId();
         $client = $this->clientManager->getClient($storeId);
@@ -38,6 +41,7 @@ class CustomerRegistered implements ObserverInterface
         $varKeys = $this->sailthruVars->getVarKeys($selectedCase);
         $data = [
             'id'     => $email,
+            'optout_email' => $optout_email,
             'key'    => 'email',
             'fields' => [
                 'keys' => 1
