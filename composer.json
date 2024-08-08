@@ -4,14 +4,14 @@
   "type":"magento2-module",
   "require": {
     "php": "~5.6.0|~7.0.0|~7.1.3|~7.2.0|~7.3.0|~7.4.0|~8.0",
-    "sailthru/sailthru-php5-client": "1.2.3"
+    "sailthru/sailthru-php5-client": "1.2.4"
   },
   "suggest": {
     "magento/module-newsletter": "^101.*",
     "magento/module-catalog": "^101.*",
     "magento/module-customer": "^100.1.*"
   },
-  "version": "2.4.4",
+  "version": "2.5.0",
   "autoload": {
     "files": [ "registration.php" ],
     "psr-4": { "Sailthru\\MageSail\\": "" }
