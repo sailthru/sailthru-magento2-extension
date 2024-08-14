@@ -9,6 +9,10 @@ use Sailthru\MageSail\Helper\Customer as SailthruCustomer;
 
 class AddressIntercept
 {
+    private $clientManager;
+    private $sailthruSettings;
+    private $sailthruCustomer;
+
     public function __construct(
         ClientManager $clientManager,
         SailthruSettings $sailthruSettings,
