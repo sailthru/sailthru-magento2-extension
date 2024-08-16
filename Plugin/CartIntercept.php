@@ -128,11 +128,13 @@ class CartIntercept
     public function isAnonymousReady($storeId = null)
     {
         if ($this->sailthruSettings->canAbandonAnonymous($storeId) && $hid = $this->sailthruCookie->get()) {
-            $response = $this->clientManager->getClient($storeId)->getUserByKey($hid, 'cookie', ['keys' => 1]);
-            if (array_key_exists('keys', $response)) {
-                $email = $response['keys']['email'];
+            if ($hid != 'do-not-track') {
+                $response = $this->clientManager->getClient($storeId)->getUserByKey($hid, 'cookie', ['keys' => 1]);
+                if (array_key_exists('keys', $response)) {
+                    $email = $response['keys']['email'];
 
-                return $email;
+                    return $email;
+                }
             }
         }
 
