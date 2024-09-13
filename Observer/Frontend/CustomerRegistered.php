@@ -31,8 +31,10 @@ class CustomerRegistered implements ObserverInterface
     public function execute(Observer $observer)
     {
         $requestParams = $_REQUEST;
-        $optout_email = isset($requestParams['is_subscribed']) ? $requestParams['is_subscribed'] : null;
-        $optout_email = $optout_email == 1 ? "none" : "basic";
+        $optout_email = "basic";
+        if(isset($requestParams['is_subscribed']) && ($requestParams['is_subscribed'] == '1' || $requestParams['is_subscribed'] == 1)){
+            $optout_email = "none";
+        }
         $customer = $observer->getData('customer');
         $storeId = $customer->getStoreId();
         $client = $this->clientManager->getClient($storeId);
