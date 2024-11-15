@@ -8,6 +8,7 @@ use Sailthru\MageSail\Helper\ClientManager;
 use Sailthru\MageSail\Helper\Settings as SailthruSettings;
 use Sailthru\MageSail\Cookie\Hid as SailthruCookie;
 use Sailthru\MageSail\Helper\VarHelper;
+use Sailthru\MageSail\Logger;
 
 class CustomerRegistered implements ObserverInterface
 {
@@ -15,26 +16,33 @@ class CustomerRegistered implements ObserverInterface
     private $sailthruSettings;
     private $sailthruCookie;
     private $sailthruVars;
+    /** @var Logger */
+    private $logger;
 
     public function __construct(
         ClientManager $clientManager,
         SailthruSettings $sailthruSettings,
         SailthruCookie $sailthruCookie,
-        VarHelper $sailthruVars
+        VarHelper $sailthruVars,
+        Logger $logger
     ) {
         $this->clientManager = $clientManager;
         $this->sailthruSettings = $sailthruSettings;
         $this->sailthruCookie = $sailthruCookie;
         $this->sailthruVars = $sailthruVars;
+        $this->logger = $logger;
     }
 
     public function execute(Observer $observer)
     {
-        $requestParams = $_REQUEST;
-        $issubscribed = isset($requestParams['is_subscribed']) ? 1 : 0;
-        $optout_email = $issubscribed == 1 ? "none" : "basic";
-        
         $customer = $observer->getData('customer');
+        $isSubscribed = $observer->getEvent()->getAccountController()->getRequest()->getParam('is_subscribed');
+        if($isSubscribed == 1 || $isSubscribed == '1') {
+            $optOutEmail = "none";
+        } else {
+            $optOutEmail = "basic";
+        }
+        $this->logger->info("CustomerRegistration IsSubscriptionValue & OptOutEmailValue: $isSubscribed & $optOutEmail");
         $storeId = $customer->getStoreId();
         $client = $this->clientManager->getClient($storeId);
         $email = $customer->getEmail();
@@ -42,7 +50,7 @@ class CustomerRegistered implements ObserverInterface
         $varKeys = $this->sailthruVars->getVarKeys($selectedCase);
         $data = [
             'id'     => $email,
-            'optout_email' => $optout_email,
+            'optout_email' => $optOutEmail,
             'key'    => 'email',
             'fields' => [
                 'keys' => 1
