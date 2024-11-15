@@ -41,7 +41,7 @@ class CustomerRegistered implements ObserverInterface
             $optOutEmail = $isSubscribed == '1' ? "none" : "basic";
             $this->logger->info("CustomerRegistration IsSubscriptionValue & OptOutEmailValue: [$isSubscribed] & [$optOutEmail]");
         } catch (\Exception $e) {
-            $this->logger->error("Error in CustomerRegistration # {$e->getMessage()}");
+            $this->logger->error("Error while getting is_subscribed # {$e->getMessage()}");
             $optOutEmail = "basic";
         }
         $storeId = $customer->getStoreId();
