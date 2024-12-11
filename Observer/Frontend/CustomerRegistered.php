@@ -4,17 +4,11 @@ namespace Sailthru\MageSail\Observer\Frontend;
 
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
-use Magento\Framework\Mview\View\SubscriptionFactory;
 use Sailthru\MageSail\Helper\ClientManager;
 use Sailthru\MageSail\Helper\Settings as SailthruSettings;
 use Sailthru\MageSail\Cookie\Hid as SailthruCookie;
 use Sailthru\MageSail\Helper\VarHelper;
 use Sailthru\MageSail\Logger;
-use Magento\Customer\Model\CustomerRegistry;
-use Magento\Customer\Model\CustomerFactory;
-use Magento\CUstomer\Model\Customer;
-use Magento\Store\Model\StoreManagerInterface;
-use Magento\Newsletter\Model\Subscriber;
 
 class CustomerRegistered implements ObserverInterface
 {
@@ -23,34 +17,19 @@ class CustomerRegistered implements ObserverInterface
     private $sailthruCookie;
     private $sailthruVars;
     private $logger;
-    private $customerRegistry;
-    protected $customerFactory;
-    private $customerModel;
-    private $storeManager;
-    private $subscriber;
 
     public function __construct(
         ClientManager $clientManager,
         SailthruSettings $sailthruSettings,
         SailthruCookie $sailthruCookie,
         VarHelper $sailthruVars,
-        Logger $logger,
-        CustomerRegistry $customerRegistry,
-        CustomerFactory $customerFactory,
-        Customer $customerModel,
-        StoreManagerInterface $storeManager,
-        Subscriber $subscriber
+        Logger $logger
     ) {
         $this->clientManager = $clientManager;
         $this->sailthruSettings = $sailthruSettings;
         $this->sailthruCookie = $sailthruCookie;
         $this->sailthruVars = $sailthruVars;
         $this->logger = $logger;
-        $this->customerRegistry = $customerRegistry;
-        $this->customerFactory = $customerFactory;
-        $this->customerModel = $customerModel;
-        $this->storeManager = $storeManager;
-        $this->subscriber = $subscriber;
     }
 
     public function execute(Observer $observer)
