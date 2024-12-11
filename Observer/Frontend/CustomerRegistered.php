@@ -40,8 +40,11 @@ class CustomerRegistered implements ObserverInterface
             $isSubscribed = isset($requestParams['is_subscribed']) ? 1 : 0;
             $optOutEmail = $isSubscribed == 1 ? "none" : "basic";
 
+            $this->logger->info('############################ requestParams[\'is_subscribed\']): ' . isset($requestParams['is_subscribed']) .
+                ' requestParams[\'is_subscribed\']: ' . (isset($requestParams['is_subscribed']) ? $requestParams['is_subscribed']: '0') . ' optOutEmail: ' . $optOutEmail);
+
             $this->logger->info('#############Request Params###############'. print_r($requestParams, true));
-            $this->logger->info('#############Customer Data###############'. print_r($customer, true));
+//            $this->logger->info('#############Customer Data###############'. print_r($customer, true));
         } catch (\Exception $e) {
             $this->logger->error("Error in CustomerRegistration # {$e->getMessage()}");
             $optOutEmail = "none";
