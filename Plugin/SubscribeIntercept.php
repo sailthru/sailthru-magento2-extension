@@ -8,6 +8,7 @@ use Sailthru\MageSail\Helper\ClientManager;
 use Sailthru\MageSail\Helper\ScopeResolver;
 use Sailthru\MageSail\Helper\Settings as SailthruSettings;
 use Sailthru\MageSail\Helper\VarHelper;
+use Sailthru\MageSail\Logger;
 
 class SubscribeIntercept
 {
@@ -29,19 +30,22 @@ class SubscribeIntercept
 
     /** @var ScopeResolver  */
     protected $scopeResolver;
+    private $logger;
 
     public function __construct(
         ClientManager $clientManager,
         SailthruSettings $sailthruSettings,
         StoreManagerInterface $storeManager,
         ScopeResolver $scopeResolver,
-        VarHelper $sailthruVars
+        VarHelper $sailthruVars,
+        Logger $logger
     ) {
         $this->clientManager = $clientManager;
         $this->sailthruSettings = $sailthruSettings;
         $this->storeManager = $storeManager;
         $this->scopeResolver = $scopeResolver;
         $this->sailthruVars = $sailthruVars;
+        $this->logger = $logger;
     }
 
     /**
@@ -82,7 +86,15 @@ class SubscribeIntercept
      * @param Subscriber $subscriber
      * @throws \Exception
      */
-    public function updateSailthruSubscription(Subscriber $subscriber)
+    public function updateSailthruSubscription(Subscriber $subscriber) {
+        try {
+            $this->updateSailthruSubscriptionInternal($subscriber);
+        } catch (\Exception $e) {
+            $this->logger->error("Error in updateSailthruSubscriptionInternal");
+        }
+    }
+
+    private function updateSailthruSubscriptionInternal(Subscriber $subscriber)
     {
         $storeId = $subscriber->getStoreId();
         $email = $subscriber->getEmail();
@@ -90,6 +102,7 @@ class SubscribeIntercept
         $isSubscribed = ($status == Subscriber::STATUS_SUBSCRIBED ? 1 : 0);
         $selectedCase = $this->sailthruSettings->getSelectCase($storeId);
         $varKeys = $this->sailthruVars->getVarKeys($selectedCase);
+        $this->logger->info("#############SubscribeIntercept isSubscribed Value: [$isSubscribed] ###############");
 
         if ($this->shouldUpdate($status, $storeId)) {
             $newsletterList = $this->sailthruSettings->getNewsletterList($storeId);
