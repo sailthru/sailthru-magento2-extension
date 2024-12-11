@@ -16,7 +16,6 @@ class CustomerRegistered implements ObserverInterface
     private $sailthruSettings;
     private $sailthruCookie;
     private $sailthruVars;
-    /** @var Logger */
     private $logger;
 
     public function __construct(
@@ -37,12 +36,18 @@ class CustomerRegistered implements ObserverInterface
     {
         $customer = $observer->getData('customer');
         try {
-            $isSubscribed = $observer->getEvent()->getAccountController()->getRequest()->getParam('is_subscribed');
-            $optOutEmail = $isSubscribed == '1' ? "none" : "basic";
-            $this->logger->info("CustomerRegistration IsSubscriptionValues Observer: [$observer] - [$observer->getValue()] & Customer: [$customer] - [$customer->getValue()] & isSubscribed: [$customer->getCustomAttribute('is_subscribed')] & [$isSubscribed] & [$optOutEmail]");
+            $requestParams = $_REQUEST;
+            $isSubscribed = isset($requestParams['is_subscribed']) ? 1 : 0;
+            $optOutEmail = $isSubscribed == 1 ? "none" : "basic";
+
+            $this->logger->info('############################ requestParams[\'is_subscribed\']): ' . isset($requestParams['is_subscribed']) .
+                ' requestParams[\'is_subscribed\']: ' . (isset($requestParams['is_subscribed']) ? $requestParams['is_subscribed']: '0') . ' optOutEmail: ' . $optOutEmail);
+
+            $this->logger->info('#############Request Params###############'. print_r($requestParams, true));
+//            $this->logger->info('#############Customer Data###############'. print_r($customer, true));
         } catch (\Exception $e) {
-            $this->logger->error("Error while getting is_subscribed # {$e->getMessage()}");
-            $optOutEmail = "basic";
+            $this->logger->error("Error in CustomerRegistration # {$e->getMessage()}");
+            $optOutEmail = "none";
         }
         $storeId = $customer->getStoreId();
         $client = $this->clientManager->getClient($storeId);
