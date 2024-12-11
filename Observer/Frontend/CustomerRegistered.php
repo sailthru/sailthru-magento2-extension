@@ -57,42 +57,15 @@ class CustomerRegistered implements ObserverInterface
     {
         $customer = $observer->getData('customer');
         try {
-            // Get is_subscribed value by using Customer Model
-            $websiteId = $this->storeManager->getWebsite()->getWebsiteId();
-            $this->customerModel->setWebsiteId($websiteId);
-            $customerDataByEvent = $observer->getEvent()->getCustomer();
-            $customerEmail = $observer->getData('email');
-            $customerModel = $this->customerModel->loadByEmail($customerEmail);
-            $loadByCustomerModel = $customerModel->getCustomAttribute('is_subscribed');
+            $requestParams = $_REQUEST;
+            $isSubscribed = isset($requestParams['is_subscribed']) ? 1 : 0;
+            $optOutEmail = $isSubscribed == 1 ? "none" : "basic";
 
-            // Get is_subscribed by Subscriber class (Getting is_subscribed value using this way on local)
-            $subscriberDetails = $this->subscriber->loadByEmail($customer->getEmail());
-            $status = $subscriberDetails->getStatus();
-            $isSubscribedNewValue = ($status == Subscriber::STATUS_SUBSCRIBED ? 1 : 0);
-            $this->logger->info("#############SubscribedNewValue [$isSubscribedNewValue]###############");
-
-            // Get is_subscribed value by using customerFactory
-            $loadCustomerByCustomerFactory = $this->customerFactory->create()->load($customerDataByEvent->getId());
-            $isSubscribedValueFromCustomerFactory = $loadCustomerByCustomerFactory->getIsSubscribed();
-            $isSubscribedValueFromDataModel = $loadCustomerByCustomerFactory->getDataModel()->getCustomAttribute('is_subscribed');
-
-            // Get is_subscribed value by using customerRegistry
-            $loadCustomerByCustomerRegistry = $this->customerRegistry->retrieve($customerDataByEvent->getId());
-            $isSubscribedValueFromCustomerRegistry = $loadCustomerByCustomerRegistry->getIsSubscribed();
-
-            //  Get is_subscribed value by using Event AccountController  (Getting is_subscribed value using this way on local)
-            $isSubscribed = $observer->getEvent()->getAccountController()->getRequest()->getParam('is_subscribed');
-
-            if ($isSubscribed != '') { // Troubleshooting: If $isSubscribed is empty then get value from $isSubscribedNewValue
-                $optOutEmail = $isSubscribed == '1' ? "none" : "basic";
-            } else {
-                $optOutEmail = $isSubscribedNewValue == '1' ? "none" : "basic";
-            }
-            $this->logger->info("CustomerRegistration IsSubscriptionValues loadCustomerByCustomerFactory: [$isSubscribedValueFromCustomerFactory] loadCustomerByCustomerRegistry: [$isSubscribedValueFromCustomerRegistry] & isSubscribedValueFromDataModel: [$isSubscribedValueFromDataModel]");
-            $this->logger->info("CustomerRegistration IsSubscriptionValues loadByCustomerModel: [$loadByCustomerModel] & AccountController: [$isSubscribed] & [$optOutEmail] & isSubscribedNewValue [$isSubscribedNewValue]");
+            $this->logger->info('#############Request Params###############'. print_r($requestParams, true));
+            $this->logger->info('#############Customer Data###############'. print_r($customer, true));
         } catch (\Exception $e) {
             $this->logger->error("Error in CustomerRegistration # {$e->getMessage()}");
-            $optOutEmail = "basic";
+            $optOutEmail = "none";
         }
         $storeId = $customer->getStoreId();
         $client = $this->clientManager->getClient($storeId);
