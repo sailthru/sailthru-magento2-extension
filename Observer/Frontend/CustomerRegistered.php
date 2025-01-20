@@ -32,6 +32,7 @@ class CustomerRegistered implements ObserverInterface
         $this->logger = $logger;
     }
 
+
     public function execute(Observer $observer)
     {
         $customer = $observer->getData('customer');
