@@ -82,11 +82,11 @@ class Transport extends \Magento\Email\Model\Transport
     /**
      * Send a mail using this transport
      *
-     * @return Transport
+     * @return void
      *
      * @throws \Magento\Framework\Exception\MailException
      */
-    public function sendMessage()
+    public function sendMessage(): void
     {
         try {
             $templateData = $this->getMessage()->getTemplateInfo();
@@ -107,7 +107,7 @@ class Transport extends \Magento\Email\Model\Transport
                         'store_id'      => $storeId,
                     ]);
 
-                    return $this;
+                    return;
                 }
                 /** @var Transport\Sailthru $transport */
                 $transport = $this->sailthruTransportFactory->create([
@@ -119,31 +119,82 @@ class Transport extends \Magento\Email\Model\Transport
                 ]);
                 $transport->sendMessage();
 
-                return $this;
+                return;
             }
 
             parent::sendMessage();
         } catch (\Exception $e) {
             throw new \Magento\Framework\Exception\MailException(new \Magento\Framework\Phrase($e->getMessage()), $e);
         }
-
-        return $this;
     }
 
     /**
      * Get data for email
+     *Symfony MIME handling (Magento 2.4.8-p3+)
      *
      * @return array
      */
     protected function getEmailData()
     {
-        $message = ZendMessage::fromString($this->getMessage()->getRawMessage());
+        if (class_exists('\Zend\Mail\Message')) {
+            $message = ZendMessage::fromString($this->getMessage()->getRawMessage());
+            return [
+                'to'      => $this->prepareRecipients($message),
+                'subject' => $this->prepareSubject($message),
+                'content' => $this->getMessage()->getDecodedBodyText()
+            ];
+        }
+
+        $emailMessage = $this->getMessage();
 
         return [
-            'to'      => $this->prepareRecipients($message),
-            'subject' => $this->prepareSubject($message),
-            'content' => $this->getMessage()->getDecodedBodyText()
+            'to'      => $this->extractRecipients($emailMessage),
+            'subject' => $this->extractSubject($emailMessage),
+            'content' => $emailMessage->getDecodedBodyText()
         ];
+    }
+
+    /**
+     * Extract recipients from Symfony email (Magento 2.4.8-p3+)
+     *
+     * @param EmailMessageInterface $message
+     * @return string
+     */
+    protected function extractRecipients(EmailMessageInterface $message)
+    {
+        $toAddresses = method_exists($message, 'getTo') ? $message->getTo() : [];
+
+        if (empty($toAddresses)) {
+            return '';
+        }
+
+        $emails = [];
+        foreach ($toAddresses as $address) {
+            if (is_object($address) && method_exists($address, 'getAddress')) {
+                $emails[] = $address->getAddress();
+            } elseif (is_object($address) && method_exists($address, 'getEmail')) {
+                $emails[] = $address->getEmail();
+            } elseif (is_string($address)) {
+                $emails[] = $address;
+            }
+        }
+
+        return implode(', ', $emails);
+    }
+
+    /**
+     * Extract subject from Symfony email (Magento 2.4.8-p3+)
+     *
+     * @param EmailMessageInterface $message
+     * @return string
+     */
+    protected function extractSubject(EmailMessageInterface $message)
+    {
+        if (method_exists($message, 'getSubject')) {
+            return (string) $message->getSubject();
+        }
+
+        return '';
     }
 
     /**
