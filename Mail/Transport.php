@@ -13,9 +13,6 @@ use Sailthru\MageSail\Helper\Settings;
 use Sailthru\MageSail\Helper\Templates as SailthruTemplates;
 use Sailthru\MageSail\Mail\Transport\SailthruFactory as SailthruTransportFactory;
 use Sailthru\MageSail\Mail\Queue\EmailSendPublisher;
-use Zend\Mail\Message as ZendMessage;
-use Zend\Mail\Address\AddressInterface;
-use Zend\Mail\Header\HeaderInterface;
 
 class Transport extends \Magento\Email\Model\Transport
 {
@@ -130,14 +127,16 @@ class Transport extends \Magento\Email\Model\Transport
 
     /**
      * Get data for email
-     *Symfony MIME handling (Magento 2.4.8-p3+)
+     *
+     * Uses Zend Mail on Magento < 2.4.8 and the Symfony MIME API on 2.4.8-p3+.
+     * Zend FQCNs are used inline (not via `use`) to avoid autoload errors on 2.4.8-p3.
      *
      * @return array
      */
     protected function getEmailData()
     {
         if (class_exists('\Zend\Mail\Message')) {
-            $message = ZendMessage::fromString($this->getMessage()->getRawMessage());
+            $message = \Zend\Mail\Message::fromString($this->getMessage()->getRawMessage());
             return [
                 'to'      => $this->prepareRecipients($message),
                 'subject' => $this->prepareSubject($message),
@@ -165,7 +164,9 @@ class Transport extends \Magento\Email\Model\Transport
         $toAddresses = method_exists($message, 'getTo') ? $message->getTo() : [];
 
         if (empty($toAddresses)) {
-            return '';
+            throw new RuntimeException(
+                __('Invalid email; contains no at least one of "To", "Cc", and "Bcc" header')
+            );
         }
 
         $emails = [];
@@ -177,6 +178,12 @@ class Transport extends \Magento\Email\Model\Transport
             } elseif (is_string($address)) {
                 $emails[] = $address;
             }
+        }
+
+        if (empty($emails)) {
+            throw new RuntimeException(
+                __('Invalid "To" header; contains no addresses')
+            );
         }
 
         return implode(', ', $emails);
@@ -232,7 +239,7 @@ class Transport extends \Magento\Email\Model\Transport
 
         // If not on Windows, return normal string
         if (!$this->isWindowsOs() && version_compare($this->sailthruSettings->getMagentoVersion(), '2.3.3', '<')) {
-            return $to->getFieldValue(HeaderInterface::FORMAT_ENCODED);
+            return $to->getFieldValue(\Zend\Mail\Header\HeaderInterface::FORMAT_ENCODED);
         }
 
         // Otherwise, return list of emails
@@ -256,11 +263,11 @@ class Transport extends \Magento\Email\Model\Transport
     {
         $headers = $message->getHeaders();
         if (!$headers->has('subject')) {
-            return;
+            return '';
         }
         $header = $headers->get('subject');
 
-        return $header->getFieldValue(HeaderInterface::FORMAT_ENCODED);
+        return $header->getFieldValue(\Zend\Mail\Header\HeaderInterface::FORMAT_ENCODED);
     }
 
     /**

@@ -50,7 +50,7 @@ class EmailMessage extends \Magento\Framework\Mail\EmailMessage
     {
         $body = $this->getBody();
 
-        if (empty($body)) {
+        if ($body === null) {
             return '';
         }
 
@@ -65,6 +65,6 @@ class EmailMessage extends \Magento\Framework\Mail\EmailMessage
             }
         }
 
-        return (string) $body;
+        return method_exists($body, '__toString') ? (string) $body : '';
     }
 }
