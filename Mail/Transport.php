@@ -161,20 +161,24 @@ class Transport extends \Magento\Email\Model\Transport
      */
     protected function extractRecipients(EmailMessageInterface $message)
     {
-        $toAddresses = method_exists($message, 'getTo') ? $message->getTo() : [];
+        $toAddresses  = method_exists($message, 'getTo')  ? $message->getTo()  : [];
+        $ccAddresses  = method_exists($message, 'getCc')  ? $message->getCc()  : [];
+        $bccAddresses = method_exists($message, 'getBcc') ? $message->getBcc() : [];
+
+        if (empty($toAddresses) && empty($ccAddresses) && empty($bccAddresses)) {
+            throw new RuntimeException(
+                __('Email must contain at least one of "To", "Cc", or "Bcc" recipient')
+            );
+        }
 
         if (empty($toAddresses)) {
-            throw new RuntimeException(
-                __('Invalid email; contains no at least one of "To", "Cc", and "Bcc" header')
-            );
+            return '';
         }
 
         $emails = [];
         foreach ($toAddresses as $address) {
             if (is_object($address) && method_exists($address, 'getAddress')) {
                 $emails[] = $address->getAddress();
-            } elseif (is_object($address) && method_exists($address, 'getEmail')) {
-                $emails[] = $address->getEmail();
             } elseif (is_string($address)) {
                 $emails[] = $address;
             }
@@ -222,7 +226,7 @@ class Transport extends \Magento\Email\Model\Transport
         $hasTo = $headers->has('to');
         if (!$hasTo && !$headers->has('cc') && !$headers->has('bcc')) {
             throw new RuntimeException(
-                'Invalid email; contains no at least one of "To", "Cc", and "Bcc" header'
+                'Email must contain at least one of "To", "Cc", or "Bcc" recipient'
             );
         }
 
