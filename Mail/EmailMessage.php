@@ -65,6 +65,8 @@ class EmailMessage extends \Magento\Framework\Mail\EmailMessage
             }
         }
 
-        return method_exists($body, '__toString') ? (string) $body : '';
+        return is_scalar($body) || (is_object($body) && method_exists($body, '__toString'))
+            ? (string) $body
+            : '';
     }
 }

@@ -4,7 +4,6 @@ namespace Sailthru\MageSail\Mail;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\RequestInterface;
-use Magento\Framework\Exception\MailException;
 use Magento\Framework\Exception\RuntimeException;
 use Magento\Framework\Mail\EmailMessageInterface;
 use Magento\Store\Model\StoreManagerInterface;
@@ -167,7 +166,7 @@ class Transport extends \Magento\Email\Model\Transport
 
         if (empty($toAddresses) && empty($ccAddresses) && empty($bccAddresses)) {
             throw new RuntimeException(
-                __('Email must contain at least one of "To", "Cc", or "Bcc" recipient')
+                'Email must contain at least one of "To", "Cc", or "Bcc" recipient'
             );
         }
 
@@ -186,7 +185,7 @@ class Transport extends \Magento\Email\Model\Transport
 
         if (empty($emails)) {
             throw new RuntimeException(
-                __('Invalid "To" header; contains no addresses')
+                'Invalid "To" header; contains no addresses'
             );
         }
 
