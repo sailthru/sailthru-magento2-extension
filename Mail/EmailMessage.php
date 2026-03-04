@@ -61,7 +61,7 @@ class EmailMessage extends \Magento\Framework\Mail\EmailMessage
         if (method_exists($body, 'getParts')) {
             $parts = $body->getParts();
             if (!empty($parts[0])) {
-                return $parts[0]->getRawContent() ?? '';
+                return $parts[0]->getBody() ?? '';
             }
         }
 
