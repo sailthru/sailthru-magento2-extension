@@ -12,7 +12,7 @@
     "magento/module-catalog": "^101.*",
     "magento/module-customer": "^100.1.*"
   },
-  "version": "2.5.7",
+  "version": "2.5.8",
   "autoload": {
     "files": [ "registration.php" ],
     "psr-4": { "Sailthru\\MageSail\\": "" }
