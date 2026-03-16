@@ -4,7 +4,6 @@ namespace Sailthru\MageSail\Mail;
 
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\RequestInterface;
-use Magento\Framework\Exception\MailException;
 use Magento\Framework\Exception\RuntimeException;
 use Magento\Framework\Mail\EmailMessageInterface;
 use Magento\Store\Model\StoreManagerInterface;
@@ -13,9 +12,6 @@ use Sailthru\MageSail\Helper\Settings;
 use Sailthru\MageSail\Helper\Templates as SailthruTemplates;
 use Sailthru\MageSail\Mail\Transport\SailthruFactory as SailthruTransportFactory;
 use Sailthru\MageSail\Mail\Queue\EmailSendPublisher;
-use Zend\Mail\Message as ZendMessage;
-use Zend\Mail\Address\AddressInterface;
-use Zend\Mail\Header\HeaderInterface;
 
 class Transport extends \Magento\Email\Model\Transport
 {
@@ -82,11 +78,11 @@ class Transport extends \Magento\Email\Model\Transport
     /**
      * Send a mail using this transport
      *
-     * @return Transport
+     * @return void
      *
      * @throws \Magento\Framework\Exception\MailException
      */
-    public function sendMessage()
+    public function sendMessage(): void
     {
         try {
             $templateData = $this->getMessage()->getTemplateInfo();
@@ -107,7 +103,7 @@ class Transport extends \Magento\Email\Model\Transport
                         'store_id'      => $storeId,
                     ]);
 
-                    return $this;
+                    return;
                 }
                 /** @var Transport\Sailthru $transport */
                 $transport = $this->sailthruTransportFactory->create([
@@ -119,31 +115,96 @@ class Transport extends \Magento\Email\Model\Transport
                 ]);
                 $transport->sendMessage();
 
-                return $this;
+                return;
             }
 
             parent::sendMessage();
         } catch (\Exception $e) {
             throw new \Magento\Framework\Exception\MailException(new \Magento\Framework\Phrase($e->getMessage()), $e);
         }
-
-        return $this;
     }
 
     /**
      * Get data for email
      *
+     * Uses Zend Mail on Magento < 2.4.8 and the Symfony MIME API on 2.4.8-p3+.
+     * Zend FQCNs are used inline (not via `use`) to avoid autoload errors on 2.4.8-p3.
+     *
      * @return array
      */
     protected function getEmailData()
     {
-        $message = ZendMessage::fromString($this->getMessage()->getRawMessage());
+        if (class_exists('\Zend\Mail\Message')) {
+            $message = \Zend\Mail\Message::fromString($this->getMessage()->getRawMessage());
+            return [
+                'to'      => $this->prepareRecipients($message),
+                'subject' => $this->prepareSubject($message),
+                'content' => $this->getMessage()->getDecodedBodyText()
+            ];
+        }
+
+        $emailMessage = $this->getMessage();
 
         return [
-            'to'      => $this->prepareRecipients($message),
-            'subject' => $this->prepareSubject($message),
-            'content' => $this->getMessage()->getDecodedBodyText()
+            'to'      => $this->extractRecipients($emailMessage),
+            'subject' => $this->extractSubject($emailMessage),
+            'content' => $emailMessage->getDecodedBodyText()
         ];
+    }
+
+    /**
+     * Extract recipients from Symfony email (Magento 2.4.8-p3+)
+     *
+     * @param EmailMessageInterface $message
+     * @return string
+     */
+    protected function extractRecipients(EmailMessageInterface $message)
+    {
+        $toAddresses  = method_exists($message, 'getTo')  ? $message->getTo()  : [];
+        $ccAddresses  = method_exists($message, 'getCc')  ? $message->getCc()  : [];
+        $bccAddresses = method_exists($message, 'getBcc') ? $message->getBcc() : [];
+
+        if (empty($toAddresses) && empty($ccAddresses) && empty($bccAddresses)) {
+            throw new RuntimeException(
+                'Email must contain at least one of "To", "Cc", or "Bcc" recipient'
+            );
+        }
+
+        if (empty($toAddresses)) {
+            return '';
+        }
+
+        $emails = [];
+        foreach ($toAddresses as $address) {
+            if (is_object($address) && method_exists($address, 'getAddress')) {
+                $emails[] = $address->getAddress();
+            } elseif (is_string($address)) {
+                $emails[] = $address;
+            }
+        }
+
+        if (empty($emails)) {
+            throw new RuntimeException(
+                'Invalid "To" header; contains no addresses'
+            );
+        }
+
+        return implode(', ', $emails);
+    }
+
+    /**
+     * Extract subject from Symfony email (Magento 2.4.8-p3+)
+     *
+     * @param EmailMessageInterface $message
+     * @return string
+     */
+    protected function extractSubject(EmailMessageInterface $message)
+    {
+        if (method_exists($message, 'getSubject')) {
+            return (string) $message->getSubject();
+        }
+
+        return '';
     }
 
     /**
@@ -164,7 +225,7 @@ class Transport extends \Magento\Email\Model\Transport
         $hasTo = $headers->has('to');
         if (!$hasTo && !$headers->has('cc') && !$headers->has('bcc')) {
             throw new RuntimeException(
-                'Invalid email; contains no at least one of "To", "Cc", and "Bcc" header'
+                'Email must contain at least one of "To", "Cc", or "Bcc" recipient'
             );
         }
 
@@ -181,7 +242,7 @@ class Transport extends \Magento\Email\Model\Transport
 
         // If not on Windows, return normal string
         if (!$this->isWindowsOs() && version_compare($this->sailthruSettings->getMagentoVersion(), '2.3.3', '<')) {
-            return $to->getFieldValue(HeaderInterface::FORMAT_ENCODED);
+            return $to->getFieldValue(\Zend\Mail\Header\HeaderInterface::FORMAT_ENCODED);
         }
 
         // Otherwise, return list of emails
@@ -205,11 +266,11 @@ class Transport extends \Magento\Email\Model\Transport
     {
         $headers = $message->getHeaders();
         if (!$headers->has('subject')) {
-            return;
+            return '';
         }
         $header = $headers->get('subject');
 
-        return $header->getFieldValue(HeaderInterface::FORMAT_ENCODED);
+        return $header->getFieldValue(\Zend\Mail\Header\HeaderInterface::FORMAT_ENCODED);
     }
 
     /**
